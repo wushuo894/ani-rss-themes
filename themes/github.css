@@ -1,0 +1,493 @@
+/**
+ * 代码仓库 · GitHub
+ * 色板：GitHub Primer 官方 primitives（light / dark 两套原值，没有自己调）
+ * 字体：Primer 系统字栈，数字与日志走 ui-monospace
+ * 按钮：Primer 按钮规格 —— 6px 圆角、1px 边、底部 1px 投影，主按钮是那只绿色
+ * 标签：GitHub Label 药丸（同色描边 + 淡底）
+ * 背景：贡献热力图格子，向下渐隐
+ * 明暗跟随切换
+ *
+ * 注：--el-color-primary 被 ani-rss 用内联样式写在 <html> 上，只有 !important 能盖过
+ */
+
+/* ---------- 浅色（Primer light） ---------- */
+html:root:not(.dark) {
+    --el-color-primary: #0969DA !important;
+    --el-color-primary-light-3: #4493F8;
+    --el-color-primary-light-5: #74B0F5;
+    --el-color-primary-light-7: #A5CDFA;
+    --el-color-primary-light-8: #C6E0FD;
+    --el-color-primary-light-9: #DDF4FF;
+    --el-color-primary-dark-2: #0757BA;
+
+    --el-color-success: #1A7F37;
+    --el-color-warning: #9A6700;
+    --el-color-danger: #CF222E;
+    --el-color-error: #CF222E;
+    --el-color-info: #59636E;
+
+    --el-bg-color: #FFFFFF;
+    --el-bg-color-page: #FFFFFF;
+    --el-bg-color-overlay: #FFFFFF;
+    --el-card-bg-color: #FFFFFF;
+    --el-dialog-bg-color: #FFFFFF;
+    --el-mask-color: rgba(31, 35, 40, .3);
+
+    --el-text-color-primary: #1F2328;
+    --el-text-color-regular: #1F2328;
+    --el-text-color-secondary: #59636E;
+    --el-text-color-placeholder: #818B98;
+    --el-text-color-disabled: #A0A8B2;
+
+    --el-border-color-dark: #B7BEC7;
+    --el-border-color-darker: #A0A8B2;
+    --el-border-color: #D1D9E0;
+    --el-border-color-light: #D1D9E0;
+    --el-border-color-lighter: #E4E8EC;
+    --el-border-color-extra-light: #EEF1F4;
+
+    --el-fill-color-dark: #E6EAEF;
+    --el-fill-color: #EFF2F5;
+    --el-fill-color-light: #F6F8FA;
+    --el-fill-color-lighter: #F6F8FA;
+    --el-fill-color-extra-light: #FAFBFC;
+    --el-fill-color-blank: #FFFFFF;
+
+    /* 按钮：Primer btn */
+    --ani-btn-bg: #F6F8FA;
+    --ani-btn-border: #D1D9E0;
+    --ani-btn-fg: #1F2328;
+    --ani-btn-hover-bg: #EFF2F5;
+    --ani-btn-hover-border: #D1D9E0;
+    --ani-btn-active-bg: #E6EAEF;
+    --ani-btn-shadow: 0 1px 0 rgba(31, 35, 40, .04), inset 0 1px 0 rgba(255, 255, 255, .25);
+
+    --ani-primary-bg: #1F883D;      /* 那只绿色按钮 */
+    --ani-primary-hover: #1A7F37;
+    --ani-primary-border: rgba(31, 35, 40, .15);
+
+    --ani-focus-ring: rgba(9, 105, 218, .3);
+    --ani-inset: inset 0 1px 0 rgba(208, 215, 222, .2);
+
+    /* 贡献格子（GitHub 的空格子是 #EBEDF0，铺满整页会太吵，压浅一档） */
+    --ani-sq: #EEF0F3;
+    --ani-gap: #FFFFFF;
+}
+
+/* ---------- 深色（Primer dark） ---------- */
+html.dark:root {
+    --el-color-primary: #4493F8 !important;
+    --el-color-primary-light-3: #316DCA;
+    --el-color-primary-light-5: #265394;
+    --el-color-primary-light-7: #1B3A66;
+    --el-color-primary-light-8: #16304F;
+    --el-color-primary-light-9: #121D2F;
+    --el-color-primary-dark-2: #6CB0FA;
+
+    --el-color-success: #3FB950;
+    --el-color-warning: #D29922;
+    --el-color-danger: #F85149;
+    --el-color-error: #F85149;
+    --el-color-info: #9198A1;
+
+    --el-bg-color: #0D1117;
+    --el-bg-color-page: #0D1117;
+    --el-bg-color-overlay: #151B23;
+    --el-card-bg-color: #151B23;
+    --el-dialog-bg-color: #151B23;
+    --el-mask-color: rgba(1, 4, 9, .8);
+
+    --el-text-color-primary: #F0F6FC;
+    --el-text-color-regular: #F0F6FC;
+    --el-text-color-secondary: #9198A1;
+    --el-text-color-placeholder: #656C76;
+    --el-text-color-disabled: #4D5560;
+
+    --el-border-color-dark: #656C76;
+    --el-border-color-darker: #9198A1;
+    --el-border-color: #3D444D;
+    --el-border-color-light: #3D444D;
+    --el-border-color-lighter: #2A313C;
+    --el-border-color-extra-light: #21262D;
+
+    --el-fill-color-dark: #262C36;
+    --el-fill-color: #212830;
+    --el-fill-color-light: #151B23;
+    --el-fill-color-lighter: #151B23;
+    --el-fill-color-extra-light: #12181F;
+    --el-fill-color-blank: #0D1117;
+
+    --ani-btn-bg: #212830;
+    --ani-btn-border: #3D444D;
+    --ani-btn-fg: #F0F6FC;
+    --ani-btn-hover-bg: #262C36;
+    --ani-btn-hover-border: #656C76;
+    --ani-btn-active-bg: #2A313C;
+    --ani-btn-shadow: 0 0 transparent;
+
+    --ani-primary-bg: #238636;
+    --ani-primary-hover: #29903B;
+    --ani-primary-border: rgba(240, 246, 252, .1);
+
+    --ani-focus-ring: rgba(68, 147, 248, .4);
+    --ani-inset: 0 0 transparent;
+
+    --ani-sq: #161B22;
+    --ani-gap: #0D1117;
+}
+
+html:root, html.dark:root {
+    /* Primer 的圆角只有 4 / 6 / 2em 三档 */
+    --el-border-radius-small: 4px;
+    --el-border-radius-base: 6px;
+    --el-border-radius-round: 2em;
+
+    --el-box-shadow: 0 8px 24px rgba(31, 35, 40, .12);
+    --el-box-shadow-light: 0 3px 6px rgba(31, 35, 40, .1);
+    --el-box-shadow-lighter: 0 1px 0 rgba(31, 35, 40, .04);
+    --el-box-shadow-dark: 0 12px 28px rgba(31, 35, 40, .2);
+
+    --ani-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* ================= 字体：Primer 系统字栈 ================= */
+html * {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+    "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+}
+
+/* GitHub 上凡是「值」都是等宽：编号、体积、评分、日志、URL */
+html .el-tag,
+html .list-card-score,
+html .list-card-url,
+html .el-input-number .el-input__inner,
+html .el-descriptions__content,
+html .logs-dialog,
+html code, html kbd, html pre, html samp {
+    font-family: var(--ani-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+html h1, html h2, html h3, html h4,
+html .el-dialog__title,
+html .el-collapse-item__header {
+    font-weight: 600;
+    letter-spacing: -.003em;
+}
+
+html .el-dialog__title {
+    font-size: 16px;
+}
+
+/* ================= 背景：贡献热力图 ================= */
+body {
+    background-color: var(--el-bg-color-page);
+    color: var(--el-text-color-primary);
+}
+
+/* 底色铺满格子色，再用页面色画出 3px 缝隙 —— 剩下的就是 10×10 的贡献方块 */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    pointer-events: none;
+    background-color: var(--ani-sq);
+    background-image:
+        repeating-linear-gradient(90deg, var(--ani-gap) 0 3px, transparent 3px 13px),
+        repeating-linear-gradient(0deg, var(--ani-gap) 0 3px, transparent 3px 13px);
+    -webkit-mask-image: linear-gradient(180deg, #000 0, #000 28%, transparent 76%);
+    mask-image: linear-gradient(180deg, #000 0, #000 28%, transparent 76%);
+}
+
+/* ================= 按钮：Primer btn ================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    background-color: var(--ani-btn-bg);
+    border: 1px solid var(--ani-btn-border);
+    color: var(--ani-btn-fg);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    box-shadow: var(--ani-btn-shadow);
+    transition: background-color 80ms cubic-bezier(.33, 1, .68, 1),
+    border-color 80ms cubic-bezier(.33, 1, .68, 1),
+    box-shadow 80ms cubic-bezier(.33, 1, .68, 1);
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--ani-btn-hover-bg);
+    border-color: var(--ani-btn-hover-border);
+    color: var(--ani-btn-fg);
+}
+
+html .el-button:active {
+    background-color: var(--ani-btn-active-bg);
+    box-shadow: inset 0 1px 0 rgba(31, 35, 40, .15);
+}
+
+html .el-button:focus-visible {
+    outline: 2px solid var(--el-color-primary);
+    outline-offset: -1px;
+    box-shadow: 0 0 0 3px var(--ani-focus-ring);
+}
+
+/* 主 / 成功：GitHub 的绿色实心按钮 */
+html .el-button--primary,
+html .el-button--success {
+    background-color: var(--ani-primary-bg);
+    border-color: var(--ani-primary-border);
+    color: #FFFFFF;
+    box-shadow: 0 1px 0 rgba(31, 35, 40, .1), inset 0 1px 0 rgba(255, 255, 255, .03);
+}
+
+html .el-button--primary:hover,
+html .el-button--success:hover {
+    background-color: var(--ani-primary-hover);
+    border-color: var(--ani-primary-border);
+    color: #FFFFFF;
+}
+
+/* 危险：平时只是红字，hover 才整块变红 —— GitHub btn-danger */
+html .el-button--danger {
+    background-color: var(--ani-btn-bg);
+    border-color: var(--ani-btn-border);
+    color: var(--el-color-danger);
+}
+
+html .el-button--danger:hover {
+    background-color: var(--el-color-danger);
+    border-color: rgba(31, 35, 40, .15);
+    color: #FFFFFF;
+}
+
+html .el-button--warning {
+    background-color: var(--ani-btn-bg);
+    border-color: var(--ani-btn-border);
+    color: var(--el-color-warning);
+}
+
+html .el-button--warning:hover {
+    background-color: var(--el-color-warning);
+    border-color: rgba(31, 35, 40, .15);
+    color: #FFFFFF;
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+}
+
+/* 登录按钮：GitHub 登录框那颗绿色通栏按钮（通栏会让它自己占满第二行） */
+html #form .el-button {
+    width: 100%;
+    justify-content: center;
+    background-color: var(--ani-primary-bg);
+    border-color: var(--ani-primary-border);
+    color: #FFFFFF;
+}
+
+html #form .el-button:hover {
+    background-color: var(--ani-primary-hover);
+    color: #FFFFFF;
+}
+
+/* ================= 输入框：Primer form control ================= */
+html .el-input__wrapper,
+html .el-select__wrapper,
+html .el-textarea__inner {
+    background-color: var(--el-bg-color);
+    border-radius: 6px;
+    box-shadow: 0 0 0 1px var(--el-border-color) inset, var(--ani-inset);
+    transition: box-shadow .1s ease-out;
+}
+
+html .el-input__wrapper:hover,
+html .el-select__wrapper:hover {
+    box-shadow: 0 0 0 1px var(--el-border-color-dark) inset;
+}
+
+/* 聚焦：蓝边 + 3px 光环，GitHub 全站统一的这一下 */
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused,
+html .el-textarea__inner:focus {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset,
+    0 0 0 3px var(--ani-focus-ring);
+}
+
+/* ================= 卡片：Primer Box ================= */
+html .el-card,
+html .el-card.is-never-shadow {
+    background-color: var(--el-card-bg-color);
+    border: 1px solid var(--el-border-color);
+    border-radius: 6px;
+    box-shadow: none;
+    transition: border-color .1s ease-out;
+}
+
+html .el-card:hover {
+    border-color: var(--el-border-color-dark);
+}
+
+html .el-card__footer {
+    border-top: 1px solid var(--el-border-color);
+    background-color: var(--el-fill-color-light);
+}
+
+html .el-overlay-dialog .el-dialog {
+    border: 1px solid var(--el-border-color);
+    border-radius: 12px;
+    box-shadow: var(--el-box-shadow);
+}
+
+/* 弹窗标题行按 GitHub 的对话框：浅底 + 一条分隔线 */
+html .el-dialog__header {
+    background-color: var(--el-fill-color-light);
+    border-bottom: 1px solid var(--el-border-color);
+    border-radius: 12px 12px 0 0;
+    margin-right: 0;
+    padding: 12px 16px;
+}
+
+/* ================= 标签：GitHub Label 药丸 ================= */
+html .el-tag {
+    border-radius: 2em;
+    border: 1px solid;
+    border-color: color-mix(in srgb, currentColor 45%, transparent);
+    background-color: color-mix(in srgb, currentColor 12%, transparent);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0;
+    padding: 0 9px;
+}
+
+/* 徽标数字：GitHub 的 Counter */
+html .el-badge__content {
+    border-radius: 2em;
+    font-family: var(--ani-mono);
+    font-weight: 500;
+}
+
+/* ================= 链接、开关、其余 ================= */
+html .el-link {
+    color: var(--el-color-primary);
+    font-weight: 400;
+}
+
+html .el-link:hover {
+    text-decoration: underline;
+}
+
+html .el-link .el-link__inner {
+    border-bottom: none;
+}
+
+/* 开关：打开是绿的，不是蓝的 —— GitHub 的 ToggleSwitch */
+html .el-switch {
+    --el-switch-on-color: var(--ani-primary-bg);
+    --el-switch-off-color: var(--el-fill-color-dark);
+}
+
+html .el-switch__core {
+    border-radius: 6px;
+    border-color: var(--el-border-color);
+}
+
+html .el-switch__core .el-switch__action {
+    border-radius: 4px;
+}
+
+/* 折叠面板的头做成 Box header */
+html .el-collapse-item__header {
+    font-size: 14px;
+}
+
+/* 表格：GitHub 的文件列表 */
+html .el-table th.el-table__cell {
+    background-color: var(--el-fill-color-light);
+    font-weight: 600;
+}
+
+html .el-table tr:hover > td.el-table__cell {
+    background-color: var(--el-fill-color-light);
+}
+
+/* 提示条：GitHub Flash */
+html .el-alert {
+    border: 1px solid;
+    border-color: color-mix(in srgb, currentColor 40%, transparent);
+    border-radius: 6px;
+}
+
+/* 评分：项目里写死的品红换成 GitHub 蓝，等宽对齐 */
+.list-card-score {
+    color: var(--el-color-primary) !important;
+    font-family: var(--ani-mono) !important;
+    font-weight: 600 !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+.list-card-image {
+    border-radius: 6px !important;
+    border-color: var(--el-border-color) !important;
+}
+
+/* 星期分组标题：做成仓库文件列表的分组行 */
+html .list-week-title {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 6px 12px;
+    background-color: var(--el-fill-color-light);
+    border: 1px solid var(--el-border-color);
+    border-radius: 6px;
+    display: inline-block;
+}
+
+/* ================= 登录页：GitHub 登录框 ================= */
+#login-page #form {
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color);
+    border-radius: 6px;
+    padding: 16px 20px 20px;
+    box-shadow: var(--el-box-shadow-lighter);
+}
+
+#login-page .title-h2 {
+    font-size: 20px;
+    font-weight: 300;
+    letter-spacing: -.01em;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--el-border-color);
+    margin-bottom: 14px;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-dark);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--el-text-color-secondary);
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* 卡片右侧的图标按钮：保持紧凑，否则会把字幕组标签挤到按钮底下 */
+html .list-card-actions .el-button {
+    padding-left: 8px;
+    padding-right: 8px;
+}

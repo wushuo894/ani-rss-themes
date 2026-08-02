@@ -1,6 +1,6 @@
 # ani-rss-themes
 
-给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的一组自定义 CSS 主题。12 款，每款有自己的字体、按钮、背景，不是只换配色。
+给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的一组自定义 CSS 主题。14 款，每款有自己的字体、按钮、背景，不是只换配色。
 
 纯 CSS，不需要改动 ani-rss 本体，也不需要重新编译前端。
 
@@ -17,6 +17,8 @@
 | `themes/sakura.css` | 樱花物语 · Sakura | 幼圆 / Yuanti SC 圆体 | 药丸渐变，按下回弹 | 飘落花瓣，纯 CSS 动画 | 跟随 |
 | `themes/glass.css` | 云海玻璃 · Glass | Optima 细体，超大字距 | 极透玻璃 + 内高光，hover 光泽平移 | 流动极光，漂移换色 | 跟随 |
 | `themes/terminal.css` | 绿光终端 · Terminal | 等宽 + 全大写 + 等宽数字 | `[ 方括号 ]`，hover 整块反色 | 扫描线 + CRT 闪烁 + 暗角 | 强制深色 |
+| `themes/github.css` | 代码仓库 · GitHub | Primer 系统字栈，数值走等宽 | Primer 规格，主按钮是那只绿色 | 贡献热力图格子，向下渐隐 | 跟随 |
+| `themes/calendar.css` | 挂历 · Calendar | 楷体标题 + DIN 等宽数字 | 方角，顶端一道红边，hover 转红 | 月历方格细线 + 纸面颗粒 | 跟随 |
 
 ### 随机壁纸（横竖屏自适应，每次刷新换图）
 

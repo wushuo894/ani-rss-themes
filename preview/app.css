@@ -191,11 +191,15 @@ html, body, #app {
     margin-bottom: 32px;
 }
 
+/* 上游是 width:100% + space-between。这里多给一个 wrap：主题把按钮做宽之后
+   （字距、边框、通栏），200px 的表单放不下两个元素，不换行「记住密码」会被按钮压掉半截 */
 .action {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .footer {

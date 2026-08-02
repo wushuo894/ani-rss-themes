@@ -1,0 +1,516 @@
+/**
+ * 挂历 · Calendar
+ * 字体：标题楷体（挂历上那种字），日期与数字走 DIN 等宽数字
+ * 按钮：日历撕页 —— 方角 + 顶端一条红边，hover 整块转红
+ * 背景：月历方格细线 + 纸面颗粒
+ * 标签：日程条（左侧一道色杠）
+ * 登录页：一张带装订孔的台历卡
+ * 星期分组标题直接做成挂历表头（红竖条 + 楷体 + 双横线）
+ * 明暗跟随切换（深色是夜里那本台历，不是纯黑）
+ *
+ * 注：--el-color-primary 被 ani-rss 用内联样式写在 <html> 上，只有 !important 能盖过
+ */
+
+/* ---------- 浅色：纸 ---------- */
+html:root:not(.dark) {
+    --el-color-primary: #C4342C !important;   /* 日历红 */
+    --el-color-primary-light-3: #D46A63;
+    --el-color-primary-light-5: #E0918B;
+    --el-color-primary-light-7: #EDBDB9;
+    --el-color-primary-light-8: #F3D2CF;
+    --el-color-primary-light-9: #FAEBEA;
+    --el-color-primary-dark-2: #A32A23;
+
+    --el-color-success: #4B7B52;   /* 节气绿 */
+    --el-color-warning: #C08A2E;   /* 宜忌黄 */
+    --el-color-danger: #C4342C;
+    --el-color-error: #C4342C;
+    --el-color-info: #6E6A62;
+
+    --el-bg-color: #FFFFFF;
+    --el-bg-color-page: #FBF8F2;
+    --el-bg-color-overlay: #FFFFFF;
+    --el-card-bg-color: #FFFFFF;
+    --el-dialog-bg-color: #FFFFFF;
+    --el-mask-color: rgba(40, 36, 30, .35);
+
+    --el-text-color-primary: #26241F;
+    --el-text-color-regular: #45413A;
+    --el-text-color-secondary: #7A756B;
+    --el-text-color-placeholder: #A8A296;
+    --el-text-color-disabled: #C4BEB2;
+
+    --el-border-color-dark: #C9C1B2;
+    --el-border-color-darker: #B5AC9B;
+    --el-border-color: #E0D9CB;
+    --el-border-color-light: #E9E3D8;
+    --el-border-color-lighter: #F0EBE2;
+    --el-border-color-extra-light: #F6F3ED;
+
+    --el-fill-color-dark: #EBE5DA;
+    --el-fill-color: #F2EEE6;
+    --el-fill-color-light: #F7F4EE;
+    --el-fill-color-lighter: #FAF8F4;
+    --el-fill-color-extra-light: #FCFBF8;
+    --el-fill-color-blank: #FFFFFF;
+
+    --ani-line: rgba(38, 36, 31, .09);    /* 月历格线 */
+    --ani-grain: rgba(38, 36, 31, .04);   /* 纸面颗粒 */
+    --ani-rule: #B5AC9B;                  /* 表头双横线 */
+    --ani-btn-top: rgba(196, 52, 44, .45);
+    --ani-shadow: 0 8px 20px rgba(60, 50, 36, .12);
+}
+
+/* ---------- 深色：夜里的台历 ---------- */
+html.dark:root {
+    --el-color-primary: #E2665E !important;
+    --el-color-primary-light-3: #B84F48;
+    --el-color-primary-light-5: #8E3E39;
+    --el-color-primary-light-7: #632C29;
+    --el-color-primary-light-8: #4E2421;
+    --el-color-primary-light-9: #331917;
+    --el-color-primary-dark-2: #EC8981;
+
+    --el-color-success: #7FA886;
+    --el-color-warning: #D6AE63;
+    --el-color-danger: #E2665E;
+    --el-color-error: #E2665E;
+    --el-color-info: #8C867B;
+
+    --el-bg-color: #232120;
+    --el-bg-color-page: #1B1A17;
+    --el-bg-color-overlay: #262422;
+    --el-card-bg-color: #232120;
+    --el-dialog-bg-color: #232120;
+    --el-mask-color: rgba(10, 9, 8, .72);
+
+    --el-text-color-primary: #EFE9DD;
+    --el-text-color-regular: #CDC6B9;
+    --el-text-color-secondary: #948D80;
+    --el-text-color-placeholder: #6E6860;
+    --el-text-color-disabled: #504B45;
+
+    --el-border-color-dark: #454039;
+    --el-border-color-darker: #555047;
+    --el-border-color: #35322D;
+    --el-border-color-light: #2F2C28;
+    --el-border-color-lighter: #2A2724;
+    --el-border-color-extra-light: #262421;
+
+    --el-fill-color-dark: #302D29;
+    --el-fill-color: #2A2825;
+    --el-fill-color-light: #262421;
+    --el-fill-color-lighter: #232120;
+    --el-fill-color-extra-light: #201E1C;
+    --el-fill-color-blank: #232120;
+
+    --ani-line: rgba(239, 233, 221, .055);
+    --ani-grain: rgba(239, 233, 221, .028);
+    --ani-rule: #555047;
+    --ani-btn-top: rgba(226, 102, 94, .5);
+    --ani-shadow: 0 8px 22px rgba(0, 0, 0, .45);
+}
+
+html:root, html.dark:root {
+    /* 纸片：几乎方角 */
+    --el-border-radius-small: 2px;
+    --el-border-radius-base: 3px;
+    --el-border-radius-round: 999px;
+
+    --el-box-shadow: var(--ani-shadow);
+    --el-box-shadow-light: 0 2px 6px rgba(60, 50, 36, .08);
+    --el-box-shadow-lighter: 0 1px 3px rgba(60, 50, 36, .06);
+    --el-box-shadow-dark: var(--ani-shadow);
+
+    /* 挂历上那手楷体，整套主题的辨识度全在这 */
+    --ani-kai: "Kaiti SC", "STKaiti", KaiTi, "Noto Serif SC", "Source Han Serif SC",
+    "Songti SC", SimSun, Georgia, serif;
+    /* 日期数字：窄体等宽 */
+    --ani-num: "DIN Alternate", Bahnschrift, "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+}
+
+/* ================= 字体 ================= */
+html * {
+    font-family: "PingFang SC", "DengXian", "Noto Sans SC", "Microsoft YaHei",
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+html h1, html h2, html h3, html h4,
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .list-week-title,
+html .title-h2 {
+    font-family: var(--ani-kai);
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+
+html .el-dialog__title {
+    font-size: 1.18em;
+}
+
+html .el-collapse-item__header {
+    font-size: 1.05em;
+}
+
+/* 一切数字按日历的方式对齐 */
+html .el-tag,
+html .el-input-number .el-input__inner,
+html .el-descriptions__content,
+html .list-card-score,
+html .el-badge__content,
+html .logs-dialog {
+    font-variant-numeric: tabular-nums;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 背景：月历方格 ================= */
+body {
+    background-color: var(--el-bg-color-page);
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    pointer-events: none;
+    background-image:
+        /* 纸面颗粒 */
+        radial-gradient(var(--ani-grain) .5px, transparent .5px),
+        /* 竖格线 */
+        repeating-linear-gradient(90deg, var(--ani-line) 0 1px, transparent 1px 96px),
+        /* 横格线 */
+        repeating-linear-gradient(0deg, var(--ani-line) 0 1px, transparent 1px 96px);
+    background-size: 3px 3px, auto, auto;
+}
+
+/* ================= 按钮：撕页 ================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: var(--el-bg-color);
+    --el-button-text-color: var(--el-text-color-primary);
+
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-border-color-dark);
+    /* 顶端那道红边就是日历纸的上沿 */
+    border-top: 2px solid var(--ani-btn-top);
+    color: var(--el-button-text-color);
+    border-radius: 3px;
+    font-weight: 500;
+    letter-spacing: .04em;
+    box-shadow: none;
+    transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+    border-top-color: var(--el-color-primary-dark-2);
+    color: #FFFFFF;
+}
+
+html .el-button:active {
+    background-color: var(--el-color-primary-dark-2);
+    border-color: var(--el-color-primary-dark-2);
+    color: #FFFFFF;
+}
+
+/* 主按钮：直接就是红纸 */
+html .el-button--primary,
+html .el-button--danger {
+    background-color: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+    border-top-color: var(--el-color-primary-dark-2);
+    color: #FFFFFF;
+}
+
+html .el-button--primary:hover,
+html .el-button--danger:hover {
+    background-color: var(--el-color-primary-dark-2);
+    border-color: var(--el-color-primary-dark-2);
+    color: #FFFFFF;
+}
+
+html .el-button--success {
+    border-top-color: var(--el-color-success);
+    color: var(--el-color-success);
+}
+
+html .el-button--success:hover {
+    background-color: var(--el-color-success);
+    border-color: var(--el-color-success);
+    border-top-color: var(--el-color-success);
+    color: #FFFFFF;
+}
+
+html .el-button--warning {
+    border-top-color: var(--el-color-warning);
+    color: var(--el-color-warning);
+}
+
+html .el-button--warning:hover {
+    background-color: var(--el-color-warning);
+    border-color: var(--el-color-warning);
+    border-top-color: var(--el-color-warning);
+    color: #FFFFFF;
+}
+
+/* 圆形图标按钮不带红上沿，加了会歪 */
+html .el-button.is-circle {
+    border-radius: 50%;
+    border-top-width: 1px;
+    border-top-color: var(--el-border-color-dark);
+}
+
+/* ================= 输入框：日历格子 ================= */
+html .el-input__wrapper,
+html .el-select__wrapper,
+html .el-textarea__inner {
+    background-color: var(--el-bg-color);
+    border-radius: 3px;
+    box-shadow: 0 0 0 1px var(--el-border-color-dark) inset;
+    transition: box-shadow .16s ease;
+}
+
+html .el-input__wrapper:hover,
+html .el-select__wrapper:hover {
+    box-shadow: 0 0 0 1px var(--el-border-color-darker) inset;
+}
+
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused,
+html .el-textarea__inner:focus {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset,
+    0 2px 0 0 var(--el-color-primary);
+}
+
+/* ================= 卡片：日历格 ================= */
+html .el-card,
+html .el-card.is-never-shadow {
+    background-color: var(--el-card-bg-color);
+    border: 1px solid var(--el-border-color);
+    border-top: 3px solid var(--el-border-color-dark);
+    border-radius: 3px;
+    box-shadow: none;
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+html .el-card:hover {
+    border-color: var(--el-border-color-dark);
+    border-top-color: var(--el-color-primary);
+    box-shadow: var(--el-box-shadow-light);
+}
+
+html .el-card__footer {
+    border-top: 1px dashed var(--el-border-color-dark);
+    background-color: transparent;
+}
+
+/* 弹窗：撕下来的一页，顶端红边 */
+html .el-overlay-dialog .el-dialog {
+    border: 1px solid var(--el-border-color);
+    border-top: 5px solid var(--el-color-primary);
+    border-radius: 3px;
+    box-shadow: var(--ani-shadow);
+}
+
+html .el-dialog__header {
+    border-bottom: 3px double var(--ani-rule);
+    padding-bottom: 12px;
+}
+
+/* ================= 标签：日程条 ================= */
+html .el-tag {
+    border-radius: 0 3px 3px 0;
+    border: none;
+    border-left: 3px solid currentColor;
+    background-color: color-mix(in srgb, currentColor 14%, transparent);
+    letter-spacing: .03em;
+}
+
+html .el-tag .el-text {
+    color: inherit;
+}
+
+/* ================= 星期分组：挂历表头 ================= */
+html .list-week-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.28em;
+    color: var(--el-color-primary);
+    letter-spacing: .18em;
+}
+
+/* 左边那道红竖条 */
+html .list-week-title::before {
+    content: "";
+    flex: none;
+    width: 5px;
+    height: 1.05em;
+    background: var(--el-color-primary);
+    border-radius: 1px;
+}
+
+/* 右边拉通的双横线 */
+html .list-week-title::after {
+    content: "";
+    flex: 1;
+    height: 5px;
+    border-top: 1px solid var(--ani-rule);
+    border-bottom: 1px solid var(--ani-rule);
+    opacity: .8;
+}
+
+/* ================= 其余组件 ================= */
+html .el-switch {
+    --el-switch-on-color: var(--el-color-primary);
+    --el-switch-off-color: var(--el-fill-color-dark);
+}
+
+html .el-switch__core {
+    border-radius: 3px;
+    border-color: var(--el-border-color-dark);
+}
+
+html .el-switch__core .el-switch__action {
+    border-radius: 2px;
+}
+
+html .el-checkbox__inner,
+html .el-radio__inner {
+    border-radius: 2px;
+}
+
+html .el-radio__inner {
+    border-radius: 50%;
+}
+
+html .el-table th.el-table__cell {
+    background-color: var(--el-fill-color-light);
+    border-bottom: 2px solid var(--ani-rule);
+    font-family: var(--ani-kai);
+    font-weight: 700;
+}
+
+html .el-alert {
+    border-left: 4px solid currentColor;
+    border-radius: 0 3px 3px 0;
+}
+
+html .el-link {
+    color: var(--el-color-primary);
+}
+
+/* 评分：挂历上那个大号日期数字 */
+.list-card-score {
+    color: var(--el-color-primary) !important;
+    font-family: var(--ani-num) !important;
+    font-weight: 700 !important;
+    letter-spacing: .02em !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+/* 封面：方角照片，压一层暖调 */
+.list-card-image {
+    border-radius: 2px !important;
+    border-color: var(--el-border-color-dark) !important;
+    filter: sepia(.12) saturate(.94);
+    transition: filter .2s ease;
+}
+
+.list-card-image:hover {
+    filter: none;
+}
+
+/* ================= 登录页：一张台历卡 ================= */
+#login-page #form {
+    position: relative;
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color-dark);
+    border-radius: 3px;
+    padding: 52px 20px 22px;
+    box-shadow: var(--ani-shadow);
+}
+
+/* 顶上的红色月份带 */
+#login-page #form::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 34px;
+    background: var(--el-color-primary);
+    border-radius: 2px 2px 0 0;
+}
+
+/* 带上打的装订孔 */
+#login-page #form::after {
+    content: "";
+    position: absolute;
+    top: 12px;
+    left: 0;
+    right: 0;
+    height: 11px;
+    background-image: radial-gradient(circle 5px at 17px 50%,
+    var(--el-bg-color) 97%, transparent 100%);
+    background-size: 34px 100%;
+    background-repeat: repeat-x;
+}
+
+#login-page .title-h2 {
+    color: var(--el-color-primary);
+    letter-spacing: .28em;
+    text-indent: .28em;
+}
+
+#login-page .title-h2::after {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 5px;
+    margin: 12px auto 0;
+    border-top: 1px solid var(--ani-rule);
+    border-bottom: 1px solid var(--ani-rule);
+}
+
+::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-dark);
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* 卡片右侧的图标按钮：保持紧凑，否则会把字幕组标签挤到按钮底下。
+   同时去掉红上沿 —— 每张卡三个纯图标按钮，都顶一道红会满屏发红点 */
+/* 第二个选择器不是冗余：上面那条通用按钮规则是 (0,3,1)，
+   单写 .list-card-actions .el-button 只有 (0,2,1)，压不住红上沿 */
+html .list-card-actions .el-button,
+html .list-card-actions .el-button.is-text.is-has-bg {
+    padding-left: 8px;
+    padding-right: 8px;
+    border-top-width: 1px;
+    border-top-color: var(--el-border-color-dark);
+}
+
+html .list-card-actions .el-button:hover,
+html .list-card-actions .el-button.is-text.is-has-bg:hover {
+    border-top-color: var(--el-color-primary);
+}

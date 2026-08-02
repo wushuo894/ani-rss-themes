@@ -1252,6 +1252,8 @@
         ['sakura.css', '樱花物语 · Sakura', 'auto'],
         ['glass.css', '云海玻璃 · Glass', 'auto'],
         ['terminal.css', '绿光终端 · Terminal', 'dark'],
+        ['github.css', '代码仓库 · GitHub', 'auto'],
+        ['calendar.css', '挂历 · Calendar', 'auto'],
         ['acg-wallpaper.css', '二次元 · 随机壁纸', 'auto'],
         ['acg-starry.css', '二次元 · 星空夜', 'dark'],
         ['acg-peach.css', '二次元 · 蜜桃樱', 'light'],
