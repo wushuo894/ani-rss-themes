@@ -4,7 +4,7 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>ani-rss 主题预览</title>
-    <meta name="description" content="ani-rss 自定义 CSS 主题的在线预览：真实 Element Plus 样式表 + 1:1 复刻的界面结构与交互"/>
+    <meta name="description" content="ani-rss 自定义 CSS 主题的在线预览：真实 Element Plus 样式表 + 1:1 复刻的界面结构、交互与动效"/>
 
     <!-- 1. Element Plus 组件样式：和 ani-rss 实际用的是同一份（MIT，见 preview/NOTICE.md） -->
     <link rel="stylesheet" href="preview/element-plus.css"/>
@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="preview/app.css"/>
 
     <style>
-        /* ===== 预览页外壳：顶部那条控制栏，不用 el- 前缀免得被主题染色 ===== */
         html, body {
             height: 100%;
         }
@@ -29,10 +28,15 @@
             height: 100%;
         }
 
+        #app > .content {
+            height: 100%;
+        }
+
         .el-scrollbar {
             height: 100%;
         }
 
+        /* ===== 预览页控制栏（不用 el- 前缀，免得被主题染色） ===== */
         .pv-bar {
             position: fixed;
             top: 0;
@@ -41,7 +45,7 @@
             height: 44px;
             z-index: 5000;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
             padding: 0 14px;
             background: #0d0f13;
@@ -65,6 +69,11 @@
             cursor: pointer;
         }
 
+        .pv-bar button.on {
+            border-color: #3f6fa8;
+            background: #16283c;
+        }
+
         .pv-bar code {
             font-family: ui-monospace, Consolas, monospace;
             font-size: 12px;
@@ -73,7 +82,7 @@
             padding: 5px 9px;
             border-radius: 5px;
             user-select: all;
-            max-width: 40vw;
+            max-width: 34vw;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -87,13 +96,13 @@
             color: #6f7784 !important;
         }
 
-        @media (max-width: 900px) {
-            .pv-bar code, .pv-hint {
+        @media (max-width: 1100px) {
+            .pv-bar code {
                 display: none;
             }
         }
 
-        /* ===== 弹窗：Element Plus 的遮罩是 fixed 的，这里补上 Vue 侧本来负责的定位 ===== */
+        /* ===== 弹窗：补上 Vue 侧本来负责的定位 ===== */
         .el-overlay {
             z-index: 2001;
         }
@@ -113,21 +122,27 @@
 
         .el-dialog__body {
             overflow: auto;
+            flex: 1;
         }
 
-        /* 下拉菜单/选择器的浮层由脚本定位 */
         .pv-popper {
             position: fixed;
             z-index: 3000;
         }
 
-        /* 折叠面板动画 */
         .el-collapse-item__wrap {
             overflow: hidden;
             transition: max-height var(--el-transition-duration) ease-in-out;
         }
 
-        /* 设置里「其他」四个开关真的作用于列表，和真实应用一致 */
+        /* 竖向标签页（添加订阅 / 修改订阅）内的滚动区 */
+        .pv-pane-scroll {
+            max-height: 52vh;
+            overflow: auto;
+            padding-right: 6px;
+        }
+
+        /* 设置里「其他」四个开关真的作用于列表 */
         .no-score .list-card-score-container,
         .no-time .list-card-time,
         .no-week .list-week-title,
@@ -144,8 +159,30 @@
             display: -webkit-box;
         }
 
-        .pv-dl-item {
-            margin-bottom: 8px;
+        .pv-logline {
+            display: block;
+            white-space: pre-wrap;
+        }
+
+        .pv-logline i {
+            font-style: normal;
+            opacity: .55;
+        }
+
+        .pv-log-INFO {
+            color: #8fbcbb;
+        }
+
+        .pv-log-WARN {
+            color: #ebcb8b;
+        }
+
+        .pv-log-ERROR {
+            color: #bf616a;
+        }
+
+        .pv-log-DEBUG {
+            color: #81a1c1;
         }
     </style>
 
@@ -155,7 +192,7 @@
       用脚本创建 link 而不是写死 <link> 再改 href —— 换主题走 ?t= 参数重载页面，
       保证一次页面生命周期里只存在一张主题表。某些「网页强制深色」类浏览器扩展会把每张
       样式表克隆成内联 <style>，运行时改 href 的话旧主题的克隆会留在文档末尾盖过新主题。
-      顺带 URL 可以直接分享到具体主题：?t=neon.css
+      URL 可以直接分享到具体主题：?t=neon.css
     -->
     <script>
         (function () {
@@ -178,19 +215,21 @@
     <select id="pick"></select>
     <button id="mode" type="button">切换深色</button>
     <span class="pv-note" id="modeNote"></span>
-    <span class="pv-note pv-hint">点顶部按钮可打开各弹窗</span>
+    <button id="loginToggle" type="button">看登录页</button>
+    <span class="pv-note">顶部按钮可打开各弹窗</span>
     <span class="pv-grow"></span>
     <span class="pv-note">粘贴到自定义CSS</span>
     <code id="snippet">@import url("...");</code>
 </div>
 
 <div id="app" style="max-width: 1600px;">
-    <div class="content">
 
+    <!-- ============ 首页 ============ -->
+    <div class="content" id="home-view">
         <div id="header">
             <div class="auto-flex" style="margin: 10px;">
                 <div>
-                    <div class="el-input el-input--prefix el-input--suffix" style="min-width: 210px;">
+                    <div class="el-input el-input--prefix" style="min-width: 210px;">
                         <div class="el-input__wrapper">
                             <span class="el-input__prefix"><span class="el-input__prefix-inner"><i class="el-icon el-input__icon" data-icon="search"></i></span></span>
                             <input class="el-input__inner" id="search" type="text" placeholder="搜索"/>
@@ -237,328 +276,58 @@
                 </div>
             </div>
         </div>
-
     </div>
-</div>
 
-<!-- ===================== 弹窗 ===================== -->
-
-<div class="el-overlay" id="dlg-download" style="display:none">
-    <div class="el-overlay-dialog">
-        <div class="el-dialog is-align-center el-dialog--center" style="width:900px;max-width:calc(100vw - 24px)">
-            <header class="el-dialog__header show-close">
-                <span role="heading" class="el-dialog__title">下载</span>
-                <button type="button" class="el-dialog__headerbtn" data-close><i class="el-icon el-dialog__close" data-icon="close"></i></button>
-            </header>
-            <div class="el-dialog__body">
-                <div class="flex-center" style="margin-bottom: 12px;">
-                    <div class="el-radio-group" data-radio="sort">
-                        <label class="el-radio-button is-active"><span class="el-radio-button__inner">按名称排序 ↑</span></label>
-                        <label class="el-radio-button"><span class="el-radio-button__inner">按进度排序</span></label>
-                    </div>
+    <!-- ============ 登录页 ============ -->
+    <div class="flex-center content" id="login-view" style="display: none; flex-flow: column; justify-content: space-between;">
+        <div id="login-page" class="flex-center">
+            <div id="form">
+                <div style="text-align: center;">
+                    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" style="opacity:.9">
+                        <circle cx="6" cy="18" r="2.2" fill="currentColor"/>
+                        <path d="M4 11.5a8.5 8.5 0 0 1 8.5 8.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M4 5a15 15 0 0 1 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                    </svg>
                 </div>
-                <div id="downloads"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="el-overlay" id="dlg-manage" style="display:none">
-    <div class="el-overlay-dialog">
-        <div class="el-dialog is-align-center el-dialog--center" style="width:900px;max-width:calc(100vw - 24px)">
-            <header class="el-dialog__header show-close">
-                <span role="heading" class="el-dialog__title">管理</span>
-                <button type="button" class="el-dialog__headerbtn" data-close><i class="el-icon el-dialog__close" data-icon="close"></i></button>
-            </header>
-            <div class="el-dialog__body">
-                <div class="flex" style="gap:8px;align-items:center;margin-bottom:10px">
-                    <span class="el-text el-text--small" id="manageCount">已选择 0 项</span>
-                    <span style="flex:1"></span>
-                    <button type="button" class="el-button is-text is-has-bg"><span>批量启用</span></button>
-                    <button type="button" class="el-button is-text is-has-bg"><span>批量禁用</span></button>
-                    <button type="button" class="el-button el-button--danger is-text is-has-bg"><span>批量删除</span></button>
-                </div>
-                <div id="manageList"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="el-overlay" id="dlg-logs" style="display:none">
-    <div class="el-overlay-dialog">
-        <div class="el-dialog is-align-center el-dialog--center logs-dialog" style="width:1000px;max-width:calc(100vw - 24px)">
-            <header class="el-dialog__header show-close">
-                <span role="heading" class="el-dialog__title">日志</span>
-                <button type="button" class="el-dialog__headerbtn" data-close><i class="el-icon el-dialog__close" data-icon="close"></i></button>
-            </header>
-            <div class="el-dialog__body">
-                <div class="header flex" style="align-items:center;gap:8px">
-                    <label class="el-checkbox is-checked"><span class="el-checkbox__input is-checked"><span class="el-checkbox__inner"></span></span><span class="el-checkbox__label">自动滚动</span></label>
-                    <span style="flex:1"></span>
-                    <button type="button" class="el-button is-text is-has-bg"><span>清空</span></button>
-                </div>
-                <div class="content" id="logs"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="el-overlay" id="dlg-settings" style="display:none">
-    <div class="el-overlay-dialog">
-        <div class="el-dialog is-align-center el-dialog--center" style="width:860px;max-width:calc(100vw - 24px)">
-            <header class="el-dialog__header show-close">
-                <span role="heading" class="el-dialog__title">设置</span>
-                <button type="button" class="el-dialog__headerbtn" data-close><i class="el-icon el-dialog__close" data-icon="close"></i></button>
-            </header>
-            <div class="el-dialog__body">
-                <div class="el-tabs el-tabs--top">
-                    <div class="el-tabs__header is-top">
-                        <div class="el-tabs__nav-wrap is-top">
-                            <div class="el-tabs__nav-scroll">
-                                <div class="el-tabs__nav is-top" id="tabnav">
-                                    <div class="el-tabs__active-bar is-top" id="activebar"></div>
-                                    <div class="el-tabs__item is-top" data-tab="0">下载设置</div>
-                                    <div class="el-tabs__item is-top is-active" data-tab="1">基本设置</div>
-                                    <div class="el-tabs__item is-top" data-tab="2">全局排除</div>
-                                    <div class="el-tabs__item is-top" data-tab="3">代理设置</div>
-                                    <div class="el-tabs__item is-top" data-tab="4">登录设置</div>
-                                    <div class="el-tabs__item is-top" data-tab="5">通知</div>
-                                    <div class="el-tabs__item is-top" data-tab="6">捐赠</div>
-                                    <div class="el-tabs__item is-top" data-tab="7">关于</div>
+                <h2 class="title-h2">ANI-RSS</h2>
+                <form class="el-form el-form--default" onsubmit="return false">
+                    <div class="el-form-item">
+                        <div class="el-form-item__content">
+                            <div class="el-input el-input--prefix full-width">
+                                <div class="el-input__wrapper">
+                                    <span class="el-input__prefix"><span class="el-input__prefix-inner"><i class="el-icon el-input__icon" data-icon="user"></i></span></span>
+                                    <input class="el-input__inner" type="text" placeholder="用户名" autocomplete="off"/>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="el-tabs__content">
-
-                        <!-- 下载设置 -->
-                        <div class="el-tab-pane" data-pane="0" style="display:none">
-                            <form class="el-form el-form--default el-form--label-right full-width">
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:110px">下载工具</label><div class="el-form-item__content">
-                                    <div class="el-radio-group"><label class="el-radio-button is-active"><span class="el-radio-button__inner">qBittorrent</span></label><label class="el-radio-button"><span class="el-radio-button__inner">Transmission</span></label><label class="el-radio-button"><span class="el-radio-button__inner">Aria2</span></label></div>
-                                </div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:110px">下载地址</label><div class="el-form-item__content"><div class="el-input" style="max-width:360px"><div class="el-input__wrapper"><input class="el-input__inner" value="http://qbittorrent:8080"/></div></div></div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:110px">用户名</label><div class="el-form-item__content"><div class="el-input" style="max-width:360px"><div class="el-input__wrapper"><input class="el-input__inner" placeholder="用户名"/></div></div></div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:110px">下载位置</label><div class="el-form-item__content"><div class="el-input" style="max-width:360px"><div class="el-input__wrapper"><input class="el-input__inner" value="/downloads/anime"/></div></div></div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:110px">下载完成后</label><div class="el-form-item__content">
-                                    <label class="el-checkbox is-checked"><span class="el-checkbox__input is-checked"><span class="el-checkbox__inner"></span></span><span class="el-checkbox__label">自动删种</span></label>
-                                    <label class="el-checkbox"><span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span><span class="el-checkbox__label">删除文件</span></label>
-                                </div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:110px">连接测试</label><div class="el-form-item__content">
-                                    <button type="button" class="el-button el-button--primary"><span>测试连接</span></button>
-                                </div></div>
-                            </form>
-                        </div>
-
-                        <!-- 基本设置 -->
-                        <div class="el-tab-pane" data-pane="1">
-                            <div class="el-collapse el-collapse-icon-position-right" id="basicCollapse">
-
-                                <div class="el-collapse-item is-active">
-                                    <div class="el-collapse-item__header is-active" role="button">
-                                        <span class="el-collapse-item__title">页面设置</span>
-                                        <i class="el-icon el-collapse-item__arrow is-active" data-icon="arrow"></i>
-                                    </div>
-                                    <div class="el-collapse-item__wrap">
-                                        <div class="el-collapse-item__content">
-                                            <form class="el-form el-form--default el-form--label-right full-width">
-
-                                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">外观</label>
-                                                    <div class="el-form-item__content">
-                                                        <div class="el-radio-group" id="appearance">
-                                                            <label class="el-radio-button is-active" data-mode="auto"><span class="el-radio-button__inner"><i class="el-icon" data-icon="auto"></i></span></label>
-                                                            <label class="el-radio-button" data-mode="light"><span class="el-radio-button__inner"><i class="el-icon" data-icon="gear"></i></span></label>
-                                                            <label class="el-radio-button" data-mode="dark"><span class="el-radio-button__inner"><i class="el-icon" data-icon="moon"></i></span></label>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">主题色</label>
-                                                    <div class="el-form-item__content">
-                                                        <div class="el-color-picker" style="position:relative">
-                                                            <div class="el-color-picker__trigger">
-                                                                <span class="el-color-picker__color"><span class="el-color-picker__color-inner" id="swatch" style="background-color: var(--el-color-primary)"><i class="el-icon el-color-picker__icon" data-icon="caret"></i></span></span>
-                                                            </div>
-                                                            <input type="color" id="accent" value="#409eff" style="position:absolute;inset:0;opacity:0;cursor:pointer"/>
-                                                        </div>
-                                                        <span class="el-text el-text--info el-text--small" style="margin-left:10px" id="accentNote"></span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">排序</label>
-                                                    <div class="el-form-item__content">
-                                                        <div class="el-select" data-select="order" style="width:150px">
-                                                            <div class="el-select__wrapper"><div class="el-select__selection"><div class="el-select__selected-item el-select__placeholder"><span data-value>评分</span></div></div><div class="el-select__suffix"><i class="el-icon el-select__caret el-select__icon" data-icon="caret2"></i></div></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">最大内容宽度</label>
-                                                    <div class="el-form-item__content">
-                                                        <div class="el-input-number" style="width:150px">
-                                                            <span role="button" class="el-input-number__decrease" id="widthDec"><i class="el-icon" data-icon="minus"></i></span>
-                                                            <span role="button" class="el-input-number__increase" id="widthInc"><i class="el-icon" data-icon="plus"></i></span>
-                                                            <div class="el-input"><div class="el-input__wrapper"><input class="el-input__inner" id="widthVal" value="1600"/></div></div>
-                                                        </div>
-                                                        <span class="el-text el-text--small" style="margin-left:8px">px</span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">其他</label>
-                                                    <div class="el-form-item__content" id="toggles">
-                                                        <label class="el-checkbox is-checked" data-toggle="no-score"><span class="el-checkbox__input is-checked"><span class="el-checkbox__inner"></span></span><span class="el-checkbox__label">显示评分</span></label>
-                                                        <label class="el-checkbox is-checked" data-toggle="no-week"><span class="el-checkbox__input is-checked"><span class="el-checkbox__inner"></span></span><span class="el-checkbox__label">按星期展示</span></label>
-                                                        <label class="el-checkbox is-checked" data-toggle="no-playlist"><span class="el-checkbox__input is-checked"><span class="el-checkbox__inner"></span></span><span class="el-checkbox__label">显示视频列表</span></label>
-                                                        <label class="el-checkbox is-checked" data-toggle="no-time"><span class="el-checkbox__input is-checked"><span class="el-checkbox__inner"></span></span><span class="el-checkbox__label">显示更新时间</span></label>
-                                                    </div>
-                                                </div>
-
-                                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">自定义</label>
-                                                    <div class="el-form-item__content">
-                                                        <button type="button" class="el-button"><span><i class="el-icon el-icon--left" data-icon="tickets"></i> JavaScript</span></button>
-                                                        <button type="button" class="el-button"><span><i class="el-icon el-icon--left" data-icon="files"></i> CSS</span></button>
-                                                    </div>
-                                                </div>
-
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="el-collapse-item">
-                                    <div class="el-collapse-item__header" role="button"><span class="el-collapse-item__title">添加订阅</span><i class="el-icon el-collapse-item__arrow" data-icon="arrow"></i></div>
-                                    <div class="el-collapse-item__wrap" style="max-height:0"><div class="el-collapse-item__content">
-                                        <form class="el-form el-form--label-right full-width">
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">默认季度</label><div class="el-form-item__content"><div class="el-input" style="width:120px"><div class="el-input__wrapper"><input class="el-input__inner" value="1"/></div></div></div></div>
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">自动启用</label><div class="el-form-item__content"><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div>
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">聚合搜索</label><div class="el-form-item__content"><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div>
-                                        </form>
-                                    </div></div>
-                                </div>
-
-                                <div class="el-collapse-item">
-                                    <div class="el-collapse-item__header" role="button"><span class="el-collapse-item__title">重命名设置</span><i class="el-icon el-collapse-item__arrow" data-icon="arrow"></i></div>
-                                    <div class="el-collapse-item__wrap" style="max-height:0"><div class="el-collapse-item__content">
-                                        <form class="el-form el-form--label-right full-width">
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">重命名模板</label><div class="el-form-item__content"><div class="el-input" style="max-width:420px"><div class="el-input__wrapper"><input class="el-input__inner" value="${title} S${season}E${episode}"/></div></div></div></div>
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">硬链接</label><div class="el-form-item__content"><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div>
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">季度目录</label><div class="el-form-item__content"><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div>
-                                        </form>
-                                        <div class="el-alert el-alert--warning is-light" style="margin-top:8px"><div class="el-alert__content"><span class="el-alert__title">模板变更后，已入库的剧集不会自动重命名</span></div></div>
-                                    </div></div>
-                                </div>
-
-                                <div class="el-collapse-item">
-                                    <div class="el-collapse-item__header" role="button"><span class="el-collapse-item__title">刮削设置</span><i class="el-icon el-collapse-item__arrow" data-icon="arrow"></i></div>
-                                    <div class="el-collapse-item__wrap" style="max-height:0"><div class="el-collapse-item__content">
-                                        <form class="el-form el-form--label-right full-width">
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">自动刮削</label><div class="el-form-item__content"><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div>
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">刮削来源</label><div class="el-form-item__content"><div class="el-radio-group"><label class="el-radio-button is-active"><span class="el-radio-button__inner">TMDB</span></label><label class="el-radio-button"><span class="el-radio-button__inner">Bangumi</span></label></div></div></div>
-                                        </form>
-                                    </div></div>
-                                </div>
-
-                                <div class="el-collapse-item">
-                                    <div class="el-collapse-item__header" role="button"><span class="el-collapse-item__title">RSS设置</span><i class="el-icon el-collapse-item__arrow" data-icon="arrow"></i></div>
-                                    <div class="el-collapse-item__wrap" style="max-height:0"><div class="el-collapse-item__content">
-                                        <form class="el-form el-form--label-right full-width">
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">刷新间隔</label><div class="el-form-item__content"><div class="el-input" style="width:150px"><div class="el-input__wrapper"><input class="el-input__inner" value="15"/></div></div><span class="el-text el-text--small" style="margin-left:8px">分钟</span></div></div>
-                                            <div class="el-form-item"><label class="el-form-item__label" style="width:100px">备用RSS</label><div class="el-form-item__content"><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div>
-                                        </form>
-                                    </div></div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <!-- 全局排除 -->
-                        <div class="el-tab-pane" data-pane="2" style="display:none">
-                            <div class="flex" style="gap:8px;margin-bottom:10px">
-                                <div class="el-input" style="flex:1"><div class="el-input__wrapper"><input class="el-input__inner" placeholder="输入要排除的关键字，回车添加"/></div></div>
-                                <button type="button" class="el-button el-button--primary"><span>添加</span></button>
-                            </div>
-                            <div class="flex" style="flex-wrap:wrap;gap:6px">
-                                <span class="el-tag el-tag--primary el-tag--light"><span class="el-tag__content">720p</span></span>
-                                <span class="el-tag el-tag--primary el-tag--light"><span class="el-tag__content">繁体</span></span>
-                                <span class="el-tag el-tag--primary el-tag--light"><span class="el-tag__content">CHT</span></span>
-                                <span class="el-tag el-tag--primary el-tag--light"><span class="el-tag__content">MKV</span></span>
-                                <span class="el-tag el-tag--primary el-tag--light"><span class="el-tag__content">合集</span></span>
-                                <span class="el-tag el-tag--primary el-tag--light"><span class="el-tag__content">DVD</span></span>
-                            </div>
-                        </div>
-
-                        <!-- 代理设置 -->
-                        <div class="el-tab-pane" data-pane="3" style="display:none">
-                            <form class="el-form el-form--label-right full-width">
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">启用代理</label><div class="el-form-item__content"><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">类型</label><div class="el-form-item__content"><div class="el-radio-group"><label class="el-radio-button is-active"><span class="el-radio-button__inner">HTTP</span></label><label class="el-radio-button"><span class="el-radio-button__inner">SOCKS5</span></label></div></div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">地址</label><div class="el-form-item__content"><div class="el-input" style="max-width:360px"><div class="el-input__wrapper"><input class="el-input__inner" placeholder="留空则不使用"/></div></div></div></div>
-                            </form>
-                        </div>
-
-                        <!-- 登录设置 -->
-                        <div class="el-tab-pane" data-pane="4" style="display:none">
-                            <form class="el-form el-form--label-right full-width">
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">用户名</label><div class="el-form-item__content"><div class="el-input" style="max-width:300px"><div class="el-input__wrapper"><input class="el-input__inner" placeholder="用户名"/></div></div></div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">密码</label><div class="el-form-item__content"><div class="el-input" style="max-width:300px"><div class="el-input__wrapper"><input class="el-input__inner" type="password" placeholder="••••••"/></div></div></div></div>
-                                <div class="el-form-item"><label class="el-form-item__label" style="width:100px">IP 白名单</label><div class="el-form-item__content"><div class="el-input-tag" style="max-width:420px"><span class="el-tag el-tag--info el-tag--light"><span class="el-tag__content">局域网</span></span></div></div></div>
-                            </form>
-                        </div>
-
-                        <!-- 通知 -->
-                        <div class="el-tab-pane" data-pane="5" style="display:none">
-                            <div class="grid-container" style="--ani-grid-columns:3;grid-gap:8px">
-                                <div class="el-card is-never-shadow"><div class="el-card__body"><div class="flex" style="justify-content:space-between;align-items:center"><span class="el-text">Telegram</span><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div></div>
-                                <div class="el-card is-never-shadow"><div class="el-card__body"><div class="flex" style="justify-content:space-between;align-items:center"><span class="el-text">Bark</span><div class="el-switch"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div></div>
-                                <div class="el-card is-never-shadow"><div class="el-card__body"><div class="flex" style="justify-content:space-between;align-items:center"><span class="el-text">Webhook</span><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div></div>
-                                <div class="el-card is-never-shadow"><div class="el-card__body"><div class="flex" style="justify-content:space-between;align-items:center"><span class="el-text">邮件</span><div class="el-switch"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div></div>
-                                <div class="el-card is-never-shadow"><div class="el-card__body"><div class="flex" style="justify-content:space-between;align-items:center"><span class="el-text">Server 酱</span><div class="el-switch"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div></div>
-                                <div class="el-card is-never-shadow"><div class="el-card__body"><div class="flex" style="justify-content:space-between;align-items:center"><span class="el-text">系统通知</span><div class="el-switch is-checked"><span class="el-switch__core"><div class="el-switch__action"></div></span></div></div></div></div>
-                            </div>
-                        </div>
-
-                        <!-- 捐赠 -->
-                        <div class="el-tab-pane" data-pane="6" style="display:none">
-                            <div class="flex-center" style="flex-direction:column;gap:12px;padding:28px 0">
-                                <span class="el-text">如果这个项目帮到了你，可以请作者喝杯咖啡</span>
-                                <button type="button" class="el-button el-button--primary"><span>爱发电</span></button>
-                            </div>
-                        </div>
-
-                        <!-- 关于 -->
-                        <div class="el-tab-pane" data-pane="7" style="display:none">
-                            <div class="flex-center" style="flex-direction:column;gap:6px;padding:18px 0">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" style="opacity:.9">
-                                    <circle cx="6" cy="18" r="2.2" fill="currentColor"/>
-                                    <path d="M4 11.5a8.5 8.5 0 0 1 8.5 8.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                                    <path d="M4 5a15 15 0 0 1 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-                                </svg>
-                                <h2 style="margin:6px 0 0">ANI-RSS</h2>
-                                <span class="el-text el-text--info el-text--small">v3.1.77</span>
-                                <div class="flex" style="gap:18px;margin-top:14px">
-                                    <a class="el-link el-link--default" href="https://github.com/wushuo894/ani-rss" target="_blank"><span class="el-link__inner">GitHub</span></a>
-                                    <a class="el-link el-link--default" href="https://docs.wushuo.top" target="_blank"><span class="el-link__inner">使用文档</span></a>
-                                </div>
-                                <div class="flex" style="gap:10px;margin-top:16px">
-                                    <button type="button" class="el-button el-button--danger is-text"><span>退出</span></button>
-                                    <button type="button" class="el-button el-button--warning is-text"><span>重启</span></button>
-                                    <button type="button" class="el-button el-button--danger is-text"><span>关闭</span></button>
-                                    <button type="button" class="el-button el-button--success is-text"><span>更新</span></button>
+                    <div class="el-form-item">
+                        <div class="el-form-item__content">
+                            <div class="el-input el-input--prefix el-input--suffix full-width">
+                                <div class="el-input__wrapper">
+                                    <span class="el-input__prefix"><span class="el-input__prefix-inner"><i class="el-icon el-input__icon" data-icon="key"></i></span></span>
+                                    <input class="el-input__inner" type="password" placeholder="密码" autocomplete="off"/>
+                                    <span class="el-input__suffix"><span class="el-input__suffix-inner"><i class="el-icon el-input__icon" data-icon="view"></i></span></span>
                                 </div>
                             </div>
                         </div>
-
                     </div>
-                </div>
-
-                <div class="flex" style="justify-content:flex-end;gap:8px;margin-top:12px">
-                    <button type="button" class="el-button el-button--success is-text" data-close><span><i class="el-icon el-icon--left" data-icon="check"></i> 确定</span></button>
-                    <button type="button" class="el-button is-text" data-close><span><i class="el-icon el-icon--left" data-icon="close"></i> 取消</span></button>
-                </div>
+                    <div class="flex-center action">
+                        <label class="el-checkbox"><span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span><span class="el-checkbox__label">记住密码</span></label>
+                        <button type="button" class="el-button is-text is-has-bg" data-act="login"><span><i class="el-icon el-icon--left" data-icon="right"></i> 登录</span></button>
+                    </div>
+                </form>
             </div>
         </div>
+        <div class="footer flex" style="gap: 10px; margin-bottom: 16px;">
+            <a class="el-link el-link--default" href="https://docs.wushuo.top" target="_blank"><span class="el-link__inner">ani-rss</span></a>
+            <a class="el-link el-link--default" href="https://github.com/wushuo894/ani-rss" target="_blank"><span class="el-link__inner">github</span></a>
+        </div>
     </div>
+
 </div>
+
+<div id="dialogs"></div>
 
 <script src="preview/data.js"></script>
 <script src="preview/preview.js"></script>
