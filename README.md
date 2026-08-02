@@ -66,7 +66,15 @@ ani-rss 里：**设置 → 基础设置 → 页面设置 → 自定义 → CSS**
 
 https://zzzwannasleep.github.io/ani-rss-themes/
 
-左上角下拉换主题，旁边可切明暗、改卡片列数，右上角实时给出对应的 `@import` 语句，可直接复制走。选到「强制深色/浅色」的主题时明暗开关会自动锁定并说明原因。URL 支持 `?t=neon.css` 直接指向某个主题。
+左上角下拉换主题，旁边可切明暗、可跳到登录页。选到「强制深色/浅色」的主题时明暗开关会自动锁定并说明原因。URL 支持 `?t=neon.css` 直接指向某个主题。
+
+右上角三个按钮，对着当前选中的主题一键复制：
+
+| 按钮 | 复制到剪贴板的内容 |
+| --- | --- |
+| 复制链接 · GitHub | `@import url("https://zzzwannasleep.github.io/…/themes/xxx.css");` |
+| 复制链接 · jsDelivr | `@import url("https://cdn.jsdelivr.net/gh/…/themes/xxx.css");` |
+| 复制 CSS 全文 | 整份 CSS 源码，粘完就不再依赖任何外部站点 |
 
 **预览用的是真实的东西**，不是截图也不是仿写：
 

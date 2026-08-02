@@ -63,7 +63,10 @@
         documentAdd: P('<path fill="currentColor" d="M832 384H576V128H192v768h640zm-26.496-64L640 154.496V320zM160 64h480l256 256v608a32 32 0 0 1-32 32H160a32 32 0 0 1-32-32V96a32 32 0 0 1 32-32m320 512V448h64v128h128v64H544v128h-64V640H352v-64z"/>'),
         grid: P('<path fill="currentColor" d="M640 384v256H384V384zm64 0h192v256H704zm-64 512H384V704h256zm64 0V704h192v192zm-64-768v192H384V128zm64 0h192v192H704zM320 384v256H128V384zm0 512H128V704h192zm0-768v192H128V128z"/>'),
         remove: P('<path fill="currentColor" d="M352 480h320a32 32 0 1 1 0 64H352a32 32 0 0 1 0-64"/><path fill="currentColor" d="M512 896a384 384 0 1 0 0-768 384 384 0 0 0 0 768m0 64a448 448 0 1 1 0-896 448 448 0 0 1 0 896"/>'),
-        calendar: P('<path fill="currentColor" d="M128 384v512h768V192H768v32a32 32 0 1 1-64 0v-32H320v32a32 32 0 0 1-64 0v-32H128v128h768v64zm192-256h384V96a32 32 0 1 1 64 0v32h160a32 32 0 0 1 32 32v768a32 32 0 0 1-32 32H96a32 32 0 0 1-32-32V160a32 32 0 0 1 32-32h160V96a32 32 0 0 1 64 0zm-32 384h64a32 32 0 0 1 0 64h-64a32 32 0 0 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m192-192h64a32 32 0 0 1 0 64h-64a32 32 0 0 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m192-192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64"/>'),
+        warningFilled: P('<path fill="currentColor" d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896m0 192a58.43 58.43 0 0 0-58.24 63.744l23.36 256.384a35.072 35.072 0 0 0 69.76 0l23.296-256.384A58.43 58.43 0 0 0 512 256m0 512a51.2 51.2 0 1 0 0-102.4 51.2 51.2 0 0 0 0 102.4"/>'),
+        successFilled: P('<path fill="currentColor" d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896m-55.808 536.384-99.52-99.584a38.4 38.4 0 1 0-54.336 54.336l126.72 126.72a38.27 38.27 0 0 0 54.336 0l262.4-262.464a38.4 38.4 0 1 0-54.272-54.336z"/>'),
+        infoFilled: P('<path fill="currentColor" d="M512 64a448 448 0 1 1 0 896.064A448 448 0 0 1 512 64m67.2 275.072c33.28 0 60.288-23.104 60.288-57.344s-27.072-57.344-60.288-57.344c-33.28 0-60.16 23.104-60.16 57.344s26.88 57.344 60.16 57.344M590.912 699.2c0-6.848 2.368-24.64 1.024-34.752l-52.608 60.544c-10.88 11.456-24.512 19.392-30.912 17.28a12.99 12.99 0 0 1-8.256-14.72l87.68-276.992c7.168-35.136-12.544-67.2-54.336-71.296-44.096 0-108.992 44.736-148.48 101.504 0 6.784-1.28 23.68.064 33.792l52.544-60.608c10.88-11.328 23.552-19.328 29.952-17.152a12.8 12.8 0 0 1 7.808 16.128L388.48 728.576c-10.048 32.256 8.96 63.872 55.04 71.04 67.84 0 107.904-43.648 147.456-100.416z"/>'),
+        calendar: P('<path fill="currentColor" d="M128 384v512h768V192H768v32a32 0 1 1-64 0v-32H320v32a32 32 0 0 1-64 0v-32H128v128h768v64zm192-256h384V96a32 32 0 1 1 64 0v32h160a32 32 0 0 1 32 32v768a32 32 0 0 1-32 32H96a32 32 0 0 1-32-32V160a32 32 0 0 1 32-32h160V96a32 32 0 0 1 64 0zm-32 384h64a32 32 0 0 1 0 64h-64a32 32 0 0 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m192-192h64a32 32 0 0 1 0 64h-64a32 32 0 0 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m192-192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64"/>'),
     }
 
     const $ = s => document.querySelector(s)
@@ -80,6 +83,8 @@
 
     const inp = (v, ph, o) => {
         o = o || {}
+        /* 上游的密码框都带 show-password，右边那只眼睛不能少 */
+        if (o.type === 'password' && !o.suffix) o = Object.assign({}, o, {suffix: 'view'})
         return '<div class="el-input' + (o.prefix ? ' el-input--prefix' : '') + (o.suffix ? ' el-input--suffix' : '') +
             (o.full ? ' full-width' : '') + '" style="' + (o.style || '') + '"><div class="el-input__wrapper">' +
             (o.prefix ? '<span class="el-input__prefix"><span class="el-input__prefix-inner">' + icon(o.prefix) + '</span></span>' : '') +
@@ -129,7 +134,7 @@
     const sel = (value, options, w, placeholder) => {
         const k = 's' + (++selId)
         SELECTS[k] = options
-        return '<div class="el-select" data-select="' + k + '" style="width:' + (w || 160) + 'px">' +
+        return '<div class="el-select" data-select="' + k + '" style="width:' + (w === 'full' ? '100%' : (w || 160) + 'px') + '">' +
             '<div class="el-select__wrapper"><div class="el-select__selection">' +
             '<div class="el-select__selected-item el-select__placeholder' + (value ? '' : ' is-transparent') + '"><span data-value>' + esc(value || placeholder || '请选择') + '</span></div>' +
             '</div><div class="el-select__suffix">' + '<i class="el-icon el-select__caret el-select__icon" data-icon="caret2"></i>' + '</div></div></div>'
@@ -178,8 +183,14 @@
     const tagInput = tags =>
         '<div class="el-input-tag" style="max-width:420px;display:flex;flex-wrap:wrap;gap:4px;padding:4px 8px">' + tagList(tags, 'info') + '</div>'
 
-    const alertBox = (text, type) =>
-        '<div class="el-alert el-alert--' + (type || 'warning') + ' is-light"><div class="el-alert__content"><span class="el-alert__title">' + esc(text) + '</span></div></div>'
+    /* 上游这些 el-alert 都带 show-icon，少了图标一眼就不对 */
+    const alertBox = (text, type) => {
+        type = type || 'warning'
+        const ic = {warning: 'warningFilled', success: 'successFilled', info: 'infoFilled', error: 'circleClose'}[type]
+        return '<div class="el-alert el-alert--' + type + ' is-light">' +
+            '<i class="el-icon el-alert__icon is-big" data-icon="' + ic + '"></i>' +
+            '<div class="el-alert__content"><span class="el-alert__title is-bold">' + text + '</span></div></div>'
+    }
 
     const btn = (text, o) => {
         o = o || {}
@@ -447,7 +458,7 @@
 
     const logsBody =
         '<div class="header auto-flex" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">' +
-        '<div class="el-checkbox-group">' + checks([['DEBUG', false], ['INFO', true], ['WARN', true], ['ERROR', true]]) + '</div>' +
+        '<div class="el-checkbox-group">' + checks([['DEBUG', true], ['INFO', true], ['WARN', true], ['ERROR', true]]) + '</div>' +
         '<div style="display:flex;align-items:center">' +
         sel('', ['RssUtil', 'TorrentUtil', 'RenameUtil', 'ScrapeUtil', 'ConfigUtil'], 260, '类名') +
         '<div class="spacer"></div>' + btn('', {text: true, bg: true, icon: 'download'}) +
@@ -474,7 +485,7 @@
     const addBody = tabs([
         {title: 'Mikan', pane: addPane('Mikan', 'https://mikanani.me/RSS/Bangumi?bangumiId=xxx&subgroupid=xxx')},
         {title: 'AniBT', pane: addPane('AniBT', 'https://anibt.net/rss/anime.xml?bgmId=xxx&groupSlug=xxx')},
-        {title: 'AG', pane: addPane('AnimeGarden', 'https://animes.garden/feed.xml?type=动画&fansub=xxx')},
+        {title: 'AG', pane: addPane('AnimeGarden', 'https://api.animes.garden/feed.xml?subject=xxx&fansub=xxx')},
         {
             title: 'Other', pane:
                 '<form class="el-form el-form--default el-form--label-right full-width" style="height:200px" onsubmit="return false">' +
@@ -577,9 +588,9 @@
 
     /* 2) 下载设置 —— config/Download.vue（下方折叠面板为 config/download/qBittorrent.vue） */
     const downloadPane = form([
-        ['下载工具', sel('qBittorrent', ['qBittorrent', 'Transmission', 'Aria2', 'OpenList'], 200)],
-        ['地址', inp('http://192.168.1.8:8080', 'http://192.168.1.x:8080', {style: 'max-width:420px'})],
-        ['ApiKey', inp('', 'qbt_xxxx', {prefix: 'key', type: 'password', style: 'max-width:420px'})],
+        ['下载工具', sel('qBittorrent', ['qBittorrent', 'Transmission', 'Aria2', 'OpenList'], 'full')],
+        ['地址', inp('http://192.168.1.8:8080', 'http://192.168.1.x:8080', {full: true})],
+        ['ApiKey', inp('', 'qbt_xxxx', {prefix: 'key', type: 'password', full: true})],
         ['', '<div class="flex" style="width:100%;justify-content:end">' + btn('测试', {text: true, bg: true, icon: 'odometer'}) + '</div>'],
         ['保存位置', inp('/downloads/${title}', '', {full: true})],
         ['剧场版保存位置', '<div class="full-width">' + inp('/downloads/剧场版', '', {full: true}) +
@@ -620,7 +631,7 @@
                 hint('自动获取tmdbId, 如: 女仆冥土小姐。 [tmdbid=242143]') + '</div>'],
                 ['TMDB标题', '<div>' + sw(true) + hint('自动使用TMDB的标题') +
                 '<div>' + cb('仅获取动漫', true) + cb('使用原标题', false) + cb('优先获取罗马音', false) + '</div></div>'],
-                ['TMDB语言', sel('中文 (zh-CN)', ['中文 (zh-CN)', '日本語 (ja-JP)', 'English (en-US)', '繁體中文 (zh-TW)'], 180)],
+                ['TMDB语言', sel('中文 (zh-CN)', ['中文 (zh-CN)', '日本語 (ja-JP)', 'English (en-US)', '繁體中文 (zh-TW)'], 150)],
                 ['开启全局排除', sw(true)],
                 ['导入全局排除', sw(false)],
                 ['封面质量', sel('common', ['small', 'grid', 'large', 'medium', 'common'], 150)],
@@ -642,13 +653,13 @@
                 ['剔除年份', '<div>' + sw(false) + hint('重命名时剔除 年份, 如 (2024)') + '</div>'],
                 ['剔除TMDB ID', '<div>' + sw(true) + hint('重命名时剔除 tmdbid, 如 [tmdbid=242143]') + '</div>'],
                 ['字幕独立文件夹', '<div class="full-width">' + sw(false) + '<br>' +
-                inp('Subs', '', {full: true}) + hint('仅支持 qBittorrent') + '</div>'],
+                inp('Subs', '', {full: true}) + '<br>' + hint('仅支持 qBittorrent') + '</div>'],
             ], 120)
         },
         {
             title: '刮削设置', content: form([
                 ['自动刮削', sw(true)],
-                ['追更天数', '<div>' + num(7, 150, '天') + hint('自动强制刮削最近更新集的元数据') + '</div>'],
+                ['追更天数', '<div>' + num(7, 150, '天') + '<br>' + hint('自动强制刮削最近更新集的元数据') + '</div>'],
                 ['更多', cb('bangumi.ini', false)],
                 ['TmdbApi', inp('', 'https://api.themoviedb.org', {full: true})],
                 ['TmdbApiKey', inp('', '请自备 API 密钥, 留空使用系统默认', {full: true})],
@@ -663,7 +674,7 @@
                 ['自动跳过', '<div class="full-width">' + sw(true) +
                 hint('文件已下载自动跳过 此选项必须启用 自动重命名。确保 下载工具 与本程序 docker 映射挂载路径一致 &nbsp;' +
                     lnk('详细说明', 'https://docs.wushuo.top/config/basic/rss#auto-skip')) + '</div>'],
-                ['自动禁用订阅', '<div class="full-width">' + sw(true) +
+                ['自动禁用订阅', '<div class="full-width">' + sw(true) + '<br>' +
                 hint('根据 Bangumi 获取总集数 当所有集数都已下载时自动禁用该订阅') +
                 '<div>' + cb('订阅完结迁移', false) + '</div>' +
                 '<div style="margin-top:4px">' + inp('/downloads/完结/${title}', '', {full: true}) + '</div></div>'],
@@ -708,9 +719,9 @@
                 ['GithubToken', '<div class="full-width">' + inp('', '在此处输入GithubToken', {full: true}) +
                 '<div class="flex" style="justify-content:end;margin-top:4px">' + btn('获取GithubToken', {bg: true, icon: 'github'}) + '</div></div>'],
                 ['最大日志条数', sel('256', ['128', '256', '512'], 150)],
-                ['自动更新', '<div class="full-width">' + sw(false) + hint('每天 06:00 自动更新程序') + '</div>'],
+                ['自动更新', '<div class="full-width"><div>' + sw(false) + '</div>' + hint('每天 06:00 自动更新程序') + '</div>'],
                 ['DEBUG', sw(false)],
-                ['缓存', '<div class="full-width">' + btn('清理', {bg: true, icon: 'del'}) + hint('清理现在不被使用的缓存') + '</div>'],
+                ['缓存', '<div class="full-width"><div>' + btn('清理', {bg: true, icon: 'del'}) + '</div>' + hint('清理现在不被使用的缓存') + '</div>'],
                 ['自动备份配置', '<div>' + sw(true) + '<br>' + num(7, 150, '天') + '</div>'],
                 ['开机自启', sw(false)],
             ], 120)
