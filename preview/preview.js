@@ -42,6 +42,21 @@
         user: P('<path fill="currentColor" d="M512 512a192 192 0 1 0 0-384 192 192 0 0 0 0 384m0 64a256 256 0 1 1 0-512 256 256 0 0 1 0 512m320 320v-96a96 96 0 0 0-96-96H288a96 96 0 0 0-96 96v96a32 32 0 1 1-64 0v-96a160 160 0 0 1 160-160h448a160 160 0 0 1 160 160v96a32 32 0 1 1-64 0"/>'),
         key: P('<path fill="currentColor" d="M448 456.064V96a32 32 0 0 1 32-32h192a32 32 0 0 1 0 64H512v128h128a32 32 0 1 1 0 64H512v135.744a239.6 239.6 0 0 1 64-8.64c132.288 0 240 108.16 240 241.92S708.288 928 576 928a239.7 239.7 0 0 1-64-8.64A239.7 239.7 0 0 1 448 928c-132.288 0-240-108.16-240-241.92 0-104.32 65.472-193.28 157.44-227.2zM576 864a176 176 0 1 0 0-352 176 176 0 0 0 0 352"/>'),
         view: P('<path fill="currentColor" d="M512 160c320 0 512 352 512 352S832 864 512 864 0 512 0 512s192-352 512-352m0 64c-225.28 0-384.128 208.064-436.8 288 52.608 79.872 211.456 288 436.8 288 225.28 0 384.128-208.064 436.8-288-52.608-79.872-211.456-288-436.8-288m0 64a224 224 0 1 1 0 448 224 224 0 0 1 0-448m0 64a160.192 160.192 0 0 0-160 160c0 88.192 71.744 160 160 160s160-71.808 160-160-71.744-160-160-160"/>'),
+        odometer: P('<path fill="currentColor" d="M512 896a384 384 0 1 0 0-768 384 384 0 0 0 0 768m0 64a448 448 0 1 1 0-896 448 448 0 0 1 0 896"/><path fill="currentColor" d="M192 512a320 320 0 1 1 640 0 32 32 0 1 1-64 0 256 256 0 1 0-512 0 32 32 0 0 1-64 0"/><path fill="currentColor" d="M570.432 627.84A96 96 0 1 1 509.568 608l60.992-187.776A32 32 0 1 1 631.424 440l-60.992 187.776zM502.08 734.464a32 32 0 1 0 19.84-60.928 32 32 0 0 0-19.84 60.928"/>'),
+        copy: P('<path fill="currentColor" d="M128 320v576h576V320zm-32-64h640a32 32 0 0 1 32 32v640a32 32 0 0 1-32 32H96a32 32 0 0 1-32-32V288a32 32 0 0 1 32-32M960 96v704a32 32 0 0 1-32 32h-96v-64h64V128H384v64h-64V96a32 32 0 0 1 32-32h576a32 32 0 0 1 32 32M256 672h320v64H256zm0-192h320v64H256z"/>'),
+        more: P('<path fill="currentColor" d="M176 416a112 112 0 1 1 0 224 112 112 0 0 1 0-224m336 0a112 112 0 1 1 0 224 112 112 0 0 1 0-224m336 0a112 112 0 1 1 0 224 112 112 0 0 1 0-224"/>'),
+        folderAdd: P('<path fill="currentColor" d="M128 192v640h768V320H485.76L357.504 192zm-32-64h287.872l128.384 128H928a32 32 0 0 1 32 32v576a32 32 0 0 1-32 32H96a32 32 0 0 1-32-32V160a32 32 0 0 1 32-32m384 416V416h64v128h128v64H544v128h-64V608H352v-64z"/>'),
+        back: P('<path fill="currentColor" d="M224 480h640a32 32 0 1 1 0 64H224a32 32 0 0 1 0-64"/><path fill="currentColor" d="m237.248 512 265.408 265.344a32 32 0 0 1-45.312 45.312l-288-288a32 32 0 0 1 0-45.312l288-288a32 32 0 1 1 45.312 45.312z"/>'),
+        power: P('<path fill="currentColor" d="M352 159.872V230.4a352 352 0 1 0 320 0v-70.528A416.128 416.128 0 0 1 512 960a416 416 0 0 1-160-800.128"/><path fill="currentColor" d="M512 64q32 0 32 32v320q0 32-32 32t-32-32V96q0-32 32-32"/>'),
+        top: P('<path fill="currentColor" d="M572.235 205.282v600.365a30.118 30.118 0 1 1-60.235 0V205.282L292.382 438.633a28.913 28.913 0 0 1-42.646 0 33.43 33.43 0 0 1 0-45.236l271.058-288.045a28.913 28.913 0 0 1 42.647 0L834.5 393.397a33.43 33.43 0 0 1 0 45.176 28.913 28.913 0 0 1-42.647 0l-219.618-233.23z"/>'),
+        /* 下面几个上游用的是 @vicons/fa，viewBox 不同，这里按同样语义画等价图形 */
+        sun: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10m0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6m0-8a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0V2a1 1 0 0 1 1-1m0 18a1 1 0 0 1 1 1v2a1 1 0 1 1-2 0v-2a1 1 0 0 1 1-1M1 12a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2H2a1 1 0 0 1-1-1m19 0a1 1 0 0 1 1-1h2a1 1 0 1 1 0 2h-2a1 1 0 0 1-1-1M4.22 4.22a1 1 0 0 1 1.41 0l1.42 1.42a1 1 0 0 1-1.42 1.41L4.22 5.64a1 1 0 0 1 0-1.42m12.73 12.73a1 1 0 0 1 1.41 0l1.42 1.41a1 1 0 0 1-1.42 1.42l-1.41-1.42a1 1 0 0 1 0-1.41M19.78 4.22a1 1 0 0 1 0 1.42l-1.42 1.41a1 1 0 0 1-1.41-1.41l1.41-1.42a1 1 0 0 1 1.42 0M7.05 16.95a1 1 0 0 1 0 1.41l-1.42 1.42a1 1 0 0 1-1.41-1.42l1.41-1.41a1 1 0 0 1 1.42 0"/></svg>',
+        js: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 3h18v18H3zm10.7 12.3c.4.7 1 1.2 2 1.2.8 0 1.4-.4 1.4-1 0-.7-.6-1-1.5-1.4l-.5-.2c-1.5-.6-2.5-1.4-2.5-3 0-1.5 1.2-2.6 3-2.6 1.3 0 2.2.4 2.8 1.6l-1.5 1c-.3-.6-.7-.8-1.3-.8s-1 .4-1 .8c0 .6.4.9 1.2 1.2l.5.2c1.7.8 2.7 1.5 2.7 3.2 0 1.8-1.4 2.8-3.3 2.8-1.9 0-3.1-.9-3.7-2zM7.5 15.5c.3.6.6 1 1.3 1 .6 0 1-.3 1-1.3V8.7h1.9v6.6c0 2-1.2 2.9-2.9 2.9-1.6 0-2.5-.8-3-1.8z"/></svg>',
+        css: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 2h18l-1.6 18L12 22l-7.4-2zm13.9 4H7.1l.2 2.4h9.4l-.6 6.9-4.1 1.1-4.1-1.1-.3-3h2l.1 1.5 2.3.6 2.3-.6.2-2.6H7.6L7 6.9z"/></svg>',
+        github: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.2.8-.5v-2c-3.2.7-3.9-1.4-3.9-1.4-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.8 2.7 1.3 3.4 1 .1-.7.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.2-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.9 1.2 1.9 1.2 3.2 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5A11.5 11.5 0 0 0 12 .5"/></svg>',
+        book: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M4 2h13a3 3 0 0 1 3 3v16a1 1 0 0 1-1 1H6a2 2 0 0 1 0-4h13v-2H6a4 4 0 0 0-2 .5V2m2 2v11.1c.3-.1.7-.1 1-.1h11V5a1 1 0 0 0-1-1z"/></svg>',
+        telegram: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="m21.7 3.3-19 7.3c-.9.3-.9 1.5 0 1.8l4.7 1.6 1.8 5.6c.2.7 1.1.9 1.6.3l2.5-2.6 4.7 3.4c.6.4 1.4.1 1.6-.6l3.2-15.6c.2-.9-.7-1.6-1.5-1.2zM8.9 14.2l-.6 3.4-1.2-3.8 9.6-6.1z"/></svg>',
+        mug: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M3 4h14v3h2a3 3 0 0 1 0 6h-2v3a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4zm14 5v2h2a1 1 0 0 0 0-2zM2 21h16v2H2z"/></svg>',
     }
 
     const $ = s => document.querySelector(s)
@@ -69,11 +84,38 @@
     const area = (v, ph, rows) =>
         '<div class="el-textarea"><textarea class="el-textarea__inner" rows="' + (rows || 3) + '" placeholder="' + esc(ph) + '">' + esc(v) + '</textarea></div>'
 
-    const num = (v, w) =>
+    /* 上游好几处 el-input-number 带 #suffix 插槽（分钟 / 秒 / 天 / px / KiB/s），一并支持 */
+    const num = (v, w, suffix) =>
         '<div class="el-input-number" style="width:' + (w || 140) + 'px">' +
         '<span role="button" class="el-input-number__decrease" data-step="-1">' + icon('minus') + '</span>' +
         '<span role="button" class="el-input-number__increase" data-step="1">' + icon('plus') + '</span>' +
-        '<div class="el-input"><div class="el-input__wrapper"><input class="el-input__inner" value="' + esc(v) + '"/></div></div></div>'
+        '<div class="el-input' + (suffix ? ' el-input--suffix' : '') + '"><div class="el-input__wrapper">' +
+        '<input class="el-input__inner" value="' + esc(v) + '"/>' +
+        (suffix ? '<span class="el-input__suffix"><span class="el-input__suffix-inner">' + esc(suffix) + '</span></span>' : '') +
+        '</div></div></div>'
+
+    /* el-text size="small"：上游几乎每个开关下面都挂一条说明，缺了整页观感就不对 */
+    const hint = html => '<div><span class="el-text el-text--small mx-1">' + html + '</span></div>'
+    const cb = (label, on, danger) =>
+        '<label class="el-checkbox' + (on ? ' is-checked' : '') + (danger ? ' el-checkbox-danger' : '') +
+        '"><span class="el-checkbox__input' + (on ? ' is-checked' : '') + '"><span class="el-checkbox__inner"></span></span>' +
+        '<span class="el-checkbox__label">' + esc(label) + '</span></label>'
+    const lnk = (text, href, type) =>
+        '<a class="el-link el-link--' + (type || 'primary') + '" href="' + esc(href || '#') + '" target="_blank">' +
+        '<span class="el-link__inner">' + esc(text) + '</span></a>'
+
+    /* el-radio（圆点）——和 radios() 的 el-radio-button（分段按钮）不是一个东西 */
+    const radioRow = (items, active) =>
+        '<div class="el-radio-group">' + items.map((t, i) =>
+            '<label class="el-radio' + (i === active ? ' is-checked' : '') + '">' +
+            '<span class="el-radio__input' + (i === active ? ' is-checked' : '') + '"><span class="el-radio__inner"></span></span>' +
+            '<span class="el-radio__label">' + esc(t) + '</span></label>').join('') + '</div>'
+
+    /* public/icon.svg：登录页和「关于」用的是同一个 */
+    const LOGO = n => '<svg width="' + n + '" height="' + n + '" viewBox="0 0 24 24" fill="none" style="opacity:.9">' +
+        '<circle cx="6" cy="18" r="2.2" fill="currentColor"/>' +
+        '<path d="M4 11.5a8.5 8.5 0 0 1 8.5 8.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
+        '<path d="M4 5a15 15 0 0 1 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
 
     const sw = on => '<div class="el-switch' + (on ? ' is-checked' : '') + '"><span class="el-switch__core"><div class="el-switch__action"></div></span></div>'
 
@@ -112,7 +154,8 @@
         o = o || {}
         return '<button type="button" class="el-button' + (o.type ? ' el-button--' + o.type : '') +
             (o.text ? ' is-text' : '') + (o.bg ? ' is-has-bg' : '') + '"' + (o.act ? ' data-act="' + o.act + '"' : '') + '>' +
-            '<span>' + (o.icon ? '<i class="el-icon el-icon--left" data-icon="' + o.icon + '"></i> ' : '') + esc(text) + '</span></button>'
+            '<span>' + (o.icon ? '<i class="el-icon' + (text ? ' el-icon--left' : '') + '" data-icon="' + o.icon + '"></i>' + (text ? ' ' : '') : '') +
+            esc(text) + '</span></button>'
     }
 
     const item = (label, content, lw) =>
@@ -124,8 +167,9 @@
         '<form class="el-form el-form--default el-form--label-right full-width" onsubmit="return false">' +
         rows.map(r => Array.isArray(r) ? item(r[0], r[1], lw) : r).join('') + '</form>'
 
-    const collapse = items =>
-        '<div class="el-collapse el-collapse-icon-position-right">' + items.map((it, i) =>
+    /* accordion=true 时同一时刻只展开一个（对应上游 Basic.vue 的 <el-collapse accordion>） */
+    const collapse = (items, accordion) =>
+        '<div class="el-collapse el-collapse-icon-position-right"' + (accordion ? ' data-accordion="1"' : '') + '>' + items.map((it, i) =>
             '<div class="el-collapse-item' + (it.open ? ' is-active' : '') + '">' +
             '<div class="el-collapse-item__header' + (it.open ? ' is-active' : '') + '" role="button">' +
             '<span class="el-collapse-item__title">' + esc(it.title) + '</span>' +
@@ -139,7 +183,7 @@
         o = o || {}
         const id = 'tabs' + (++tabsId)
         const dir = o.vertical ? 'left' : 'top'
-        return '<div class="el-tabs el-tabs--' + dir + '" data-tabs="' + id + '">' +
+        return '<div class="el-tabs el-tabs--' + dir + '" data-tabs="' + id + '"' + (o.margin ? ' style="margin:0 15px"' : '') + '>' +
             '<div class="el-tabs__header' + (o.vertical ? ' el-tabs__header-vertical' : '') + ' is-' + dir + '">' +
             '<div class="el-tabs__nav-wrap is-' + dir + '"><div class="el-tabs__nav-scroll"><div class="el-tabs__nav is-' + dir + '">' +
             '<div class="el-tabs__active-bar is-' + dir + '"></div>' +
@@ -341,152 +385,278 @@
         },
     ])
 
-    /* ---------- 设置：八个标签页 ---------- */
+    /* ---------- 设置：八个标签页（对照 home/Config.vue 的 el-tabs） ---------- */
+
+    /* 1) 页面设置 —— config/basic/Page.vue */
     const pageSettings = form([
         ['外观', '<div class="el-radio-group" id="appearance">' +
         ['auto', 'light', 'dark'].map((m, i) => '<label class="el-radio-button' + (i === 0 ? ' is-active' : '') + '" data-mode="' + m + '">' +
-            '<span class="el-radio-button__inner">' + icon(['auto', 'gear', 'moon'][i]) + '</span></label>').join('') + '</div>'],
+            '<span class="el-radio-button__inner">' + icon(['auto', 'sun', 'moon'][i]) + '</span></label>').join('') + '</div>'],
         ['主题色', '<div class="el-color-picker" style="position:relative"><div class="el-color-picker__trigger">' +
         '<span class="el-color-picker__color"><span class="el-color-picker__color-inner" style="background-color:var(--el-color-primary)">' +
         '<i class="el-icon el-color-picker__icon" data-icon="caret"></i></span></span></div>' +
         '<input type="color" id="accent" value="#409eff" style="position:absolute;inset:0;opacity:0;cursor:pointer"/></div>' +
         '<span class="el-text el-text--info el-text--small" style="margin-left:10px" id="accentNote"></span>'],
-        ['排序', sel('评分', ['评分', '标题', '更新时间', '添加时间'], 150)],
-        ['最大内容宽度', '<div id="widthBox">' + num(1600, 150) + '</div><span class="el-text el-text--small" style="margin-left:8px">px</span>'],
+        ['排序', sel('评分', ['评分', '拼音', '更新时间'], 150)],
+        ['最大内容宽度', '<span id="widthBox">' + num(1600, 150, 'px') + '</span>'],
         ['其他', '<span id="toggles">' + checks([['显示评分', true], ['按星期展示', true], ['显示视频列表', true], ['显示更新时间', true]]) + '</span>'],
-        ['自定义', btn('JavaScript', {icon: 'tickets'}) + ' ' + btn('CSS', {icon: 'files'})],
+        ['自定义', btn('JavaScript', {bg: true, icon: 'js'}) + btn('CSS', {bg: true, icon: 'css'})],
     ], 100)
 
+    /* 2) 下载设置 —— config/Download.vue（下方折叠面板为 config/download/qBittorrent.vue） */
+    const downloadPane = form([
+        ['下载工具', sel('qBittorrent', ['qBittorrent', 'Transmission', 'Aria2', 'OpenList'], 200)],
+        ['地址', inp('http://192.168.1.8:8080', 'http://192.168.1.x:8080', {style: 'max-width:420px'})],
+        ['ApiKey', inp('', 'qbt_xxxx', {prefix: 'key', type: 'password', style: 'max-width:420px'})],
+        ['', '<div class="flex" style="width:100%;justify-content:end">' + btn('测试', {text: true, bg: true, icon: 'odometer'}) + '</div>'],
+        ['保存位置', inp('/downloads/${title}', '', {full: true})],
+        ['剧场版保存位置', '<div class="full-width">' + inp('/downloads/剧场版', '', {full: true}) +
+        '<div style="margin-top:8px">' + alertBox('你的 剧场版保存位置 并未按照模版填写, 可能会遇到下载位置错误') + '</div></div>'],
+        ['自动删除', '<div>' + sw(true) +
+        hint('自动删除已完成的任务<br>如果同时开启了 <strong>备用rss功能</strong> 将会自动删除对应洗版视频, 以实现 <strong>主rss</strong> 的替换') +
+        '<div>' + cb('等待做种完毕', false) + '</div>' +
+        '<div>' + cb('仅在主RSS更新后删除备用RSS', true) + '</div>' +
+        hint('<strong>主RSS</strong> 将 <span style="color:red">不会自动删除</span>，仅在其更新后删除对应备用RSS的任务与文件') + '</div>'],
+        ['失败重试次数', num(3, 150)],
+        ['同时下载限制', '<div>' + num(0, 150) + '<div>设置为时 0 不做限制</div></div>'],
+        ['延迟下载', num(0, 160, '分钟')],
+        ['优先保留', '<div class="full-width">' + sw(false) + hint('启用多文件种子的文件优先保留过滤') + '</div>'],
+        ['自定义标签', '<div class="full-width">' + tagList(['ani-rss'], 'primary') +
+        btn('', {text: true, bg: true, icon: 'plus'}) + '</div>'],
+        collapse([{
+            title: 'qBittorrent 设置', content: form([
+                ['下载速度限制', num(0, 170, 'KiB/s')],
+                ['上传速度限制', num(0, 170, 'KiB/s')],
+                ['分享率', '<div>' + num(-2, 150) + hint('"-1"表示禁用, "-2"使用全局设置') + '</div>'],
+                ['总做种时长', '<div>' + num(-2, 160, '分钟') + hint('"-1"表示禁用, "-2"使用全局设置') + '</div>'],
+                ['非活跃时长', '<div>' + num(-2, 160, '分钟') + hint('"-1"表示禁用, "-2"使用全局设置') + '</div>'],
+                ['qb保存路径', '<div>' + sw(false) + hint('开启后将使用qBittorrent的临时下载位置 (最终下载位置不受影响)') + '</div>'],
+            ], 120)
+        }]),
+    ], 110)
+
+    /* 3) 基本设置 —— config/Basic.vue，九个折叠面板，accordion 模式 */
+    const basicPane = collapse([
+        {title: '页面设置', open: true, content: pageSettings},
+        {
+            title: '添加订阅', content: form([
+                ['只下载最新集', sw(false)],
+                ['标题添加年份', sw(true)],
+                ['自动剧集偏移', sw(true)],
+                ['BGM日语标题', sw(false)],
+                ['TMDB ID', '<div>' + sw(true) + '<br>' + cb('Plex Mode', false) +
+                hint('自动获取tmdbId, 如: 女仆冥土小姐。 [tmdbid=242143]') + '</div>'],
+                ['TMDB标题', '<div>' + sw(true) + hint('自动使用TMDB的标题') +
+                '<div>' + cb('仅获取动漫', true) + cb('使用原标题', false) + cb('优先获取罗马音', false) + '</div></div>'],
+                ['TMDB语言', sel('中文 (zh-CN)', ['中文 (zh-CN)', '日本語 (ja-JP)', 'English (en-US)', '繁體中文 (zh-TW)'], 180)],
+                ['开启全局排除', sw(true)],
+                ['导入全局排除', sw(false)],
+                ['封面质量', sel('common', ['small', 'grid', 'large', 'medium', 'common'], 150)],
+                ['自定义集数规则', '<div class="full-width"><div>' + sw(false) + '</div>' +
+                '<div class="flex full-width" style="gap:4px;margin-top:4px">' +
+                inp('', '', {style: 'flex:1;min-width:180px'}) + num(1, 140) + '</div></div>'],
+                ['自动上传', sw(false)],
+                ['自动替换', '<div>' + sw(false) + hint('重名的订阅将允许被替换') + '</div>'],
+            ], 120)
+        },
+        {
+            title: '重命名设置', content: form([
+                ['自动重命名', sw(true)],
+                ['重命名间隔', num(30, 160, '秒')],
+                ['最大文件名长度', num(255, 150)],
+                ['重命名模版', '<div class="full-width">' +
+                inp('${title} S${seasonFormat}E${episodeFormat}', '${title} S${seasonFormat}E${episodeFormat}', {full: true}) +
+                hint(lnk('详细说明', 'https://docs.wushuo.top/config/basic/rename#rename-template')) + '</div>'],
+                ['剔除年份', '<div>' + sw(false) + hint('重命名时剔除 年份, 如 (2024)') + '</div>'],
+                ['剔除TMDB ID', '<div>' + sw(true) + hint('重命名时剔除 tmdbid, 如 [tmdbid=242143]') + '</div>'],
+                ['字幕独立文件夹', '<div class="full-width">' + sw(false) + '<br>' +
+                inp('Subs', '', {full: true}) + hint('仅支持 qBittorrent') + '</div>'],
+            ], 120)
+        },
+        {
+            title: '刮削设置', content: form([
+                ['自动刮削', sw(true)],
+                ['追更天数', '<div>' + num(7, 150, '天') + hint('自动强制刮削最近更新集的元数据') + '</div>'],
+                ['更多', cb('bangumi.ini', false)],
+                ['TmdbApi', inp('', 'https://api.themoviedb.org', {full: true})],
+                ['TmdbApiKey', inp('', '请自备 API 密钥, 留空使用系统默认', {full: true})],
+                ['TmdbImage', inp('', 'https://image.tmdb.org', {full: true})],
+            ], 110)
+        },
+        {
+            title: 'RSS设置', content: form([
+                ['RSS开关', sw(true)],
+                ['RSS间隔', num(15, 170, '分钟')],
+                ['RSS超时', num(30, 160, '秒')],
+                ['自动跳过', '<div class="full-width">' + sw(true) +
+                hint('文件已下载自动跳过 此选项必须启用 自动重命名。确保 下载工具 与本程序 docker 映射挂载路径一致 &nbsp;' +
+                    lnk('详细说明', 'https://docs.wushuo.top/config/basic/rss#auto-skip')) + '</div>'],
+                ['自动禁用订阅', '<div class="full-width">' + sw(true) +
+                hint('根据 Bangumi 获取总集数 当所有集数都已下载时自动禁用该订阅') +
+                '<div>' + cb('订阅完结迁移', false) + '</div>' +
+                '<div style="margin-top:4px">' + inp('/downloads/完结/${title}', '', {full: true}) + '</div></div>'],
+                ['自动更新总集数', '<div class="full-width">' + sw(true) +
+                '<div>' + cb('强制更新', false, true) + '</div></div>'],
+                ['自动跳过X.5集', sw(false)],
+                ['遗漏检测', '<div>' + sw(true) + hint('总开关 若检测到RSS中集数出现遗漏会发送通知') + '</div>'],
+                ['摸鱼检测', '<div>' + sw(false) +
+                '<div style="margin-top:4px">' + num(14, 160, '天') + '</div>' +
+                cb('仅启用主RSS摸鱼检测', false) +
+                hint('检测到主RSS更新摸鱼会发送通知<br>建议配合 <strong>自动禁用订阅</strong> 食用') + '</div>'],
+                ['备用RSS', '<div class="full-width">' + sw(true) +
+                '<div>' + cb('多字幕组共存模式', false) + cb('添加订阅时自动复制主rss至备用rss', true) + '</div>' +
+                '<div class="flex full-width" style="justify-content:end">' +
+                lnk('详细说明', 'https://docs.wushuo.top/config/basic/rss#back-rss') + '</div></div>'],
+            ], 120)
+        },
+        {
+            title: 'Trackers', content: form([
+                ['更新地址', '<div class="full-width">' +
+                area('https://cf.trackerslist.com/best.txt', '换行输入多个', 2) +
+                '<div style="height:12px"></div>' +
+                '<div class="flex" style="justify-content:space-between;align-items:center">' +
+                cb('每天1:00自动更新', true) + btn('更新', {bg: true, icon: 'refresh'}) + '</div>' +
+                hint('该功能暂不支持 Transmission') + '</div>'],
+            ], 90)
+        },
+        {
+            title: 'Bangumi', content: form([
+                ['BgmApi', inp('', 'https://api.bgm.tv', {full: true})],
+                ['获取方式', radioRow(['手动输入', '自动获取'], 0)],
+                ['Token', '<div class="full-width">' + inp('', 'ABCDEFGHIJKLMNOPQRS', {full: true}) +
+                hint('你可以在&nbsp;' + lnk('https://next.bgm.tv/demo/access-token', 'https://next.bgm.tv/demo/access-token') + '&nbsp;生成一个 Access Token') +
+                '</div>'],
+            ], 90) + '<div class="flex" style="justify-content:start">' +
+                lnk('支持自动点格子', 'https://docs.wushuo.top/config/basic/other#emby-webhook') + '</div>'
+        },
+        {
+            title: '其他', content: form([
+                ['Api', btn('复制 emby 自动点格子 api', {icon: 'copy'}) + btn('复制 ics', {icon: 'copy'})],
+                ['Mikan', inp('', 'https://mikanani.me', {full: true})],
+                ['GithubToken', '<div class="full-width">' + inp('', '在此处输入GithubToken', {full: true}) +
+                '<div class="flex" style="justify-content:end;margin-top:4px">' + btn('获取GithubToken', {bg: true, icon: 'github'}) + '</div></div>'],
+                ['最大日志条数', sel('256', ['128', '256', '512'], 150)],
+                ['自动更新', '<div class="full-width">' + sw(false) + hint('每天 06:00 自动更新程序') + '</div>'],
+                ['DEBUG', sw(false)],
+                ['缓存', '<div class="full-width">' + btn('清理', {bg: true, icon: 'del'}) + hint('清理现在不被使用的缓存') + '</div>'],
+                ['自动备份配置', '<div>' + sw(true) + '<br>' + num(7, 150, '天') + '</div>'],
+                ['开机自启', sw(false)],
+            ], 120)
+        },
+        {
+            title: '备份', content: '<div class="content flex" style="width:100%;justify-content:center;gap:10px">' +
+                btn('导出设置', {bg: true, icon: 'upload'}) + btn('导入设置', {bg: true, icon: 'download'}) + '</div>'
+        },
+    ], true)
+
+    /* 4) 全局排除 —— config/Exclude.vue（show-text） */
+    const excludePane = '<div class="full-width">' +
+        '<div class="gap-2" style="display:flex;flex-wrap:wrap;align-items:center">' +
+        ['720', '简', '\\d+-\\d+', '{{桜都字幕组}}:繁', 'CHT', 'DVD', '合集'].map(t =>
+            '<span class="el-tag el-tag--primary el-tag--light" style="margin:0 4px 4px 0"><span class="el-tag__content">' +
+            '<span class="el-text el-text--small" style="max-width:300px;color:var(--el-color-primary)">' + esc(t) + '</span>' +
+            '</span><i class="el-tag__close el-icon" data-icon="close"></i></span>').join('') +
+        btn('', {bg: true, text: true, icon: 'plus'}) + btn('', {bg: true, text: true, type: 'danger', icon: 'del'}) +
+        '</div>' +
+        '<div class="flex" style="margin-top:4px;width:100%;justify-content:space-between">' +
+        '<span></span><span class="el-text el-text--small mx-1">支持&nbsp;' +
+        lnk('正则表达式', 'https://www.runoob.com/regexp/regexp-syntax.html') + '</span></div></div>'
+
+    /* 5) 代理设置 —— config/Proxy.vue */
+    const proxyPane = form([
+        ['IP', inp('', '192.168.0.x', {full: true})],
+        ['端口', num(7890, 150)],
+        ['用户名', inp('', '可以为空', {prefix: 'user', full: true})],
+        ['密码', inp('', '可以为空', {prefix: 'key', full: true})],
+        ['代理列表', area('', '', 3)],
+        ['启用', sw(false)],
+        ['ScrapeTest', '<div class="auto-flex" style="justify-content:space-between;width:100%">' +
+        '<div style="display:flex">' + sel('https://mikanani.me',
+            ['https://mikanani.me', 'https://mikanime.tv', 'https://nyaa.si', 'https://acg.rip',
+                'https://github.com', 'https://www.google.com', 'https://bgm.tv', 'https://www.themoviedb.org'], 240) +
+        '<div style="width:4px"></div>' + btn('测试', {bg: true, text: true, icon: 'odometer'}) + '</div></div>'],
+    ], 100)
+
+    /* 6) 登录设置 —— config/LoginConfig.vue */
+    const loginPane = form([
+        ['用户名', inp('', '', {prefix: 'user', full: true})],
+        ['密码', inp('', '', {prefix: 'key', full: true})],
+        ['登录有效', num(72, 170, '小时')],
+        ['其他', checks([['禁止多端登录', false], ['禁止公网访问', false], ['如果IP发生改变登录将失效', true], ['限制尝试次数', true], ['允许跨域', false]])],
+        ['IP白名单', '<div class="full-width"><div>' + sw(false) + '</div>' +
+        '<div class="full-width">' + area('', '127.0.0.1\n192.168.1.0/24', 2) +
+        hint('对IP白名单跳过身份验证, 换行可填写多个') + '</div></div>'],
+        ['信任的反代IP', '<div class="full-width">' + cb('启用', false) + '<br>' + tagInput(['172.17.0.1']) + '</div>'],
+        ['Api Key', '<div class="flex full-width" style="align-items:center">' +
+        inp('a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6', '', {full: true}) +
+        '<div class="flex" style="margin-left:12px">' + btn('生成', {bg: true, text: true}) + btn('复制', {bg: true, text: true}) + '</div></div>'],
+    ], 110)
+
+    /* 7) 通知 —— config/Notification.vue，卡片名称取自 js/notification-type.js */
+    const notifyPane =
+        collapse([{
+            title: '通知模板', content: area('${text}', '${text}', 2) +
+                '<div class="flex" style="width:100%;justify-content:end;margin-top:4px">' +
+                lnk('通知模版示例', 'https://docs.wushuo.top/config/notification') + '</div>'
+        }]) +
+        '<div style="margin-top:8px;padding:0 4px">' +
+        '<div class="el-space el-space--horizontal" style="display:flex;flex-wrap:wrap;gap:8px">' +
+        [['TG通知', '主号'], ['邮箱通知', '无备注'], ['WebHook', '推送到 Home Assistant'], ['系统通知', '无备注'],
+            ['Emby媒体库刷新', '刷新动漫库'], ['执行外部程序', '硬链接脚本']].map(([n, c]) =>
+            '<div class="el-card is-never-shadow" style="min-width:180px"><div class="el-card__body">' +
+            '<div class="flex" style="align-items:center;justify-content:space-between">' +
+            '<div><p style="width:110px;margin:0">' + esc(n) + '</p>' +
+            '<span class="el-text el-text--small is-truncated" style="max-width:120px">' + esc(c) + '</span></div>' +
+            '<div>' + btn('', {type: 'primary', text: true, icon: 'more'}) + '</div>' +
+            '</div></div></div>').join('') + '</div>' +
+        btn('添加通知', {type: 'primary', text: true, bg: true, icon: 'folderAdd'}).replace('class="el-button', 'style="margin-top:12px" class="el-button') +
+        '</div>'
+
+    /* 8) 捐赠 —— config/Afdian.vue */
+    const afdianPane =
+        form([['捐赠状态', '<span class="el-tag el-tag--success el-tag--light"><span class="el-tag__content">' +
+        '<span class="flex" style="align-items:center;gap:4px">' + icon('mug') + '已捐赠</span></span></span>']], 80) +
+        '<div class="flex" style="align-items:center;gap:20px;flex-wrap:wrap">' +
+        '<a class="el-button el-button--danger" href="https://ifdian.net/a/wushuo894" target="_blank"><span>爱发电赞助</span></a>' +
+        '<div><h3 style="margin:0 0 6px">捐赠后解锁</h3>' +
+        tagList(['Mikan/AnimeGarden 番剧列表显示评分'], 'primary') + '</div></div>' +
+        '<div style="margin-top:16px">' +
+        '<span class="el-text el-text--small mx-1">已经捐赠？在这里输入您的订单号以激活您的捐赠</span>' +
+        '<div class="flex" style="gap:8px;margin-top:6px;align-items:center">' +
+        inp('', '订单号', {prefix: 'key', style: 'max-width:320px'}) + btn('激活', {type: 'primary', text: true, bg: true, icon: 'check'}) +
+        '</div></div>'
+
+    /* 9) 关于 —— config/About.vue */
+    const aboutPane =
+        '<div class="flex-center" style="width:100%;flex-flow:column">' +
+        '<div class="flex" style="margin-bottom:12px;align-items:end;gap:10px">' + LOGO(80) +
+        '<div><h1 style="margin:0">ANI-RSS</h1>' +
+        '<span class="el-text el-text--small mx-1" style="cursor:pointer">&nbsp;v3.1.77</span></div></div>' +
+        '<div class="flex" style="margin-bottom:12px;align-items:center;gap:12px">' +
+        btn('GitHub', {type: 'info', text: true, bg: true, icon: 'github'}) +
+        btn('使用文档', {type: 'info', text: true, bg: true, icon: 'book'}) +
+        btn('TG群', {type: 'info', text: true, bg: true, icon: 'telegram'}) + '</div>' +
+        '<div class="flex" style="margin-bottom:8px;align-items:center;gap:12px">' +
+        btn('退出', {type: 'danger', text: true, bg: true, icon: 'back'}) +
+        btn('重启', {type: 'warning', text: true, bg: true, icon: 'refreshRight'}) +
+        btn('关闭', {type: 'danger', text: true, bg: true, icon: 'power'}) +
+        '<div class="el-badge">' + btn('更新', {type: 'success', text: true, bg: true, icon: 'top'}) +
+        '<sup class="el-badge__content el-badge__content--danger is-fixed">new</sup></div>' +
+        '</div></div>'
+
+    /* 上游三个重内容的面板固定 500px 高 + el-scrollbar，其余自适应 */
+    const tall = html => '<div class="pv-tall">' + html + '</div>'
+
     const settingsBody = tabs([
-        {
-            title: '下载设置', pane: form([
-                ['下载工具', sel('qBittorrent', ['qBittorrent', 'Transmission', 'Aria2', 'Alist'], 180)],
-                ['地址', inp('http://qbittorrent:8080', 'http://x.x.x.x:8080', {style: 'max-width:360px'})],
-                ['用户名', inp('', 'username', {prefix: 'user', style: 'max-width:360px'})],
-                ['密码', inp('', 'password', {prefix: 'key', type: 'password', style: 'max-width:360px'})],
-                ['下载位置', inp('/downloads/anime', '', {style: 'max-width:360px'})],
-                ['自动删种', sw(true)],
-                ['删除文件', sw(false)],
-                ['做种时间', num(0, 150) + '<span class="el-text el-text--small" style="margin-left:8px">分钟</span>'],
-                ['连接测试', btn('测试连接', {type: 'primary'})],
-            ], 110)
-        },
-        {
-            title: '基本设置', pane: collapse([
-                {title: '页面设置', open: true, content: pageSettings},
-                {
-                    title: '添加订阅', content: form([
-                        ['只下载最新集', sw(false)], ['标题添加年份', sw(true)], ['自动剧集偏移', sw(true)],
-                        ['BGM日语标题', sw(false)], ['TMDB ID', sw(true)], ['TMDB标题', sw(true)],
-                        ['TMDB语言', sel('中文', ['中文', '日语', 'English'], 150)],
-                        ['开启全局排除', sw(true)], ['封面质量', sel('原图', ['原图', '高', '中'], 150)],
-                    ], 120)
-                },
-                {
-                    title: '重命名设置', content: form([
-                        ['自动重命名', sw(true)],
-                        ['重命名间隔', num(30, 150) + '<span class="el-text el-text--small" style="margin-left:8px">分钟</span>'],
-                        ['最大文件名长度', num(255, 150)],
-                        ['重命名模版', inp('${title} S${seasonFormat}E${episodeFormat}', '', {style: 'max-width:420px'})],
-                        ['剔除年份', sw(false)], ['剔除TMDB ID', sw(true)], ['字幕独立文件夹', sw(false)],
-                        ['', alertBox('模版变更后，已入库的剧集不会自动重命名')],
-                    ], 120)
-                },
-                {
-                    title: '刮削设置', content: form([
-                        ['自动刮削', sw(true)],
-                        ['追更天数', num(7, 150)],
-                        ['TmdbApi', inp('https://api.themoviedb.org', '', {style: 'max-width:360px'})],
-                        ['TmdbApiKey', inp('', 'xxxxxxxx', {prefix: 'key', type: 'password', style: 'max-width:360px'})],
-                        ['TmdbImage', inp('https://image.tmdb.org', '', {style: 'max-width:360px'})],
-                    ], 120)
-                },
-                {
-                    title: 'RSS设置', content: form([
-                        ['RSS开关', sw(true)],
-                        ['RSS间隔', num(15, 150) + '<span class="el-text el-text--small" style="margin-left:8px">分钟</span>'],
-                        ['RSS超时', num(30, 150) + '<span class="el-text el-text--small" style="margin-left:8px">秒</span>'],
-                        ['自动跳过', sw(true)], ['自动禁用订阅', sw(true)], ['自动更新总集数', sw(true)],
-                        ['自动跳过X.5集', sw(false)], ['遗漏检测', sw(true)], ['摸鱼检测', sw(false)], ['备用RSS', sw(true)],
-                    ], 120)
-                },
-                {title: 'Trackers', content: form([['更新地址', inp('https://cf.trackerslist.com/best.txt', '', {style: 'max-width:420px'})], ['', btn('立即更新', {type: 'primary'})]], 120)},
-                {
-                    title: 'Bangumi', content: form([
-                        ['BgmApi', inp('https://api.bgm.tv', '', {style: 'max-width:360px'})],
-                        ['获取方式', radios(['Token', 'OAuth'], 0)],
-                        ['Token', inp('', 'bgm token', {prefix: 'key', type: 'password', style: 'max-width:360px'})],
-                    ], 120)
-                },
-                {
-                    title: '其他', content: form([
-                        ['Api', inp('', 'api key', {prefix: 'key', type: 'password', style: 'max-width:360px'})],
-                        ['最大日志条数', num(1000, 150)],
-                        ['自动更新', sw(false)], ['DEBUG', sw(false)], ['缓存', sw(true)],
-                        ['自动备份配置', sw(true)], ['开机自启', sw(false)],
-                    ], 120)
-                },
-                {title: '备份', content: '<div class="flex" style="gap:10px">' + btn('导出配置', {type: 'primary', icon: 'download'}) + btn('导入配置', {icon: 'upload'}) + '</div>'},
-            ])
-        },
-        {
-            title: '全局排除', pane:
-                '<div class="flex" style="gap:8px;margin-bottom:10px">' + inp('', '输入要排除的关键字，回车添加', {style: 'flex:1'}) + btn('添加', {type: 'primary'}) + '</div>' +
-                form([
-                    ['字幕组', '<div class="flex" style="flex-wrap:wrap;gap:6px">' + tagList(['桜都字幕组', 'Nekomoe kissaten']) + '</div>'],
-                    ['正则', '<div class="flex" style="flex-wrap:wrap;gap:6px">' + tagList(['720p', '繁体', 'CHT', 'MKV', '合集', 'DVD', '\\d+-\\d+']) + '</div>'],
-                ], 80)
-        },
-        {
-            title: '代理设置', pane: form([
-                ['启用', sw(true)],
-                ['类型', radios(['HTTP', 'SOCKS5'], 0)],
-                ['IP', inp('proxy.local', '', {style: 'max-width:300px'})],
-                ['端口', num(7890, 150)],
-                ['用户名', inp('', 'username', {prefix: 'user', style: 'max-width:300px'})],
-                ['密码', inp('', 'password', {prefix: 'key', type: 'password', style: 'max-width:300px'})],
-                ['代理列表', sel('全部走代理', ['全部走代理', '仅 TMDB', '仅 Bangumi', '自定义'], 180)],
-            ], 110)
-        },
-        {
-            title: '登录设置', pane: form([
-                ['用户名', inp('', '用户名', {prefix: 'user', style: 'max-width:300px'})],
-                ['密码', inp('', '••••••', {prefix: 'key', type: 'password', style: 'max-width:300px'})],
-                ['登录有效', num(7, 150) + '<span class="el-text el-text--small" style="margin-left:8px">天</span>'],
-                ['其他', checks([['登录验证', true], ['IP白名单', true], ['反代信任', false], ['Api Key', true], ['限制登录失败次数', true], ['记住密码', false]])],
-                ['IP白名单', tagInput(['127.0.0.1', '局域网'])],
-                ['Api Key', inp('', 'ani-rss-xxxxxxxx', {prefix: 'key', type: 'password', style: 'max-width:360px'})],
-            ], 110)
-        },
-        {
-            title: '通知', pane: '<div class="grid-container" style="--ani-grid-columns:3;grid-gap:8px">' +
-                [['Telegram', 1], ['Bark', 0], ['Webhook', 1], ['邮件', 0], ['Server 酱', 0], ['系统通知', 1], ['Gotify', 0], ['企业微信', 0], ['Shell', 1]].map(([n, on]) =>
-                    '<div class="el-card is-never-shadow"><div class="el-card__body" style="padding:12px 14px">' +
-                    '<div class="flex" style="justify-content:space-between;align-items:center;gap:10px">' +
-                    '<span class="el-text">' + esc(n) + '</span>' + sw(!!on) + '</div></div></div>').join('') + '</div>'
-        },
-        {
-            title: '捐赠', pane: '<div class="flex-center" style="flex-direction:column;gap:14px;padding:34px 0">' +
-                '<span class="el-text">如果这个项目帮到了你，可以请作者喝杯咖啡</span>' +
-                '<div class="flex" style="gap:10px">' + btn('爱发电', {type: 'primary'}) + btn('查看赞助者', {text: true, bg: true}) + '</div></div>'
-        },
-        {
-            title: '关于', pane: '<div class="flex-center" style="flex-direction:column;gap:6px;padding:16px 0">' +
-                '<svg width="64" height="64" viewBox="0 0 24 24" fill="none" style="opacity:.9">' +
-                '<circle cx="6" cy="18" r="2.2" fill="currentColor"/>' +
-                '<path d="M4 11.5a8.5 8.5 0 0 1 8.5 8.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>' +
-                '<path d="M4 5a15 15 0 0 1 15 15" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>' +
-                '<h2 style="margin:6px 0 0">ANI-RSS</h2>' +
-                '<span class="el-text el-text--info el-text--small">v3.1.77</span>' +
-                '<div class="flex" style="gap:18px;margin-top:12px">' +
-                '<a class="el-link el-link--default" href="https://github.com/wushuo894/ani-rss" target="_blank"><span class="el-link__inner">GitHub</span></a>' +
-                '<a class="el-link el-link--default" href="https://docs.wushuo.top" target="_blank"><span class="el-link__inner">使用文档</span></a></div>' +
-                '<div class="flex" style="gap:10px;margin-top:16px">' +
-                btn('退出', {type: 'danger', text: true}) + btn('重启', {type: 'warning', text: true}) +
-                btn('关闭', {type: 'danger', text: true}) + btn('更新', {type: 'success', text: true}) + '</div>' +
-                '<div style="max-width:520px;margin-top:16px">' + alertBox('已是最新版本', 'success') + '</div></div>'
-        },
-    ])
+        {title: '下载设置', pane: tall(downloadPane)},
+        {title: '基本设置', pane: tall(basicPane)},
+        {title: '全局排除', pane: excludePane},
+        {title: '代理设置', pane: proxyPane},
+        {title: '登录设置', pane: loginPane},
+        {title: '通知', pane: tall(notifyPane)},
+        {title: '捐赠', pane: afdianPane},
+        {title: '关于', pane: aboutPane},
+    ], {margin: true})
 
     $('#dialogs').innerHTML =
         dialog('dlg-download', '下载', downloadBody, '', '900px') +
@@ -495,7 +665,8 @@
         dialog('dlg-add', '添加订阅', addBody, btn('确定', {type: 'success', text: true, icon: 'check'}).replace('<button', '<button data-close'), '800px') +
         dialog('dlg-edit', '修改订阅', editBody,
             btn('删除', {type: 'danger', text: true, icon: 'del'}) + btn('保存', {type: 'success', text: true, icon: 'check'}).replace('<button', '<button data-close'), '800px') +
-        dialog('dlg-settings', '设置', settingsBody, okCancel, '860px')
+        /* 设置弹窗没写 width，走 el-dialog 默认的 50%；确定/取消在 body 里而不是 footer（见 home/Config.vue） */
+        dialog('dlg-settings', '设置', settingsBody + '<div class="action">' + okCancel + '</div>', '', '50%')
 
     $('#manageList').innerHTML = DATA.slice(0, 12).map(a =>
         '<div class="el-card is-never-shadow" style="margin-bottom:6px"><div class="el-card__body" style="padding:10px 14px">' +
@@ -660,18 +831,29 @@
     window.addEventListener('resize', () => positionBars())
 
     /* ==================== 折叠面板 ==================== */
-    document.addEventListener('click', e => {
-        const head = e.target.closest('.el-collapse-item__header')
-        if (!head) return
-        const cItem = head.parentElement
+    function setCollapse(cItem, open) {
+        const head = cItem.querySelector('.el-collapse-item__header')
         const wrap = cItem.querySelector('.el-collapse-item__wrap')
         if (!wrap) return
-        const open = cItem.classList.toggle('is-active')
+        cItem.classList.toggle('is-active', open)
         head.classList.toggle('is-active', open)
         const arrow = head.querySelector('.el-collapse-item__arrow')
         if (arrow) arrow.classList.toggle('is-active', open)
         wrap.classList.add('el-collapse-transition-enter-active')
         wrap.style.maxHeight = open ? wrap.scrollHeight + 'px' : '0px'
+    }
+
+    document.addEventListener('click', e => {
+        const head = e.target.closest('.el-collapse-item__header')
+        if (!head) return
+        const cItem = head.parentElement
+        const group = cItem.parentElement
+        const open = !cItem.classList.contains('is-active')
+        /* accordion：展开一个就收起同组其余的 */
+        if (open && group.dataset.accordion) {
+            group.querySelectorAll(':scope > .el-collapse-item.is-active').forEach(x => setCollapse(x, false))
+        }
+        setCollapse(cItem, open)
     })
 
     /* ==================== 通用控件：点了要有反应 ==================== */

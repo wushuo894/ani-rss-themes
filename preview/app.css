@@ -166,15 +166,24 @@ html, body, #app {
 }
 
 /* ---------- 登录页（对应 Login.vue） ---------- */
+/* flex:1 是关键：登录卡片吃掉页脚以外的全部高度，再在其中居中。
+   少了这行，卡片就贴在页面顶部，只有水平方向居中。 */
 #login-page {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex: 1;
     width: 100%;
 }
 
 #form {
     max-width: 200px;
+}
+
+@media (max-width: 450px) {
+    #form {
+        width: 80%;
+    }
 }
 
 .title-h2 {
@@ -187,6 +196,10 @@ html, body, #app {
     justify-content: space-between;
     align-items: center;
     width: 100%;
+}
+
+.footer {
+    margin-bottom: 16px;
 }
 
 /* ---------- 日志弹窗（对应 home/Logs.vue） ---------- */

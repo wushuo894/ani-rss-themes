@@ -142,6 +142,22 @@
             padding-right: 6px;
         }
 
+        /* 设置弹窗里三个重内容的面板：上游是 height:500px + el-scrollbar */
+        .pv-tall {
+            height: 500px;
+            max-height: 52vh;
+            overflow: auto;
+            padding: 0 12px;
+        }
+
+        /* 设置的确定/取消在 body 底部右侧，不是 footer */
+        .el-dialog__body > .action {
+            display: flex;
+            justify-content: flex-end;
+            width: 100%;
+            margin-top: 8px;
+        }
+
         /* 设置里「其他」四个开关真的作用于列表 */
         .no-score .list-card-score-container,
         .no-time .list-card-time,
@@ -319,8 +335,9 @@
                 </form>
             </div>
         </div>
-        <div class="footer flex" style="gap: 10px; margin-bottom: 16px;">
+        <div class="footer">
             <a class="el-link el-link--default" href="https://docs.wushuo.top" target="_blank"><span class="el-link__inner">ani-rss</span></a>
+            &nbsp;
             <a class="el-link el-link--default" href="https://github.com/wushuo894/ani-rss" target="_blank"><span class="el-link__inner">github</span></a>
         </div>
     </div>
