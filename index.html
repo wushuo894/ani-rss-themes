@@ -74,18 +74,15 @@
             background: #16283c;
         }
 
-        .pv-bar code {
-            font-family: ui-monospace, Consolas, monospace;
-            font-size: 12px;
-            color: #7fd4ff;
-            background: #171a21;
-            padding: 5px 9px;
-            border-radius: 5px;
-            user-select: all;
-            max-width: 34vw;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .pv-bar button:hover:not(:disabled) {
+            border-color: #4a5262;
+            background: #1e232c;
+        }
+
+        .pv-bar button.done {
+            border-color: #2f7d54;
+            background: #14301f;
+            color: #7ee2a8;
         }
 
         .pv-grow {
@@ -96,8 +93,8 @@
             color: #6f7784 !important;
         }
 
-        @media (max-width: 1100px) {
-            .pv-bar code {
+        @media (max-width: 1240px) {
+            .pv-hint {
                 display: none;
             }
         }
@@ -232,10 +229,12 @@
     <button id="mode" type="button">切换深色</button>
     <span class="pv-note" id="modeNote"></span>
     <button id="loginToggle" type="button">看登录页</button>
-    <span class="pv-note">顶部按钮可打开各弹窗</span>
+    <span class="pv-note pv-hint">顶部按钮可打开各弹窗</span>
     <span class="pv-grow"></span>
-    <span class="pv-note">粘贴到自定义CSS</span>
-    <code id="snippet">@import url("...");</code>
+    <span class="pv-note pv-hint">复制到 设置 → 基础设置 → 页面设置 → 自定义 → CSS</span>
+    <button id="copyPages" type="button" title="@import GitHub Pages">复制链接 · GitHub</button>
+    <button id="copyJsd" type="button" title="@import jsDelivr（国内更快）">复制链接 · jsDelivr</button>
+    <button id="copyCss" type="button" title="把整份 CSS 复制走，离线可用">复制 CSS 全文</button>
 </div>
 
 <div id="app" style="max-width: 1600px;">
