@@ -19,6 +19,22 @@ ani-rss 本体是 **GPL-2.0**，所以这里没有复制它的代码，只是按
 
 - https://github.com/wushuo894/ani-rss
 
+## preview.js
+
+预览页的交互层：弹窗、下拉、标签页、折叠面板都用 Element Plus 真实的类名与过渡动画
+（`dialog-fade` / `el-zoom-in-top` / `el-collapse-transition`），设置里的开关真的作用于列表。
+内嵌的 SVG 图标取自 [@element-plus/icons-vue](https://github.com/element-plus/element-plus-icons)（MIT）。
+
+## data.js
+
+番剧数据取自 [Bangumi 每日放送接口](https://api.bgm.tv/calendar)，构建时打的快照。
+
+- 标题、评分、封面地址为 Bangumi 真实数据
+- 季度、字幕组、集数、启用状态、更新时间是演示用的虚构字段
+- 封面**直链** `lain.bgm.tv`，不落地到本仓库，也就不涉及转载他人作品的封面
+
+要换一批番剧，重新拉一次接口覆盖这个文件即可。
+
 ## ani-rss 自己的那层样式
 
 预览页从 jsDelivr 直接热链上游仓库里的 `ani-rss-ui/src/style.css`：
