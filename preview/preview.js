@@ -1382,6 +1382,15 @@
             () => { i = 1 - i; return paint() })
 
         $('#pasteHint').textContent = '这款要填两个框：CSS 一份、JS 一份'
+
+        /* 预览页得真的把这份 JS 跑起来。
+           只给个复制按钮、自己不加载，选到这款就永远看不到背景动画 ——
+           「预览看到什么样，装上去就是什么样」对这类主题就不成立了。
+           它自己会盯着登录页的显隐来挂载和销毁，这里放着不管即可。 */
+        const tag = document.createElement('script')
+        tag.src = 'js/' + jsFile
+        tag.onerror = () => toast('配套 JS 没加载起来：js/' + jsFile, 'error')
+        document.body.appendChild(tag)
     }
 
     function setMode(dark) {

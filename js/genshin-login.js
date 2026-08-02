@@ -1335,8 +1335,21 @@
         if (self.stop) self.stop()
     }
 
+    /**
+     * 光在 DOM 里不算数，得真的渲染出来。
+     *
+     * ani-rss 本体是 v-if，登录完元素直接没了，两种判断等价；但预览页是把登录页
+     * display:none 留在 DOM 里的，只看「在不在」会导致列表页背后也糊上一层天空。
+     * getClientRects() 对 display:none 及其子孙返回空，正好用来区分。
+     * el 为 null 时短路，列表页不会白白触发一次强制布局。
+     */
+    function onLoginPage() {
+        const el = document.querySelector(LOGIN_SEL)
+        return !!el && el.getClientRects().length > 0
+    }
+
     function sync() {
-        const onLogin = !!document.querySelector(LOGIN_SEL)
+        const onLogin = onLoginPage()
         if (onLogin && !active) {
             start().catch(err => {
                 console.warn('[原神启动] 背景没起来：', err)
@@ -1349,20 +1362,39 @@
 
     /* ==================== 入口 ==================== */
 
-    if (!ASSET_BASE) return
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    /* 不启动就说一声。这几条以前是静默 return，表现是「等半天没动画、控制台干干净净」，
+       没法查 —— 尤其「减弱动态效果」这条，Windows 的动画效果一关就会命中。 */
+    function bail(why) {
+        console.info('[原神启动] 三维背景未启动：' + why)
+    }
+
+    if (!ASSET_BASE) return bail('ASSET_BASE 是空的，等于主动关掉了')
+
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches && !window.GENSHIN_LOGIN_FORCE) {
+        return bail(
+            '系统开了「减弱动态效果」（Windows：设置 → 辅助功能 → 视觉效果 → 动画效果；' +
+            'macOS：辅助功能 → 显示 → 减弱动态效果）。' +
+            '确定要无视它，就在本脚本之前设 window.GENSHIN_LOGIN_FORCE = true')
+    }
 
     // WebGL2 是硬要求：卡通光照那几段是 ESSL3，跑不了 WebGL1
-    const probe = document.createElement('canvas')
-    if (!probe.getContext('webgl2')) return
+    if (!document.createElement('canvas').getContext('webgl2')) {
+        return bail('这个浏览器或显卡驱动没有 WebGL2')
+    }
 
-    // 列表页每次渲染都会触发一堆 mutation，攒到下一帧再查一次就够了
+    /* 列表页每次渲染都会触发一堆 mutation，攒到下一帧再查一次就够了。
+       attributes 也得看：预览页切登录页改的是 style.display，不是增删节点。 */
     let pending = false
     new MutationObserver(() => {
         if (pending) return
         pending = true
         requestAnimationFrame(() => { pending = false; sync() })
-    }).observe(document.documentElement, { childList: true, subtree: true })
+    }).observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class'],
+    })
 
     sync()
 })()
