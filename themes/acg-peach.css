@@ -1,0 +1,285 @@
+/**
+ * 二次元 · 蜜桃樱 · Peach
+ * 壁纸：LoliAPI 随机二次元图，横屏/竖屏自动切换
+ * 风格：奶白粉橘轻蒙版 + 圆润玻璃卡片，白天用的甜系款
+ * 强制浅色：蒙版是偏白的，深色模式下也保持这套观感
+ */
+html:root, html.dark:root {
+    --ani-bg-blur: 2px;
+    --ani-bg-scale: 1.05;
+    --ani-bg-bright: 1.05;
+    --ani-panel-blur: 16px;
+    --ani-peach: rgba(255, 138, 168, .35);
+}
+
+body {
+    background-color: #FFF4F6;
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: blur(var(--ani-bg-blur)) brightness(var(--ani-bg-bright)) saturate(1.15);
+    transform: scale(var(--ani-bg-scale));
+}
+
+@media (orientation: landscape) {
+    body::before {
+        background-image: url("https://www.loliapi.com/acg/pc/");
+    }
+}
+
+@media (orientation: portrait) {
+    body::before {
+        background-image: url("https://www.loliapi.com/acg/pe/");
+    }
+}
+
+/* 奶油蒙版：整体提亮压成粉调 */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -49;
+    pointer-events: none;
+    background:
+        radial-gradient(100% 80% at 20% 0%, rgba(255, 214, 226, .55), transparent 70%),
+        radial-gradient(90% 70% at 90% 10%, rgba(255, 226, 200, .45), transparent 65%),
+        linear-gradient(180deg, rgba(255, 250, 251, .68), rgba(255, 244, 246, .84));
+}
+
+html:root, html.dark:root {
+    --el-color-primary: #F2698F !important;
+    --el-color-primary-light-3: #F692AE;
+    --el-color-primary-light-5: #F9B2C6;
+    --el-color-primary-light-7: #FCD1DD;
+    --el-color-primary-light-8: #FDE0E8;
+    --el-color-primary-light-9: #FEF0F3;
+    --el-color-primary-dark-2: #D8557A;
+
+    --el-color-success: #57B98F;
+    --el-color-success-light-9: #EDF8F3;
+    --el-color-warning: #E09B4B;
+    --el-color-warning-light-9: #FCF4E9;
+    --el-color-danger: #E45C6E;
+    --el-color-danger-light-9: #FDEFF1;
+    --el-color-error: #E45C6E;
+    --el-color-info: #9C8189;
+    --el-color-info-light-9: #F7F2F3;
+
+    --el-bg-color: rgba(255, 255, 255, .7);
+    --el-bg-color-page: #FFF4F6;
+    --el-bg-color-overlay: rgba(255, 253, 253, .88);
+    --el-card-bg-color: rgba(255, 255, 255, .62);
+    --el-dialog-bg-color: rgba(255, 253, 253, .88);
+    --el-mask-color: rgba(255, 240, 244, .5);
+
+    --el-text-color-primary: #46292F;
+    --el-text-color-regular: #6B4B52;
+    --el-text-color-secondary: #93737B;
+    --el-text-color-placeholder: #B9989F;
+    --el-text-color-disabled: #D2B9BE;
+
+    --el-border-color-dark: rgba(255, 255, 255, .95);
+    --el-border-color-darker: #FFFFFF;
+    --el-border-color: rgba(255, 255, 255, .78);
+    --el-border-color-light: rgba(255, 255, 255, .62);
+    --el-border-color-lighter: rgba(255, 255, 255, .5);
+    --el-border-color-extra-light: rgba(255, 255, 255, .4);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .75);
+    --el-fill-color: rgba(255, 255, 255, .6);
+    --el-fill-color-light: rgba(255, 255, 255, .5);
+    --el-fill-color-lighter: rgba(255, 255, 255, .4);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .3);
+    --el-fill-color-blank: rgba(255, 255, 255, .6);
+
+    --el-border-radius-small: 12px;
+    --el-border-radius-base: 18px;
+}
+
+/* 面板：圆润玻璃 + 粉色柔光 */
+html .el-card,
+html .el-card.is-never-shadow,
+html .el-overlay-dialog .el-dialog,
+html .el-popper,
+html .el-select__popper,
+html .el-dropdown__popper {
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(160%);
+    border: 1px solid var(--el-border-color);
+    border-radius: 20px;
+    box-shadow: 0 12px 30px -20px var(--ani-peach);
+}
+
+html .el-card {
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+html .el-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 38px -22px var(--ani-peach);
+}
+
+html .el-button {
+    border-radius: 999px;
+}
+
+html .el-tag {
+    border-radius: 999px;
+    padding: 0 10px;
+    background-color: rgba(255, 255, 255, .55);
+}
+
+html .el-input__wrapper,
+html .el-select__wrapper {
+    background-color: var(--el-fill-color-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+html .el-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-header-bg-color: rgba(255, 255, 255, .45);
+}
+
+#header {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.list-card-image {
+    border-radius: 14px !important;
+    box-shadow: 0 10px 22px -14px rgba(160, 90, 110, .6) !important;
+}
+
+.list-card-score {
+    color: var(--el-color-primary) !important;
+}
+
+#login-page #form {
+    padding: 30px 26px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, .7);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, .85);
+    box-shadow: 0 20px 46px -26px var(--ani-peach);
+}
+
+#login-page .title-h2 {
+    color: var(--el-color-primary);
+    letter-spacing: .12em;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-color-primary-light-5);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ================= 风格强化：字体（圆体）================= */
+html * {
+    font-family: "Yuanti SC", "YouYuan", "幼圆", "Quicksand", "Nunito",
+    "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .title-h2,
+html .list-week-title {
+    font-weight: 700;
+    letter-spacing: .05em;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 风格强化：按钮（大圆角方块 + 内高光）================= */
+/* 刻意不做药丸，和「樱花物语」区分开 */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: rgba(255, 255, 255, .62);
+    --el-button-border-color: rgba(255, 255, 255, .9);
+    --el-button-text-color: #6B4B52;
+    --el-button-hover-bg-color: rgba(255, 255, 255, .85);
+    --el-button-hover-border-color: var(--el-color-primary);
+    --el-button-hover-text-color: var(--el-color-primary-dark-2);
+
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    border-radius: 14px;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 4px 12px -8px var(--ani-peach);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: transform .2s cubic-bezier(.34, 1.56, .64, 1),
+    box-shadow .2s ease, background-color .18s ease, color .18s ease;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    border-color: var(--el-button-hover-border-color);
+    color: var(--el-button-hover-text-color);
+    transform: translateY(-2px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .95), 0 10px 20px -10px var(--ani-peach);
+}
+
+html .el-button:active {
+    transform: translateY(0) scale(.95);
+}
+
+/* 主/危险按钮：蜜桃渐变 + 白字 */
+html .el-button--primary {
+    background: linear-gradient(135deg, #FF9EB4 0%, #F2698F 55%, #E8607F 100%);
+    border-color: transparent;
+    color: #FFFFFF;
+    box-shadow: 0 8px 18px -9px var(--el-color-primary);
+}
+
+html .el-button--primary:hover {
+    background: linear-gradient(135deg, #FF9EB4 0%, #F2698F 55%, #E8607F 100%);
+    color: #FFFFFF;
+    filter: brightness(1.06);
+}
+
+html .el-button--danger {
+    background: linear-gradient(135deg, #F08292 0%, #E45C6E 100%);
+    border-color: transparent;
+    color: #FFFFFF;
+}
+
+html .el-button--danger:hover {
+    background: linear-gradient(135deg, #F08292 0%, #E45C6E 100%);
+    color: #FFFFFF;
+    filter: brightness(1.06);
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+    padding-left: 0;
+    padding-right: 0;
+}

@@ -1,0 +1,330 @@
+/**
+ * 二次元 · 随机壁纸 · Wallpaper
+ * 壁纸：LoliAPI 随机二次元图，横屏/竖屏自动切换（自适应）
+ *      横屏 https://www.loliapi.com/acg/pc/
+ *      竖屏 https://www.loliapi.com/acg/pe/
+ * 风格：中性蓝紫毛玻璃，最百搭的一款，明暗跟随系统/手动切换
+ * 说明：每次刷新页面换一张图（由 API 侧随机）
+ *
+ * ↓↓↓ 可调旋钮都在这里，不满意先改这几行 ↓↓↓
+ */
+html:root, html.dark:root {
+    --ani-bg-blur: 0px;      /* 背景模糊，想让文字更清晰就调 2~6px */
+    --ani-bg-scale: 1.04;    /* 轻微放大，避免模糊后边缘露白 */
+    --ani-bg-bright: 1;      /* 背景亮度，图太亮调 .85，太暗调 1.15 */
+    --ani-panel-blur: 18px;  /* 面板毛玻璃强度，卡设备调 0 */
+}
+
+/* ---------- 背景层 ---------- */
+body {
+    background-color: var(--el-bg-color-page);
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: blur(var(--ani-bg-blur)) brightness(var(--ani-bg-bright));
+    transform: scale(var(--ani-bg-scale));
+}
+
+/* 自适应：横屏用横图，竖屏用竖图 */
+@media (orientation: landscape) {
+    body::before {
+        background-image: url("https://www.loliapi.com/acg/pc/");
+    }
+}
+
+@media (orientation: portrait) {
+    body::before {
+        background-image: url("https://www.loliapi.com/acg/pe/");
+    }
+}
+
+/* 蒙版层：压住花花绿绿的壁纸，保证文字可读 */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -49;
+    pointer-events: none;
+    background: var(--ani-scrim);
+}
+
+/* ---------- 浅色 ---------- */
+html:root:not(.dark) {
+    --ani-scrim: linear-gradient(180deg, rgba(245, 248, 255, .62), rgba(238, 242, 252, .78));
+
+    --el-color-primary: #4A7FE8 !important;
+    --el-color-primary-light-3: #7FA4EF;
+    --el-color-primary-light-5: #A3BEF4;
+    --el-color-primary-light-7: #C7D8F9;
+    --el-color-primary-light-8: #D9E4FB;
+    --el-color-primary-light-9: #ECF2FD;
+    --el-color-primary-dark-2: #3B66BA;
+
+    --el-bg-color: rgba(255, 255, 255, .66);
+    --el-bg-color-page: #EDF1F8;
+    --el-bg-color-overlay: rgba(255, 255, 255, .82);
+    --el-card-bg-color: rgba(255, 255, 255, .6);
+    --el-dialog-bg-color: rgba(255, 255, 255, .82);
+    --el-mask-color: rgba(230, 235, 245, .45);
+
+    --el-text-color-primary: #1B2333;
+    --el-text-color-regular: #3E4A61;
+    --el-text-color-secondary: #64708A;
+    --el-text-color-placeholder: #8E98AD;
+    --el-text-color-disabled: #B0B8C7;
+
+    --el-border-color-dark: rgba(255, 255, 255, .95);
+    --el-border-color-darker: #FFFFFF;
+    --el-border-color: rgba(255, 255, 255, .75);
+    --el-border-color-light: rgba(255, 255, 255, .6);
+    --el-border-color-lighter: rgba(255, 255, 255, .5);
+    --el-border-color-extra-light: rgba(255, 255, 255, .4);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .72);
+    --el-fill-color: rgba(255, 255, 255, .58);
+    --el-fill-color-light: rgba(255, 255, 255, .48);
+    --el-fill-color-lighter: rgba(255, 255, 255, .38);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .28);
+    --el-fill-color-blank: rgba(255, 255, 255, .58);
+
+    --ani-edge: rgba(255, 255, 255, .6);
+    --ani-panel-shadow: 0 10px 30px -18px rgba(20, 30, 60, .5);
+}
+
+/* ---------- 深色 ---------- */
+html.dark:root {
+    --ani-scrim: linear-gradient(180deg, rgba(10, 14, 26, .58), rgba(8, 11, 20, .76));
+
+    --el-color-primary: #7FA9FF !important;
+    --el-color-primary-light-3: #5F7EC2;
+    --el-color-primary-light-5: #4A6191;
+    --el-color-primary-light-7: #354460;
+    --el-color-primary-light-8: #2B3648;
+    --el-color-primary-light-9: #222937;
+    --el-color-primary-dark-2: #A2C2FF;
+
+    --el-bg-color: rgba(18, 24, 38, .66);
+    --el-bg-color-page: #0A0E19;
+    --el-bg-color-overlay: rgba(22, 29, 45, .84);
+    --el-card-bg-color: rgba(18, 24, 38, .58);
+    --el-dialog-bg-color: rgba(22, 29, 45, .84);
+    --el-mask-color: rgba(4, 6, 12, .5);
+
+    --el-text-color-primary: #E9EEFA;
+    --el-text-color-regular: #BAC4D8;
+    --el-text-color-secondary: #8C97AE;
+    --el-text-color-placeholder: #68738A;
+    --el-text-color-disabled: #4A5468;
+
+    --el-border-color-dark: rgba(255, 255, 255, .24);
+    --el-border-color-darker: rgba(255, 255, 255, .32);
+    --el-border-color: rgba(255, 255, 255, .15);
+    --el-border-color-light: rgba(255, 255, 255, .11);
+    --el-border-color-lighter: rgba(255, 255, 255, .08);
+    --el-border-color-extra-light: rgba(255, 255, 255, .06);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .13);
+    --el-fill-color: rgba(255, 255, 255, .09);
+    --el-fill-color-light: rgba(255, 255, 255, .07);
+    --el-fill-color-lighter: rgba(255, 255, 255, .05);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .03);
+    --el-fill-color-blank: rgba(18, 24, 38, .58);
+
+    --ani-edge: rgba(255, 255, 255, .18);
+    --ani-panel-shadow: 0 12px 34px -20px rgba(0, 0, 0, .8);
+}
+
+html:root, html.dark:root {
+    --el-border-radius-small: 10px;
+    --el-border-radius-base: 14px;
+}
+
+/* ---------- 玻璃面板 ---------- */
+html .el-card,
+html .el-card.is-never-shadow,
+html .el-overlay-dialog .el-dialog,
+html .el-popper,
+html .el-select__popper,
+html .el-dropdown__popper {
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    border: 1px solid var(--ani-edge);
+    box-shadow: var(--ani-panel-shadow);
+}
+
+html .el-card {
+    transition: transform .25s ease, border-color .25s ease;
+}
+
+html .el-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--el-border-color-dark);
+}
+
+html .el-input__wrapper,
+html .el-select__wrapper {
+    background-color: var(--el-fill-color-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+html .el-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-header-bg-color: var(--el-fill-color-lighter);
+}
+
+#header {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* 封面在壁纸上要压得住 */
+.list-card-image {
+    border-radius: 10px !important;
+    box-shadow: 0 10px 24px -14px rgba(0, 0, 0, .75) !important;
+}
+
+.list-card-score {
+    color: var(--el-color-primary) !important;
+}
+
+/* 登录页：整张壁纸铺满，只留一块玻璃 */
+#login-page #form {
+    padding: 28px 24px;
+    border-radius: 18px;
+    background: var(--el-card-bg-color);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    border: 1px solid var(--ani-edge);
+    box-shadow: var(--ani-panel-shadow);
+}
+
+#login-page .title-h2 {
+    letter-spacing: .14em;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-dark);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ================= 风格强化：字体 ================= */
+/* 现代无衬线，字面开阔，压得住花壁纸 */
+html * {
+    font-family: "HarmonyOS Sans SC", "Noto Sans SC", "Source Han Sans SC",
+    "PingFang SC", "Microsoft YaHei", -apple-system, sans-serif;
+}
+
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .title-h2,
+html .list-week-title {
+    font-weight: 600;
+    letter-spacing: .06em;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 风格强化：按钮（玻璃药丸 + 光晕扩散）================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: var(--el-fill-color-light);
+    --el-button-border-color: var(--ani-edge);
+    --el-button-text-color: var(--el-text-color-primary);
+    --el-button-hover-bg-color: var(--el-fill-color-dark);
+    --el-button-hover-border-color: var(--el-color-primary);
+    --el-button-hover-text-color: var(--el-color-primary);
+
+    position: relative;
+    overflow: hidden;
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    border-radius: 999px;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    border-color: var(--el-button-hover-border-color);
+    color: var(--el-button-hover-text-color);
+}
+
+/* 光晕从中心扩散 */
+html .el-button::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255, 255, 255, .32), transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: width .45s ease, height .45s ease;
+}
+
+html .el-button:hover::after {
+    width: 240%;
+    height: 240%;
+}
+
+/* 主按钮是页面上唯一的实心块，白字 */
+html .el-button--primary {
+    background-color: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+    color: #FFFFFF;
+    box-shadow: 0 8px 20px -10px var(--el-color-primary);
+}
+
+html .el-button--primary:hover {
+    background-color: var(--el-color-primary-dark-2);
+    border-color: var(--el-color-primary-dark-2);
+    color: #FFFFFF;
+}
+
+html .el-button--danger:hover {
+    color: #FFFFFF;
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html .el-button::after {
+        display: none;
+    }
+}

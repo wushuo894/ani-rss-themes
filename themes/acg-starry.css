@@ -1,0 +1,284 @@
+/**
+ * 二次元 · 星空夜 · Starry
+ * 壁纸：LoliAPI 随机二次元图，横屏/竖屏自动切换
+ * 风格：深紫夜幕重蒙版 + 星屑高光，壁纸再花也压得住，字最清楚的一款
+ * 强制深色：不跟随明暗切换
+ */
+html:root, html.dark:root {
+    --ani-bg-blur: 3px;      /* 夜幕款默认给一点模糊，前景更干净 */
+    --ani-bg-scale: 1.06;
+    --ani-bg-bright: .8;
+    --ani-panel-blur: 20px;
+    --ani-glow: rgba(155, 140, 255, .55);
+}
+
+body {
+    background-color: #0A0714;
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: blur(var(--ani-bg-blur)) brightness(var(--ani-bg-bright)) saturate(1.1);
+    transform: scale(var(--ani-bg-scale));
+}
+
+@media (orientation: landscape) {
+    body::before {
+        background-image: url("https://www.loliapi.com/acg/pc/");
+    }
+}
+
+@media (orientation: portrait) {
+    body::before {
+        background-image: url("https://www.loliapi.com/acg/pe/");
+    }
+}
+
+/* 夜幕蒙版：上紫下墨，四角压暗 */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -49;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 90% at 50% 0%, rgba(70, 45, 140, .35), transparent 70%),
+        radial-gradient(140% 100% at 50% 100%, rgba(10, 7, 20, .9), transparent 65%),
+        linear-gradient(180deg, rgba(12, 9, 24, .62), rgba(8, 6, 16, .84));
+}
+
+html:root, html.dark:root {
+    --el-color-primary: #9B8CFF !important;
+    --el-color-primary-light-3: #7A6DC7;
+    --el-color-primary-light-5: #605596;
+    --el-color-primary-light-7: #453D6A;
+    --el-color-primary-light-8: #372F55;
+    --el-color-primary-light-9: #2A2440;
+    --el-color-primary-dark-2: #B7ACFF;
+
+    --el-color-success: #5FD9B0;
+    --el-color-success-light-9: #16342C;
+    --el-color-warning: #FFD166;
+    --el-color-warning-light-9: #3A3018;
+    --el-color-danger: #FF6B9D;
+    --el-color-danger-light-9: #3A1A28;
+    --el-color-error: #FF6B9D;
+    --el-color-info: #8A83A8;
+    --el-color-info-light-9: #221F33;
+
+    --el-bg-color: rgba(22, 17, 40, .7);
+    --el-bg-color-page: #0A0714;
+    --el-bg-color-overlay: rgba(27, 21, 48, .88);
+    --el-card-bg-color: rgba(22, 17, 40, .62);
+    --el-dialog-bg-color: rgba(27, 21, 48, .88);
+    --el-mask-color: rgba(6, 4, 12, .6);
+
+    --el-text-color-primary: #F0ECFF;
+    --el-text-color-regular: #C6BEE6;
+    --el-text-color-secondary: #9A92BE;
+    --el-text-color-placeholder: #756D96;
+    --el-text-color-disabled: #524B70;
+
+    --el-border-color-dark: rgba(155, 140, 255, .45);
+    --el-border-color-darker: rgba(155, 140, 255, .6);
+    --el-border-color: rgba(180, 168, 255, .18);
+    --el-border-color-light: rgba(180, 168, 255, .13);
+    --el-border-color-lighter: rgba(180, 168, 255, .1);
+    --el-border-color-extra-light: rgba(180, 168, 255, .07);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .12);
+    --el-fill-color: rgba(255, 255, 255, .08);
+    --el-fill-color-light: rgba(255, 255, 255, .06);
+    --el-fill-color-lighter: rgba(255, 255, 255, .04);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .03);
+    --el-fill-color-blank: rgba(22, 17, 40, .62);
+
+    --el-border-radius-small: 10px;
+    --el-border-radius-base: 16px;
+}
+
+/* 面板：玻璃 + 顶部一道星光 */
+html .el-card,
+html .el-card.is-never-shadow,
+html .el-overlay-dialog .el-dialog,
+html .el-popper,
+html .el-select__popper,
+html .el-dropdown__popper {
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
+    border: 1px solid var(--el-border-color);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 14px 36px -22px rgba(0, 0, 0, .9);
+}
+
+html .el-card {
+    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+
+html .el-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--el-border-color-dark);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 0 30px -12px var(--ani-glow);
+}
+
+html .el-input__wrapper,
+html .el-select__wrapper {
+    background-color: var(--el-fill-color-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+html .el-tag {
+    background-color: rgba(255, 255, 255, .07);
+    border: 1px solid currentColor;
+}
+
+html .el-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-header-bg-color: rgba(255, 255, 255, .05);
+}
+
+#header {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.list-card-image {
+    border-radius: 12px !important;
+    box-shadow: 0 12px 26px -14px rgba(0, 0, 0, .9) !important;
+}
+
+.list-card-title {
+    text-shadow: 0 1px 8px rgba(0, 0, 0, .5);
+}
+
+.list-card-score {
+    color: #FF6B9D !important;
+    text-shadow: 0 0 16px rgba(255, 107, 157, .6) !important;
+}
+
+/* 登录页：夜空里浮一块玻璃 */
+#login-page #form {
+    padding: 30px 26px;
+    border-radius: 20px;
+    background: var(--el-card-bg-color);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
+    border: 1px solid var(--el-border-color);
+    box-shadow: 0 20px 50px -28px rgba(0, 0, 0, .95);
+}
+
+#login-page .title-h2 {
+    color: var(--el-color-primary);
+    letter-spacing: .2em;
+    text-shadow: 0 0 24px var(--ani-glow);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(155, 140, 255, .5);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ================= 风格强化：字体（楷体标题）================= */
+html * {
+    font-family: "PingFang SC", "Noto Sans SC", "Source Han Sans SC",
+    "Microsoft YaHei", -apple-system, sans-serif;
+}
+
+/* 标题走楷体，夜空 + 手写笔意，这套主题的辨识度在这 */
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .title-h2,
+html .list-week-title,
+html .list-card-title {
+    font-family: "Kaiti SC", "STKaiti", KaiTi, "楷体", "Noto Serif SC", serif;
+    font-weight: 600;
+    letter-spacing: .06em;
+}
+
+html .el-dialog__title {
+    font-size: 1.16em;
+    color: var(--el-color-primary);
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 风格强化：按钮（细线框 + 星芒）================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: rgba(255, 255, 255, .05);
+    --el-button-border-color: rgba(180, 168, 255, .3);
+    --el-button-text-color: #D9D2FF;
+    --el-button-hover-bg-color: rgba(155, 140, 255, .18);
+    --el-button-hover-border-color: var(--el-color-primary);
+    --el-button-hover-text-color: #FFFFFF;
+
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    border-radius: 999px;
+    padding-left: 16px;
+    padding-right: 16px;
+    letter-spacing: .1em;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background-color .25s ease, border-color .25s ease,
+    color .25s ease, box-shadow .35s ease;
+}
+
+/* hover：一圈星芒外发光，不位移不缩放 */
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    border-color: var(--el-button-hover-border-color);
+    color: var(--el-button-hover-text-color);
+    box-shadow: 0 0 0 1px rgba(155, 140, 255, .35), 0 0 26px -4px var(--ani-glow);
+}
+
+html .el-button--primary {
+    background-color: rgba(155, 140, 255, .9);
+    border-color: rgba(155, 140, 255, .9);
+    color: #14102A;
+    font-weight: 600;
+}
+
+html .el-button--primary:hover {
+    background-color: #B7ACFF;
+    border-color: #B7ACFF;
+    color: #14102A;
+}
+
+html .el-button--danger {
+    --el-button-border-color: rgba(255, 107, 157, .45);
+    --el-button-text-color: #FF9DBE;
+    --el-button-hover-bg-color: #FF6B9D;
+    --el-button-hover-border-color: #FF6B9D;
+    --el-button-hover-text-color: #2A0A16;
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+    padding-left: 0;
+    padding-right: 0;
+}

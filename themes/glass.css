@@ -1,0 +1,322 @@
+/**
+ * 云海玻璃 · Glass
+ * 字体：Optima / 细体无衬线，标题超大字距，气口拉满
+ * 按钮：极透明玻璃 + 1px 内高光，hover 一层光泽平移
+ * 背景：流动极光，缓慢漂移换色（纯 CSS 渐变，不联网）
+ * 明暗跟随切换
+ *
+ * 毛玻璃在低端设备上可能掉帧，介意就把 --ani-panel-blur 调成 0px
+ */
+
+/* ---------- 浅色 ---------- */
+html:root:not(.dark) {
+    --el-color-primary: #5B8DEF !important;
+    --el-color-primary-light-3: #8FB0F4;
+    --el-color-primary-light-5: #AFC7F7;
+    --el-color-primary-light-7: #CFDDFB;
+    --el-color-primary-light-8: #DFE9FC;
+    --el-color-primary-light-9: #EFF4FE;
+    --el-color-primary-dark-2: #4874C7;
+
+    --el-bg-color: rgba(255, 255, 255, .62);
+    --el-bg-color-page: #EDF1F8;
+    --el-bg-color-overlay: rgba(255, 255, 255, .78);
+    --el-card-bg-color: rgba(255, 255, 255, .58);
+    --el-dialog-bg-color: rgba(255, 255, 255, .78);
+    --el-mask-color: rgba(237, 241, 248, .5);
+
+    --el-text-color-primary: #1E2637;
+    --el-text-color-regular: #435068;
+    --el-text-color-secondary: #6C7A93;
+    --el-text-color-placeholder: #97A2B5;
+    --el-text-color-disabled: #B7BFCC;
+
+    --el-border-color-dark: rgba(255, 255, 255, .9);
+    --el-border-color-darker: rgba(255, 255, 255, 1);
+    --el-border-color: rgba(255, 255, 255, .7);
+    --el-border-color-light: rgba(255, 255, 255, .55);
+    --el-border-color-lighter: rgba(255, 255, 255, .45);
+    --el-border-color-extra-light: rgba(255, 255, 255, .35);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .7);
+    --el-fill-color: rgba(255, 255, 255, .55);
+    --el-fill-color-light: rgba(255, 255, 255, .45);
+    --el-fill-color-lighter: rgba(255, 255, 255, .35);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .25);
+    --el-fill-color-blank: rgba(255, 255, 255, .55);
+
+    --ani-aurora-1: rgba(91, 141, 239, .35);
+    --ani-aurora-2: rgba(160, 120, 240, .28);
+    --ani-aurora-3: rgba(90, 210, 200, .25);
+    --ani-edge: rgba(255, 255, 255, .55);
+    --ani-inner-light: rgba(255, 255, 255, .75);
+    --ani-sheen: rgba(255, 255, 255, .55);
+}
+
+/* ---------- 深色 ---------- */
+html.dark:root {
+    --el-color-primary: #7FA9FF !important;
+    --el-color-primary-light-3: #5F7FC4;
+    --el-color-primary-light-5: #4A6191;
+    --el-color-primary-light-7: #35445F;
+    --el-color-primary-light-8: #2B3648;
+    --el-color-primary-light-9: #222937;
+    --el-color-primary-dark-2: #A0C0FF;
+
+    --el-bg-color: rgba(20, 26, 40, .62);
+    --el-bg-color-page: #0B0F1A;
+    --el-bg-color-overlay: rgba(24, 31, 47, .8);
+    --el-card-bg-color: rgba(20, 26, 40, .55);
+    --el-dialog-bg-color: rgba(24, 31, 47, .8);
+    --el-mask-color: rgba(5, 8, 14, .55);
+
+    --el-text-color-primary: #E6ECF8;
+    --el-text-color-regular: #B7C2D6;
+    --el-text-color-secondary: #8A96AD;
+    --el-text-color-placeholder: #667089;
+    --el-text-color-disabled: #4A5266;
+
+    --el-border-color-dark: rgba(255, 255, 255, .22);
+    --el-border-color-darker: rgba(255, 255, 255, .3);
+    --el-border-color: rgba(255, 255, 255, .14);
+    --el-border-color-light: rgba(255, 255, 255, .1);
+    --el-border-color-lighter: rgba(255, 255, 255, .08);
+    --el-border-color-extra-light: rgba(255, 255, 255, .06);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .12);
+    --el-fill-color: rgba(255, 255, 255, .08);
+    --el-fill-color-light: rgba(255, 255, 255, .06);
+    --el-fill-color-lighter: rgba(255, 255, 255, .04);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .03);
+    --el-fill-color-blank: rgba(20, 26, 40, .55);
+
+    --ani-aurora-1: rgba(91, 141, 239, .30);
+    --ani-aurora-2: rgba(150, 90, 230, .26);
+    --ani-aurora-3: rgba(40, 190, 180, .20);
+    --ani-edge: rgba(255, 255, 255, .16);
+    --ani-inner-light: rgba(255, 255, 255, .18);
+    --ani-sheen: rgba(255, 255, 255, .22);
+}
+
+html:root, html.dark:root {
+    --el-border-radius-small: 10px;
+    --el-border-radius-base: 14px;
+    --ani-panel-blur: 16px;
+}
+
+/* ================= 字体：细体 + 大气口 ================= */
+html * {
+    font-family: Optima, "Segoe UI Variable Display", "Segoe UI", "PingFang SC",
+    "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+html h1, html h2, html h3, html h4,
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .title-h2,
+html .list-week-title {
+    font-weight: 300;
+    letter-spacing: .18em;
+}
+
+html .el-button,
+html .el-tag {
+    font-weight: 500;
+    letter-spacing: .08em;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 背景：流动极光 ================= */
+body {
+    background-color: var(--el-bg-color-page);
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    z-index: -50;
+    pointer-events: none;
+    background-image:
+        radial-gradient(45% 45% at 18% 20%, var(--ani-aurora-1), transparent 65%),
+        radial-gradient(40% 40% at 82% 12%, var(--ani-aurora-2), transparent 62%),
+        radial-gradient(50% 50% at 65% 88%, var(--ani-aurora-3), transparent 60%);
+    filter: blur(40px);
+    animation: ani-aurora 34s ease-in-out infinite alternate;
+}
+
+@keyframes ani-aurora {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        filter: blur(40px) hue-rotate(0deg);
+    }
+    100% {
+        transform: translate3d(3%, -2%, 0) scale(1.12);
+        filter: blur(52px) hue-rotate(28deg);
+    }
+}
+
+/* ================= 按钮：玻璃 + 光泽平移 ================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: var(--el-fill-color-light);
+    --el-button-border-color: var(--ani-edge);
+    --el-button-text-color: var(--el-text-color-primary);
+    --el-button-hover-bg-color: var(--el-fill-color-dark);
+    --el-button-hover-border-color: var(--el-border-color-dark);
+    --el-button-hover-text-color: var(--el-color-primary-dark-2);
+
+    position: relative;
+    overflow: hidden;
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    /* 内高光：玻璃厚度的来源 */
+    box-shadow: inset 0 1px 0 var(--ani-inner-light);
+    transition: background-color .22s ease, border-color .22s ease, color .22s ease;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    border-color: var(--el-button-hover-border-color);
+    color: var(--el-button-hover-text-color);
+}
+
+/* 光泽 */
+html .el-button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 35%, var(--ani-sheen) 50%, transparent 65%);
+    transform: translateX(-140%);
+    transition: transform .7s cubic-bezier(.22, .61, .36, 1);
+}
+
+html .el-button:hover::after {
+    transform: translateX(140%);
+}
+
+/* 主按钮：唯一的实心块，白字，作为页面锚点 */
+html .el-button--primary {
+    background-color: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+    color: #FFFFFF;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 8px 20px -10px var(--el-color-primary);
+}
+
+html .el-button--primary:hover {
+    background-color: var(--el-color-primary-dark-2);
+    border-color: var(--el-color-primary-dark-2);
+    color: #FFFFFF;
+}
+
+html .el-button--danger {
+    background-color: rgba(220, 90, 100, .16);
+    border-color: rgba(220, 90, 100, .5);
+    color: #D85A64;
+}
+
+html .el-button--danger:hover {
+    background-color: #D85A64;
+    border-color: #D85A64;
+    color: #FFFFFF;
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+}
+
+/* ================= 其余组件 ================= */
+html .el-card,
+html .el-card.is-never-shadow,
+html .el-overlay-dialog .el-dialog,
+html .el-popper,
+html .el-select__popper,
+html .el-dropdown__popper {
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(160%);
+    border: 1px solid var(--ani-edge);
+    box-shadow: inset 0 1px 0 var(--ani-inner-light), 0 10px 32px -18px rgba(0, 0, 0, .45);
+}
+
+html .el-card:hover {
+    border-color: var(--el-border-color-dark);
+}
+
+html .el-input__wrapper,
+html .el-select__wrapper {
+    background-color: var(--el-fill-color-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 0 var(--ani-inner-light), 0 0 0 1px var(--ani-edge) inset;
+}
+
+html .el-tag {
+    background-color: var(--el-fill-color-light);
+    border: 1px solid var(--ani-edge);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+html .el-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-header-bg-color: var(--el-fill-color-lighter);
+}
+
+#header {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.list-card-score {
+    color: var(--el-color-primary) !important;
+    font-weight: 300 !important;
+    letter-spacing: .06em !important;
+}
+
+.list-card-image {
+    border-radius: 10px !important;
+    box-shadow: 0 8px 20px -12px rgba(0, 0, 0, .5) !important;
+}
+
+#login-page .title-h2 {
+    font-weight: 300;
+    letter-spacing: .42em;
+    text-indent: .42em;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-dark);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body::before {
+        animation: none;
+    }
+
+    html .el-button::after {
+        display: none;
+    }
+}

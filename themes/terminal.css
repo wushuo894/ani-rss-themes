@@ -1,0 +1,306 @@
+/**
+ * 绿光终端 · Terminal
+ * 字体：等宽 + 西文全大写 + 等宽数字，关掉连字
+ * 按钮：[ 方括号 ] 包裹，hover 整块反色（绿底黑字）
+ * 背景：扫描线 + CRT 缓慢闪烁 + 四角暗角
+ * 强制深色：不跟随明暗切换
+ */
+
+html:root, html.dark:root {
+    --el-color-primary: #38E07B !important;
+    --el-color-primary-light-3: #2BB463;
+    --el-color-primary-light-5: #218C4D;
+    --el-color-primary-light-7: #176337;
+    --el-color-primary-light-8: #124E2C;
+    --el-color-primary-light-9: #0C3A20;
+    --el-color-primary-dark-2: #6BF0A0;
+
+    --el-color-success: #38E07B;
+    --el-color-success-light-9: #0C3A20;
+    --el-color-warning: #E0C038;
+    --el-color-warning-light-9: #3A3110;
+    --el-color-danger: #FF5C5C;
+    --el-color-danger-light-9: #3A1414;
+    --el-color-error: #FF5C5C;
+    --el-color-error-light-9: #3A1414;
+    --el-color-info: #5A8A6B;
+    --el-color-info-light-9: #12200F;
+
+    --el-bg-color: #0A0F0A;
+    --el-bg-color-page: #050805;
+    --el-bg-color-overlay: #0D140D;
+    --el-card-bg-color: #0A0F0A;
+    --el-dialog-bg-color: #0A0F0A;
+    --el-mask-color: rgba(0, 0, 0, .8);
+
+    --el-text-color-primary: #9BE8B4;
+    --el-text-color-regular: #6FBF8A;
+    --el-text-color-secondary: #4E8A63;
+    --el-text-color-placeholder: #3B6B4B;
+    --el-text-color-disabled: #2A4B36;
+
+    --el-border-color-dark: #245C38;
+    --el-border-color-darker: #2E7346;
+    --el-border-color: #16301C;
+    --el-border-color-light: #142A19;
+    --el-border-color-lighter: #112416;
+    --el-border-color-extra-light: #0F1E13;
+
+    --el-fill-color-dark: #14241A;
+    --el-fill-color: #101C14;
+    --el-fill-color-light: #0E1811;
+    --el-fill-color-lighter: #0C150F;
+    --el-fill-color-extra-light: #0A110C;
+    --el-fill-color-blank: #0A0F0A;
+
+    /* 终端不要圆角 */
+    --el-border-radius-small: 0;
+    --el-border-radius-base: 0;
+    --el-border-radius-round: 0;
+
+    --el-box-shadow: 0 0 0 1px var(--el-border-color-dark);
+    --el-box-shadow-light: 0 0 0 1px var(--el-border-color);
+    --el-box-shadow-lighter: 0 0 0 1px var(--el-border-color);
+    --el-box-shadow-dark: 0 0 0 1px var(--el-border-color-darker);
+}
+
+/* ================= 字体：等宽 ================= */
+/* 项目在 * 上写死了字体栈，用 html * 提一级权重盖掉 */
+html * {
+    font-family: ui-monospace, "JetBrains Mono", "Cascadia Mono", "Sarasa Mono SC",
+    Consolas, "Courier New", "Noto Sans Mono CJK SC", "Microsoft YaHei Mono", monospace;
+    font-variant-ligatures: none;
+    font-variant-numeric: tabular-nums;
+}
+
+/* 西文全大写，中文不受影响 */
+html .el-button,
+html .el-tag,
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .el-table th,
+html .title-h2,
+html .list-week-title {
+    text-transform: uppercase;
+    letter-spacing: .1em;
+}
+
+html .el-dialog__title::before {
+    content: "// ";
+    color: var(--el-color-primary);
+    opacity: .7;
+}
+
+html .el-collapse-item__header::before {
+    content: "$ ";
+    color: var(--el-color-primary);
+    opacity: .6;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+    caret-color: var(--el-color-primary);
+}
+
+/* ================= 背景：CRT ================= */
+body {
+    background-color: var(--el-bg-color-page);
+    color: var(--el-text-color-primary);
+}
+
+/* 暗角：老显像管四角压暗 */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    pointer-events: none;
+    background: radial-gradient(120% 100% at 50% 50%, transparent 40%, rgba(0, 0, 0, .75) 100%);
+}
+
+/* 扫描线 + 缓慢闪烁，装饰层，不吃点击 */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    pointer-events: none;
+    opacity: .35;
+    background: repeating-linear-gradient(
+            to bottom,
+            rgba(56, 224, 123, .06) 0,
+            rgba(56, 224, 123, .06) 1px,
+            transparent 1px,
+            transparent 3px
+    );
+    animation: ani-crt-flicker 5.5s steps(1, end) infinite;
+}
+
+@keyframes ani-crt-flicker {
+    0%, 92%, 100% { opacity: .35; }
+    93% { opacity: .22; }
+    94% { opacity: .4; }
+    95% { opacity: .26; }
+    96% { opacity: .37; }
+}
+
+/* ================= 按钮：[ 方括号 ] + 反色 ================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: transparent;
+    --el-button-border-color: var(--el-border-color-dark);
+    --el-button-text-color: var(--el-color-primary);
+    --el-button-hover-bg-color: var(--el-color-primary);
+    --el-button-hover-border-color: var(--el-color-primary);
+    --el-button-hover-text-color: #041008;
+
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    border-radius: 0;
+    font-weight: 700;
+    transition: background-color .12s linear, color .12s linear, border-color .12s linear;
+}
+
+/* hover 整块反色 —— 绿底黑字，终端选中行的样子 */
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    border-color: var(--el-button-hover-border-color);
+    color: var(--el-button-hover-text-color);
+    box-shadow: 0 0 18px -6px var(--el-color-primary);
+}
+
+/* 方括号：圆形图标按钮和加载中的按钮除外 */
+html .el-button:not(.is-circle):not(.is-loading)::before {
+    content: "[";
+    margin-right: 6px;
+    opacity: .65;
+}
+
+html .el-button:not(.is-circle):not(.is-loading)::after {
+    content: "]";
+    margin-left: 6px;
+    opacity: .65;
+}
+
+html .el-button--danger {
+    --el-button-border-color: rgba(255, 92, 92, .5);
+    --el-button-text-color: #FF5C5C;
+    --el-button-hover-bg-color: #FF5C5C;
+    --el-button-hover-border-color: #FF5C5C;
+    --el-button-hover-text-color: #180404;
+}
+
+html .el-button--danger:hover {
+    box-shadow: 0 0 18px -6px #FF5C5C;
+}
+
+html .el-button--warning {
+    --el-button-border-color: rgba(224, 192, 56, .5);
+    --el-button-text-color: #E0C038;
+    --el-button-hover-bg-color: #E0C038;
+    --el-button-hover-border-color: #E0C038;
+    --el-button-hover-text-color: #161304;
+}
+
+html .el-button.is-circle {
+    border-radius: 0;
+}
+
+/* ================= 其余组件 ================= */
+html .el-card,
+html .el-card.is-never-shadow,
+html .el-overlay-dialog .el-dialog {
+    border: 1px solid var(--el-border-color-dark);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+html .el-card:hover {
+    border-color: var(--el-color-primary);
+    box-shadow: 0 0 18px -8px rgba(56, 224, 123, .6);
+}
+
+html .el-tag {
+    border-radius: 0;
+    background-color: transparent;
+    border: 1px solid currentColor;
+    letter-spacing: .06em;
+}
+
+html .el-input__wrapper,
+html .el-select__wrapper,
+html .el-input-number > span[role="button"] {
+    border-radius: 0;
+    background-color: var(--el-fill-color-lighter);
+}
+
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused {
+    box-shadow: 0 0 0 1px var(--el-color-primary) inset;
+}
+
+html .logs-dialog {
+    letter-spacing: .02em;
+}
+
+/* 评分：项目写死的品红换成磷光绿 */
+.list-card-score {
+    color: var(--el-color-primary) !important;
+    text-shadow: 0 0 12px rgba(56, 224, 123, .5) !important;
+}
+
+/* 封面：直角 + 单色化，融进终端，hover 才还原真彩 */
+.list-card-image {
+    border-radius: 0 !important;
+    border-color: var(--el-border-color-dark) !important;
+    filter: saturate(.5) contrast(1.08);
+    transition: filter .2s linear;
+}
+
+.list-card-image:hover {
+    filter: none;
+}
+
+/* 登录页：命令行提示符 + 闪烁光标 */
+#login-page .title-h2 {
+    color: var(--el-color-primary);
+    letter-spacing: .3em;
+    text-shadow: 0 0 16px rgba(56, 224, 123, .5);
+}
+
+#login-page .title-h2::after {
+    content: "_";
+    animation: ani-caret 1.06s steps(1, end) infinite;
+}
+
+@keyframes ani-caret {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-dark);
+    border: 1px solid var(--el-color-primary-light-7);
+    border-radius: 0;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--el-bg-color-page);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body::after,
+    #login-page .title-h2::after {
+        animation: none;
+    }
+}

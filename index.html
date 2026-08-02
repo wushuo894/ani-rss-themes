@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>ani-rss 主题预览</title>
+    <!--
+      这个页面用真实的主题文件渲染，不是截图也不是复刻。
+      下面的 <style> 只补 Element Plus 的骨架（尺寸、间距、默认变量），
+      配色 / 字体 / 按钮 / 背景全部来自 themes/ 里那个 css 文件本身。
+      所有内容为演示用的模拟数据，不连接任何 ani-rss 实例。
+    -->
+    <style>
+        /* ========== Element Plus 默认变量（会被主题覆盖，这里只做兜底）========== */
+        :root {
+            --el-color-primary: #409eff;
+            --el-color-primary-light-3: #79bbff;
+            --el-color-primary-light-5: #a0cfff;
+            --el-color-primary-light-7: #c6e2ff;
+            --el-color-primary-light-8: #d9ecff;
+            --el-color-primary-light-9: #ecf5ff;
+            --el-color-primary-dark-2: #337ecc;
+            --el-color-success: #67c23a;
+            --el-color-success-light-9: #f0f9eb;
+            --el-color-warning: #e6a23c;
+            --el-color-warning-light-9: #fdf6ec;
+            --el-color-danger: #f56c6c;
+            --el-color-danger-light-9: #fef0f0;
+            --el-color-error: #f56c6c;
+            --el-color-info: #909399;
+            --el-color-info-light-9: #f4f4f5;
+            --el-bg-color: #ffffff;
+            --el-bg-color-page: #f2f3f5;
+            --el-bg-color-overlay: #ffffff;
+            --el-text-color-primary: #303133;
+            --el-text-color-regular: #606266;
+            --el-text-color-secondary: #909399;
+            --el-text-color-placeholder: #a8abb2;
+            --el-border-color: #dcdfe6;
+            --el-border-color-light: #e4e7ed;
+            --el-border-color-lighter: #ebeef5;
+            --el-border-color-extra-light: #f2f6fc;
+            --el-border-color-dark: #d4d7de;
+            --el-fill-color: #f0f2f5;
+            --el-fill-color-light: #f5f7fa;
+            --el-fill-color-lighter: #fafafa;
+            --el-fill-color-extra-light: #fafcff;
+            --el-fill-color-dark: #ebedf0;
+            --el-fill-color-blank: #ffffff;
+            --el-border-radius-base: 12px;
+            --el-border-radius-small: 8px;
+            --el-border-radius-round: 24px;
+        }
+
+        html.dark {
+            --el-bg-color: #2d2e2f;
+            --el-bg-color-page: #0a0a0a;
+            --el-bg-color-overlay: #1d1e1f;
+            --el-text-color-primary: #e5eaf3;
+            --el-text-color-regular: #cfd3dc;
+            --el-text-color-secondary: #a3a6ad;
+            --el-text-color-placeholder: #8d9095;
+            --el-border-color: #414243;
+            --el-border-color-light: #4c4d4f;
+            --el-border-color-lighter: #363637;
+            --el-border-color-extra-light: #2b2b2c;
+            --el-border-color-dark: #58585b;
+            --el-fill-color: #303030;
+            --el-fill-color-light: #262727;
+            --el-fill-color-lighter: #1d1d1d;
+            --el-fill-color-extra-light: #191919;
+            --el-fill-color-dark: #39393a;
+            --el-fill-color-blank: #2d2e2f;
+            --el-color-success-light-9: #1c2518;
+            --el-color-warning-light-9: #292218;
+            --el-color-danger-light-9: #2b1d1d;
+            --el-color-info-light-9: #202121;
+            --el-color-primary-light-9: #18222c;
+        }
+
+        /* ========== 基础骨架 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+        }
+
+        body {
+            background-color: var(--el-bg-color-page);
+            color: var(--el-text-color-primary);
+            font-size: 14px;
+        }
+
+        /* 预览页自己的控制条，故意不用 el- 前缀，免得被主题染色 */
+        .pv-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 16px;
+            background: #0d0f13;
+            color: #e8ecf2;
+            font-size: 13px;
+            border-bottom: 1px solid #232830;
+        }
+
+        .pv-bar select,
+        .pv-bar button {
+            font: inherit;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #333842;
+            background: #171a21;
+            color: #e8ecf2;
+            cursor: pointer;
+        }
+
+        .pv-bar code {
+            font-family: ui-monospace, Consolas, monospace;
+            background: #171a21;
+            padding: 5px 9px;
+            border-radius: 5px;
+            color: #7fd4ff;
+            user-select: all;
+            font-size: 12px;
+            max-width: 46vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pv-bar .pv-grow {
+            flex: 1;
+        }
+
+        .pv-note {
+            color: #6f7784;
+            font-size: 12px;
+        }
+
+        .pv-stage {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 20px 16px 80px;
+        }
+
+        .pv-label {
+            margin: 40px 0 12px;
+            font-size: 12px;
+            letter-spacing: .18em;
+            color: var(--el-text-color-secondary);
+        }
+
+        .pv-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .pv-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .pv-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        /* ========== Element Plus 组件骨架 ========== */
+        .el-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 32px;
+            padding: 0 15px;
+            font-size: 14px;
+            line-height: 1;
+            border: 1px solid var(--el-border-color);
+            background-color: var(--el-fill-color-blank);
+            color: var(--el-text-color-regular);
+            border-radius: var(--el-border-radius-base);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .el-button.is-text {
+            border-color: transparent;
+            background-color: transparent;
+        }
+
+        .el-button.is-text.is-has-bg {
+            background-color: var(--el-fill-color-light);
+        }
+
+        .el-button--primary {
+            background-color: var(--el-color-primary);
+            border-color: var(--el-color-primary);
+            color: #fff;
+        }
+
+        .el-button--danger {
+            background-color: var(--el-color-danger);
+            border-color: var(--el-color-danger);
+            color: #fff;
+        }
+
+        .el-button.is-circle {
+            width: 32px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        .el-card {
+            background-color: var(--el-card-bg-color, var(--el-fill-color-blank));
+            border: 1px solid var(--el-border-color-extra-light);
+            border-radius: var(--el-border-radius-base);
+        }
+
+        .el-card__body {
+            padding: 14px;
+        }
+
+        .el-tag {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 24px;
+            padding: 0 9px;
+            font-size: 12px;
+            border-radius: 6px;
+            background-color: var(--el-color-primary-light-9);
+            color: var(--el-color-primary);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        .el-tag--success {
+            background-color: var(--el-color-success-light-9);
+            color: var(--el-color-success);
+        }
+
+        .el-tag--warning {
+            background-color: var(--el-color-warning-light-9);
+            color: var(--el-color-warning);
+        }
+
+        .el-tag--danger {
+            background-color: var(--el-color-danger-light-9);
+            color: var(--el-color-danger);
+        }
+
+        .el-tag--info {
+            background-color: var(--el-color-info-light-9);
+            color: var(--el-color-info);
+        }
+
+        .el-input__wrapper,
+        .el-select__wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            height: 32px;
+            padding: 0 11px;
+            background-color: var(--el-fill-color-blank);
+            box-shadow: 0 0 0 1px var(--el-border-color) inset;
+            border-radius: var(--el-border-radius-base);
+        }
+
+        .el-input__inner {
+            width: 100%;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--el-text-color-regular);
+            font-size: 14px;
+        }
+
+        .el-input__inner::placeholder {
+            color: var(--el-text-color-placeholder);
+        }
+
+        .el-overlay-dialog {
+            padding: 12px 0;
+        }
+
+        .el-dialog {
+            background-color: var(--el-dialog-bg-color, var(--el-bg-color));
+            border-radius: 16px;
+            padding: 18px 20px 20px;
+        }
+
+        .el-dialog__title {
+            display: block;
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: var(--el-text-color-primary);
+        }
+
+        .el-collapse-item__header {
+            display: flex;
+            align-items: center;
+            height: 42px;
+            font-size: 14px;
+            color: var(--el-text-color-primary);
+        }
+
+        .el-collapse-item__content {
+            padding: 16px;
+            border-radius: var(--el-border-radius-base);
+            background-color: var(--el-fill-color-light);
+            color: var(--el-text-color-regular);
+        }
+
+        /* 开关 */
+        .el-switch {
+            display: inline-flex;
+            align-items: center;
+            --el-switch-off-color: var(--el-border-color);
+        }
+
+        .el-switch__core {
+            display: inline-flex;
+            align-items: center;
+            width: 40px;
+            height: 20px;
+            padding: 0 2px;
+            border-radius: 10px;
+            background-color: var(--el-switch-off-color);
+            transition: background-color .2s;
+        }
+
+        .el-switch__action {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform .2s;
+        }
+
+        .el-switch.is-checked .el-switch__core {
+            background-color: var(--el-color-primary);
+        }
+
+        .el-switch.is-checked .el-switch__action {
+            transform: translateX(20px);
+        }
+
+        /* 复选框 */
+        .el-checkbox {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--el-text-color-regular);
+        }
+
+        .el-checkbox__inner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 1px solid var(--el-border-color);
+            border-radius: 3px;
+            background-color: var(--el-fill-color-blank);
+        }
+
+        .el-checkbox__input.is-checked .el-checkbox__inner {
+            background-color: var(--el-color-primary);
+            border-color: var(--el-color-primary);
+        }
+
+        /* 表格 */
+        .el-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--el-table-bg-color, transparent);
+            color: var(--el-text-color-regular);
+            font-size: 13px;
+        }
+
+        .el-table th {
+            text-align: left;
+            font-weight: 500;
+            color: var(--el-text-color-secondary);
+            background-color: var(--el-table-header-bg-color, var(--el-fill-color-light));
+        }
+
+        .el-table th,
+        .el-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--el-table-border-color, var(--el-border-color-lighter));
+        }
+
+        .pv-progress {
+            width: 120px;
+            height: 6px;
+            border-radius: 999px;
+            background: var(--el-fill-color-dark);
+            overflow: hidden;
+        }
+
+        .pv-progress > i {
+            display: block;
+            height: 100%;
+            background: var(--el-color-primary);
+        }
+
+        /* 提示条 */
+        .el-alert {
+            display: flex;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: var(--el-border-radius-base);
+            font-size: 13px;
+        }
+
+        .el-alert.is-light.el-alert--warning {
+            background-color: var(--el-color-warning-light-9);
+            color: var(--el-color-warning);
+        }
+
+        .el-alert.is-light.el-alert--success {
+            background-color: var(--el-color-success-light-9);
+            color: var(--el-color-success);
+        }
+
+        /* ========== ani-rss 自己的类名 ========== */
+        #header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 4px;
+        }
+
+        .add-button {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .pv-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 14px;
+        }
+
+        .list-week-title {
+            margin: 26px 0 12px;
+            font-size: 15px;
+            color: var(--el-text-color-primary);
+        }
+
+        .list-card-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .list-card-image {
+            position: relative;
+            width: 92px;
+            height: 130px;
+            flex: none;
+            border: 1px solid var(--el-border-color-light);
+            border-radius: var(--el-border-radius-base);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 封面占位：每部番一套渐变，比灰块像回事，且完全离线 */
+        .list-card-image > span {
+            font-size: 40px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, .82);
+            text-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+        }
+
+        .list-card-info {
+            position: relative;
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .list-card-info-inner {
+            margin-left: 10px;
+            padding-right: 44px;
+        }
+
+        .list-card-title {
+            display: block;
+            font-weight: 500;
+            line-height: 1.6;
+            color: var(--el-text-color-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-card-score {
+            margin: 2px 0 8px;
+            color: #E800A4;
+            font-size: 19px;
+        }
+
+        .list-card-tags {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            width: 196px;
+        }
+
+        .list-card-subgroup {
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .list-card-time {
+            display: block;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--el-text-color-secondary);
+        }
+
+        .list-card-actions {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        #login-page {
+            display: flex;
+            justify-content: center;
+            padding: 34px 0;
+        }
+
+        #form {
+            width: 264px;
+        }
+
+        .title-h2 {
+            margin-bottom: 26px;
+            text-align: center;
+            font-size: 22px;
+            color: var(--el-text-color-primary);
+        }
+
+        .logs-dialog {
+            font-family: ui-monospace, Consolas, monospace;
+            font-size: 12px;
+            line-height: 1.9;
+            color: var(--el-text-color-regular);
+            white-space: pre-wrap;
+        }
+
+        @media (max-width: 700px) {
+            .pv-bar code {
+                display: none;
+            }
+        }
+    </style>
+    <!-- 主题文件在基础样式之后加载，保证能覆盖 -->
+    <link id="theme" rel="stylesheet" href="themes/paper.css"/>
+</head>
+<body>
+
+<div class="pv-bar">
+    <label for="pick">主题</label>
+    <select id="pick"></select>
+    <button id="mode" type="button">切换深色</button>
+    <span class="pv-note" id="modeNote"></span>
+    <span class="pv-grow"></span>
+    <span class="pv-note">粘贴到自定义CSS</span>
+    <code id="snippet">@import url("...");</code>
+</div>
+
+<div class="pv-stage">
+
+    <div id="header">
+        <div class="pv-row">
+            <div style="width:210px"><span class="el-input__wrapper"><input class="el-input__inner" placeholder="搜索"/></span></div>
+            <div style="width:140px"><span class="el-select__wrapper"><input class="el-input__inner" value="2026-07" readonly/></span></div>
+            <div style="width:120px"><span class="el-select__wrapper"><input class="el-input__inner" value="已启用" readonly/></span></div>
+        </div>
+        <div class="add-button">
+            <button class="el-button is-text is-has-bg el-button--primary" type="button">添加</button>
+            <button class="el-button is-text is-has-bg" type="button">下载</button>
+            <button class="el-button is-text is-has-bg" type="button">刷新</button>
+            <button class="el-button is-text is-has-bg" type="button">管理</button>
+            <button class="el-button is-text is-has-bg" type="button">设置</button>
+            <button class="el-button is-text is-has-bg" type="button">日志</button>
+        </div>
+    </div>
+
+    <div id="list"></div>
+
+    <p class="pv-label">按钮与标签</p>
+    <div class="pv-row" style="margin-bottom:12px">
+        <button class="el-button" type="button">默认按钮</button>
+        <button class="el-button el-button--primary" type="button">立即刷新</button>
+        <button class="el-button el-button--danger" type="button">删除订阅</button>
+        <button class="el-button is-text is-has-bg" type="button">文字按钮</button>
+        <button class="el-button is-circle" type="button">+</button>
+    </div>
+    <div class="pv-row">
+        <span class="el-tag">第 2 季</span>
+        <span class="el-tag el-tag--success">已启用</span>
+        <span class="el-tag el-tag--info">未启用</span>
+        <span class="el-tag el-tag--warning">07 / 24</span>
+        <span class="el-tag el-tag--danger">ova</span>
+    </div>
+
+    <p class="pv-label">下载列表</p>
+    <div class="el-card">
+        <div class="el-card__body" style="padding:0">
+            <table class="el-table">
+                <thead>
+                <tr>
+                    <th>名称</th>
+                    <th style="width:150px">进度</th>
+                    <th style="width:110px">速度</th>
+                    <th style="width:90px">状态</th>
+                </tr>
+                </thead>
+                <tbody id="downloads"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <p class="pv-label">设置弹窗</p>
+    <div class="el-overlay-dialog">
+        <div class="el-dialog">
+            <span class="el-dialog__title">设置</span>
+            <div class="pv-stack">
+                <div class="el-alert is-light el-alert--warning">下载路径变更后，已入库的剧集不会自动迁移</div>
+                <div class="el-collapse-item__header">页面设置</div>
+                <div class="el-collapse-item__content">
+                    <div class="pv-stack">
+                        <div class="pv-between">
+                            <span>下载路径</span>
+                            <div style="width:280px"><span class="el-input__wrapper"><input class="el-input__inner" value="/downloads/anime"/></span></div>
+                        </div>
+                        <div class="pv-between">
+                            <span>重命名模板</span>
+                            <div style="width:280px"><span class="el-input__wrapper"><input class="el-input__inner" value="${title} S${season}E${episode}"/></span></div>
+                        </div>
+                        <div class="pv-between">
+                            <span>自动刮削</span>
+                            <span class="el-switch is-checked"><span class="el-switch__core"><span class="el-switch__action"></span></span></span>
+                        </div>
+                        <div class="pv-between">
+                            <span>下载完成后通知</span>
+                            <span class="el-switch"><span class="el-switch__core"><span class="el-switch__action"></span></span></span>
+                        </div>
+                        <div class="pv-row" style="gap:20px">
+                            <label class="el-checkbox"><span class="el-checkbox__input is-checked"><span class="el-checkbox__inner"></span></span>自动洗版</label>
+                            <label class="el-checkbox"><span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span>仅限完结</label>
+                        </div>
+                        <div class="pv-row" style="justify-content:flex-end">
+                            <button class="el-button" type="button">取消</button>
+                            <button class="el-button el-button--primary" type="button">保存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="pv-label">运行日志</p>
+    <div class="el-card">
+        <div class="el-card__body">
+            <div class="logs-dialog" id="logs"></div>
+        </div>
+    </div>
+
+    <p class="pv-label">登录页</p>
+    <div id="login-page">
+        <div id="form">
+            <h2 class="title-h2">ANI-RSS</h2>
+            <div class="pv-stack">
+                <span class="el-input__wrapper"><input class="el-input__inner" placeholder="用户名"/></span>
+                <span class="el-input__wrapper"><input class="el-input__inner" type="password" placeholder="密码"/></span>
+                <div class="pv-row" style="justify-content:space-between">
+                    <label class="el-checkbox"><span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span>记住密码</label>
+                    <button class="el-button is-text is-has-bg" type="button">登录</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* ---------- 模拟数据（纯演示，不连接任何实例） ---------- */
+    const ANIME = [
+        {week: '星期四', title: '迷宫饭', season: 1, sub: '喵萌奶茶屋', ep: '24 / 24', score: '8.2', on: true, ova: false, standby: true, time: '3 天前更新', g: ['#f2b880', '#c2703d', '#7a3f22']},
+        {week: '星期四', title: '咒术回战 第三季', season: 3, sub: 'LoliHouse', ep: '03 / 12', score: '7.9', on: true, ova: false, standby: false, time: '2 小时前更新', g: ['#7f8fd6', '#4a4e9c', '#241f52']},
+        {week: '星期五', title: '葬送的芙莉莲 第二季', season: 2, sub: '桜都字幕组', ep: '07 / 24', score: '8.7', on: true, ova: false, standby: true, time: '19 分钟前更新', g: ['#9fd8cb', '#4f9a94', '#1f4f52']},
+        {week: '星期五', title: '败犬女主太多了!', season: 1, sub: '喵萌奶茶屋', ep: '12 / 12', score: '8.1', on: false, ova: false, standby: false, time: '11 天前更新', g: ['#f7a8b8', '#d4607f', '#7a2f4d']},
+        {week: '星期六', title: '药屋少女的呢喃 第二季', season: 2, sub: '北宇治字幕组', ep: '12 / 24', score: '8.4', on: true, ova: false, standby: false, time: '1 天前更新', g: ['#e8c07d', '#b07d3e', '#5c3d1c']},
+        {week: '星期六', title: '孤独摇滚! 总集篇', season: 1, sub: '桜都字幕组', ep: '02 / 02', score: '8.9', on: true, ova: true, standby: false, time: '5 天前更新', g: ['#f5a3c7', '#c95d95', '#6b2b52']},
+    ]
+
+    const DOWNLOADS = [
+        ['[桜都字幕组] 葬送的芙莉莲 第二季 [07][1080p][简繁内封]', 78, '12.4 MB/s', '下载中'],
+        ['[LoliHouse] 咒术回战 第三季 [03][WebRip 1080p HEVC]', 41, '8.1 MB/s', '下载中'],
+        ['[北宇治字幕组] 药屋少女的呢喃 第二季 [12][1080p]', 100, '—', '做种'],
+        ['[喵萌奶茶屋] 败犬女主太多了! [12][1080p][简日双语]', 100, '—', '已完成'],
+    ]
+
+    const LOGS = [
+        '2026-08-02 21:04:11  INFO   开始刷新全部订阅 (共 18 项)',
+        '2026-08-02 21:04:13  INFO   葬送的芙莉莲 第二季 发现新集数 E07',
+        '2026-08-02 21:04:13  INFO   已推送到下载器: qBittorrent',
+        '2026-08-02 21:04:15  WARN   咒术回战 第三季 RSS 超时，切换到备用 RSS',
+        '2026-08-02 21:04:16  INFO   刮削完成: 药屋少女的呢喃 S02E12',
+        '2026-08-02 21:04:18  INFO   刷新结束，新增 1 项，耗时 7.2s',
+    ]
+
+    /* ---------- 渲染 ---------- */
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]))
+
+    const card = a => `
+      <div class="el-card">
+        <div class="el-card__body">
+          <div class="list-card-content">
+            <div class="list-card-image" style="background:linear-gradient(150deg, ${a.g[0]} 0%, ${a.g[1]} 55%, ${a.g[2]} 100%)">
+              <span>${esc(a.title.slice(0, 1))}</span>
+            </div>
+            <div class="list-card-info">
+              <div class="list-card-info-inner">
+                <span class="list-card-title">${esc(a.title)}</span>
+                <h4 class="list-card-score">${a.score}</h4>
+                <div class="list-card-tags">
+                  <span class="el-tag">第 ${a.season} 季</span>
+                  <span class="el-tag ${a.on ? 'el-tag--success' : 'el-tag--info'}">${a.on ? '已启用' : '未启用'}</span>
+                  <span class="el-tag el-tag--info"><span class="list-card-subgroup">${esc(a.sub)}</span></span>
+                  <span class="el-tag el-tag--warning">${a.ep}</span>
+                  <span class="el-tag el-tag--danger">${a.ova ? 'ova' : 'tv'}</span>
+                  ${a.standby ? '<span class="el-tag">备用RSS</span>' : ''}
+                </div>
+                <span class="list-card-time">${esc(a.time)}</span>
+              </div>
+              <div class="list-card-actions">
+                <button class="el-button is-text is-has-bg is-circle" type="button" title="播放列表">&#9655;</button>
+                <button class="el-button is-text is-has-bg is-circle" type="button" title="编辑">&#9998;</button>
+                <button class="el-button is-text is-has-bg is-circle el-button--danger" type="button" title="删除">&times;</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`
+
+    document.getElementById('list').innerHTML =
+        [...new Set(ANIME.map(a => a.week))].map(w => `
+          <h3 class="list-week-title">${w}</h3>
+          <div class="pv-grid">${ANIME.filter(a => a.week === w).map(card).join('')}</div>
+        `).join('')
+
+    document.getElementById('downloads').innerHTML = DOWNLOADS.map(([name, pct, speed, state]) => `
+      <tr>
+        <td>${esc(name)}</td>
+        <td><div class="pv-progress"><i style="width:${pct}%"></i></div></td>
+        <td>${esc(speed)}</td>
+        <td>${esc(state)}</td>
+      </tr>`).join('')
+
+    document.getElementById('logs').textContent = LOGS.join('\n')
+
+    /* ---------- 主题切换 ---------- */
+    const THEMES = [
+        ['paper.css', '纸感极简 · Paper', 'auto'],
+        ['neon.css', '午夜霓虹 · Neon', 'dark'],
+        ['sakura.css', '樱花物语 · Sakura', 'auto'],
+        ['glass.css', '云海玻璃 · Glass', 'auto'],
+        ['terminal.css', '绿光终端 · Terminal', 'dark'],
+        ['acg-wallpaper.css', '二次元 · 随机壁纸', 'auto'],
+        ['acg-starry.css', '二次元 · 星空夜', 'dark'],
+        ['acg-peach.css', '二次元 · 蜜桃樱', 'light'],
+        ['acg-cyber.css', '二次元 · 电子霓虹', 'dark'],
+        ['acg-glass.css', '二次元 · 玻璃', 'auto'],
+        ['bing-mist.css', '必应4K · 晨雾', 'light'],
+        ['bing-night.css', '必应4K · 夜航', 'dark'],
+    ]
+
+    const pick = document.getElementById('pick')
+    const link = document.getElementById('theme')
+    const snippet = document.getElementById('snippet')
+    const modeBtn = document.getElementById('mode')
+    const modeNote = document.getElementById('modeNote')
+
+    THEMES.forEach(([file, name]) => {
+        const o = document.createElement('option')
+        o.value = file
+        o.textContent = name
+        pick.appendChild(o)
+    })
+
+    const base = location.href.replace(/index\.html.*$/, '').replace(/[?#].*$/, '')
+
+    function apply(file) {
+        const meta = THEMES.find(t => t[0] === file)
+        link.href = 'themes/' + file
+        snippet.textContent = '@import url("' + base + 'themes/' + file + '");'
+        localStorage.setItem('ani-preview-theme', file)
+        // 强制单向的主题不跟随明暗切换，把开关灰掉并说明原因
+        const fixed = meta[2] !== 'auto'
+        modeBtn.disabled = fixed
+        modeBtn.style.opacity = fixed ? '.4' : '1'
+        modeNote.textContent = fixed
+            ? (meta[2] === 'dark' ? '该主题强制深色' : '该主题强制浅色')
+            : ''
+        if (fixed) setMode(meta[2] === 'dark', true)
+    }
+
+    function setMode(dark, silent) {
+        document.documentElement.classList.toggle('dark', dark)
+        modeBtn.textContent = dark ? '切换浅色' : '切换深色'
+        if (!silent) localStorage.setItem('ani-preview-dark', dark ? '1' : '0')
+    }
+
+    pick.addEventListener('change', () => apply(pick.value))
+    modeBtn.addEventListener('click', () => setMode(!document.documentElement.classList.contains('dark')))
+
+    setMode(localStorage.getItem('ani-preview-dark') === '1', true)
+    const saved = localStorage.getItem('ani-preview-theme')
+    pick.value = THEMES.some(t => t[0] === saved) ? saved : 'paper.css'
+    apply(pick.value)
+</script>
+
+</body>
+</html>

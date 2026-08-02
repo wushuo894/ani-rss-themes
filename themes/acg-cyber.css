@@ -1,0 +1,331 @@
+/**
+ * 二次元 · 电子霓虹 · Cyber
+ * 壁纸：alcy 随机二次元图（换一家 API，和 LoliAPI 图库不重样）
+ *      横屏 https://t.alcy.cc/pc     竖屏 https://t.alcy.cc/mp
+ *      想换图库把这两行改成 /moe /ycy /ys 等即可，见文件底部注释
+ * 风格：品红 × 青色霓虹，重扫描线与辉光，二次元 + 赛博朋克
+ * 强制深色
+ */
+html:root, html.dark:root {
+    --ani-bg-blur: 4px;
+    --ani-bg-scale: 1.06;
+    --ani-bg-bright: .72;
+    --ani-panel-blur: 16px;
+    --ani-magenta: #FF3DD8;
+    --ani-cyan: #00E5FF;
+}
+
+body {
+    background-color: #06060E;
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: blur(var(--ani-bg-blur)) brightness(var(--ani-bg-bright)) saturate(1.3) contrast(1.1);
+    transform: scale(var(--ani-bg-scale));
+}
+
+@media (orientation: landscape) {
+    body::before {
+        background-image: url("https://t.alcy.cc/pc");
+    }
+}
+
+@media (orientation: portrait) {
+    body::before {
+        background-image: url("https://t.alcy.cc/mp");
+    }
+}
+
+/* 蒙版 + 扫描线一层搞定 */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -49;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(to bottom,
+            rgba(0, 229, 255, .05) 0, rgba(0, 229, 255, .05) 1px,
+            transparent 1px, transparent 4px),
+        radial-gradient(110% 80% at 15% 0%, rgba(255, 61, 216, .22), transparent 65%),
+        radial-gradient(110% 80% at 85% 10%, rgba(0, 229, 255, .2), transparent 60%),
+        linear-gradient(180deg, rgba(6, 6, 14, .68), rgba(4, 4, 10, .88));
+}
+
+html:root, html.dark:root {
+    --el-color-primary: #FF3DD8 !important;
+    --el-color-primary-light-3: #C930A8;
+    --el-color-primary-light-5: #9C267F;
+    --el-color-primary-light-7: #6E1B59;
+    --el-color-primary-light-8: #571546;
+    --el-color-primary-light-9: #3D0F32;
+    --el-color-primary-dark-2: #FF74E4;
+
+    --el-color-success: #00E5FF;
+    --el-color-success-light-9: #0A2C33;
+    --el-color-warning: #FFD23D;
+    --el-color-warning-light-9: #33290C;
+    --el-color-danger: #FF4757;
+    --el-color-danger-light-9: #330F14;
+    --el-color-error: #FF4757;
+    --el-color-info: #7B7FA8;
+    --el-color-info-light-9: #1A1B29;
+
+    --el-bg-color: rgba(14, 12, 28, .72);
+    --el-bg-color-page: #06060E;
+    --el-bg-color-overlay: rgba(18, 15, 34, .9);
+    --el-card-bg-color: rgba(14, 12, 28, .64);
+    --el-dialog-bg-color: rgba(18, 15, 34, .9);
+    --el-mask-color: rgba(3, 3, 8, .65);
+
+    --el-text-color-primary: #F2ECFF;
+    --el-text-color-regular: #C3BADC;
+    --el-text-color-secondary: #948BB0;
+    --el-text-color-placeholder: #6F678A;
+    --el-text-color-disabled: #4C4664;
+
+    --el-border-color-dark: rgba(255, 61, 216, .5);
+    --el-border-color-darker: rgba(255, 61, 216, .7);
+    --el-border-color: rgba(0, 229, 255, .2);
+    --el-border-color-light: rgba(0, 229, 255, .14);
+    --el-border-color-lighter: rgba(255, 255, 255, .08);
+    --el-border-color-extra-light: rgba(255, 255, 255, .05);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .12);
+    --el-fill-color: rgba(255, 255, 255, .08);
+    --el-fill-color-light: rgba(255, 255, 255, .06);
+    --el-fill-color-lighter: rgba(255, 255, 255, .04);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .03);
+    --el-fill-color-blank: rgba(14, 12, 28, .64);
+
+    --el-border-radius-small: 4px;
+    --el-border-radius-base: 8px;
+}
+
+/* 面板：双色描边 + 辉光 */
+html .el-card,
+html .el-card.is-never-shadow,
+html .el-overlay-dialog .el-dialog,
+html .el-popper,
+html .el-select__popper,
+html .el-dropdown__popper {
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    border: 1px solid var(--el-border-color);
+    box-shadow: inset 0 0 24px -14px var(--ani-cyan), 0 14px 34px -22px rgba(0, 0, 0, .9);
+}
+
+html .el-card {
+    transition: border-color .25s ease, box-shadow .25s ease, transform .25s ease;
+}
+
+html .el-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--ani-magenta);
+    box-shadow: 0 0 0 1px rgba(255, 61, 216, .35), 0 0 34px -12px rgba(255, 61, 216, .7);
+}
+
+html .el-button--primary {
+    box-shadow: 0 0 20px -6px rgba(255, 61, 216, .75);
+}
+
+html .el-tag {
+    background-color: rgba(255, 255, 255, .05);
+    border: 1px solid currentColor;
+    box-shadow: inset 0 0 14px -8px currentColor;
+}
+
+html .el-input__wrapper,
+html .el-select__wrapper {
+    background-color: var(--el-fill-color-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused {
+    box-shadow: 0 0 0 1px var(--ani-cyan) inset, 0 0 18px -6px rgba(0, 229, 255, .7);
+}
+
+html .el-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-header-bg-color: rgba(255, 255, 255, .05);
+}
+
+#header {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0, 229, 255, .12);
+}
+
+.list-card-image {
+    border-radius: 6px !important;
+    border-color: rgba(0, 229, 255, .35) !important;
+    box-shadow: 0 0 22px -12px rgba(0, 229, 255, .8) !important;
+}
+
+.list-card-title {
+    text-shadow: 0 1px 10px rgba(0, 0, 0, .6);
+}
+
+.list-card-score {
+    color: var(--ani-magenta) !important;
+    text-shadow: 0 0 16px rgba(255, 61, 216, .7) !important;
+}
+
+#login-page #form {
+    padding: 30px 26px;
+    border-radius: 10px;
+    background: var(--el-card-bg-color);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    border: 1px solid rgba(0, 229, 255, .25);
+    box-shadow: 0 0 40px -18px rgba(255, 61, 216, .7);
+}
+
+#login-page .title-h2 {
+    color: var(--ani-cyan);
+    letter-spacing: .26em;
+    text-shadow: 0 0 22px rgba(0, 229, 255, .7), 0 0 40px rgba(255, 61, 216, .4);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--ani-magenta), var(--ani-cyan));
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ================= 风格强化：字体（等宽窄体 + 全大写）================= */
+html * {
+    font-family: "Sarasa Mono SC", "Cascadia Mono", "JetBrains Mono", Consolas,
+    "Noto Sans SC", "Microsoft YaHei", "PingFang SC", monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+html .el-button,
+html .el-tag,
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .title-h2,
+html .list-week-title {
+    text-transform: uppercase;
+    letter-spacing: .14em;
+}
+
+html .el-dialog__title {
+    color: var(--ani-cyan);
+    font-weight: 700;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* 标题色差：品红/青分离，故障感 */
+#login-page .title-h2 {
+    text-shadow: 2px 0 var(--ani-magenta), -2px 0 var(--ani-cyan),
+    0 0 26px rgba(0, 229, 255, .5);
+    animation: ani-glitch 4.5s steps(1, end) infinite;
+}
+
+@keyframes ani-glitch {
+    0%, 94%, 100% { transform: translateX(0); }
+    95% { transform: translateX(-2px); }
+    96% { transform: translateX(2px); }
+    97% { transform: translateX(-1px); }
+}
+
+/* ================= 风格强化：按钮（双层描边 + 抖动）================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: rgba(255, 61, 216, .08);
+    --el-button-border-color: rgba(255, 61, 216, .45);
+    --el-button-text-color: #FF9DE8;
+    --el-button-hover-bg-color: rgba(255, 61, 216, .2);
+    --el-button-hover-border-color: var(--ani-magenta);
+    --el-button-hover-text-color: #FFE6FA;
+
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    border-radius: 2px;
+    font-weight: 700;
+    /* 双层描边：外圈青、内圈品红 */
+    box-shadow: 0 0 0 1px rgba(0, 229, 255, .22), inset 0 0 14px -8px var(--ani-magenta);
+    transition: background-color .15s linear, border-color .15s linear,
+    color .15s linear, box-shadow .15s linear, transform .1s linear;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    border-color: var(--el-button-hover-border-color);
+    color: var(--el-button-hover-text-color);
+    box-shadow: 0 0 0 1px var(--ani-cyan), 0 0 24px -6px var(--ani-magenta);
+    transform: translateX(-1px);
+}
+
+html .el-button:active {
+    transform: translateX(1px);
+}
+
+html .el-button--primary {
+    background-color: var(--ani-magenta);
+    border-color: var(--ani-magenta);
+    color: #1A0316;
+}
+
+html .el-button--primary:hover {
+    background-color: #FF74E4;
+    border-color: #FF74E4;
+    color: #1A0316;
+}
+
+html .el-button--danger {
+    --el-button-bg-color: rgba(255, 71, 87, .1);
+    --el-button-border-color: rgba(255, 71, 87, .5);
+    --el-button-text-color: #FF8892;
+    --el-button-hover-bg-color: #FF4757;
+    --el-button-hover-border-color: #FF4757;
+    --el-button-hover-text-color: #1A0407;
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #login-page .title-h2 {
+        animation: none;
+    }
+}
+
+/**
+ * alcy 图库可选端点（把上面 background-image 里的地址换掉即可）：
+ *   https://t.alcy.cc/pc    横屏综合
+ *   https://t.alcy.cc/mp    竖屏综合
+ *   https://t.alcy.cc/moe   二次元萌图
+ *   https://t.alcy.cc/ycy   真人（杨超越图库）
+ *   https://t.alcy.cc/ys    原神
+ * 想用 LoliAPI 就换成 https://www.loliapi.com/acg/pc/ 与 /acg/pe/
+ */

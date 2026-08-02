@@ -1,0 +1,326 @@
+/**
+ * ANI-RSS：随机二次元背景 + 透明玻璃 UI（纯 CSS）—— 修复版
+ *
+ * 用法：复制到【设置 -> 基础设置 -> 页面设置 -> 自定义 -> CSS】
+ * 说明：纯 CSS 无法“点按钮换一张”，刷新页面即换图
+ *
+ * ============ 相对原版改了什么 ============
+ * 修复1  竖屏用的还是横图 —— 自适应等于没生效，改成 /acg/pe/
+ * 修复2  卡片透明度双层叠加 —— .el-card 和 .el-card__body 都刷了底色，
+ *        0.45 叠 0.45 实际约 0.70，卡片比弹窗还实。改成只留外层一层
+ * 修复3  v-loading 的白幕 —— --el-mask-color 没覆盖，默认 90% 白，
+ *        刷新订阅/加载列表时整块盖成白板（项目里 v-loading 用了十几处）
+ * 修复4  开关/复选框在壁纸上看不见 —— 项目把 --el-border-color 调得极淡，
+ *        叠上花壁纸后 el-switch 关闭态和未勾选的框基本没了（设置页全是这俩）
+ * 修复5  el-tag / el-alert / el-message 是实心色块 —— 卡片上一排标签、
+ *        设置页一堆提示条，跟玻璃 UI 割裂。改成保留色相的半透明
+ * 修复6  ElMessage 被统一刷成同一个底色 —— 成功/失败/警告分不出来了，
+ *        原版那句 background !important 把类型色盖没了
+ * 修复7  登录页没做 —— 输入框裸浮在壁纸上，补一块玻璃面板
+ * 修复8  补 el-input-tag、表格 hover 行、滚动条、折叠面板的毛玻璃
+ * 修复9  文字对比度 —— 面板只有 0.35~0.45 透明度时默认灰不够看，压深/提亮一档
+ */
+
+:root {
+  /* ====== 透明度调节（最常用）====== */
+  /* 卡片/输入框等“玻璃面板”透明度：越小越透明（建议 0.30 ~ 0.70） */
+  --ani-rss-surface-alpha: 0.45;
+  /* 弹窗/浮层更“实”的透明度（建议 0.55 ~ 0.85） */
+  --ani-rss-surface-strong-alpha: 0.65;
+  /* 表格表头/弱背景透明度（建议 0.25 ~ 0.55） */
+  --ani-rss-surface-weak-alpha: 0.35;
+  /* 背景遮罩透明度：越大越压背景（建议 0.04 ~ 0.20） */
+  --ani-rss-bg-overlay-alpha: 0.08;
+
+  /* ============ 背景图接口（可自行替换） ============ */
+  /* 修复1：LoliAPI 分横竖屏两个端点，原来两行都用 /acg/ 等于竖屏也吃横图 */
+  --ani-rss-bg-image-landscape: url("https://www.loliapi.com/acg/pc/");
+  --ani-rss-bg-image-portrait: url("https://www.loliapi.com/acg/pe/");
+  /* 备用图源（LoliAPI 挂了就换这两行）：
+     横屏 url("https://t.alcy.cc/pc")   竖屏 url("https://t.alcy.cc/mp") */
+
+  /* 背景模糊与缩放（默认不模糊；需要模糊可把 0px 改大，例如 2px） */
+  --ani-rss-bg-blur: 0px;
+  --ani-rss-bg-scale: 1.02;
+
+  /* 背景遮罩：提高文字可读性 */
+  --ani-rss-bg-overlay: rgba(255, 255, 255, var(--ani-rss-bg-overlay-alpha));
+
+  /* ============ 玻璃表面（浅色模式） ============ */
+  --ani-rss-surface: rgba(255, 255, 255, var(--ani-rss-surface-alpha));
+  --ani-rss-surface-strong: rgba(255, 255, 255, var(--ani-rss-surface-strong-alpha));
+  --ani-rss-surface-weak: rgba(255, 255, 255, var(--ani-rss-surface-weak-alpha));
+  --ani-rss-surface-popover: rgba(255, 255, 255, var(--ani-rss-surface-strong-alpha));
+  /* 玻璃“磨砂”强度：不想模糊就设为 0px */
+  --ani-rss-backdrop-blur: 10px;
+
+  /* 修复4：玻璃需要一条亮边才有边界，另给控件留一个“看得见的灰” */
+  --ani-rss-edge: rgba(255, 255, 255, 0.6);
+  --ani-rss-control: rgba(120, 130, 145, 0.55);
+
+  /* ============ Element Plus 变量覆盖（浅色模式） ============ */
+  --el-bg-color: var(--ani-rss-surface);
+  --el-bg-color-overlay: var(--ani-rss-surface-strong);
+  --el-fill-color-blank: var(--ani-rss-surface);
+
+  /* hover / 浅填充也更“玻璃” */
+  --el-fill-color-light: rgba(255, 255, 255, 0.35);
+  --el-fill-color-lighter: rgba(255, 255, 255, 0.25);
+  --el-fill-color-extra-light: rgba(255, 255, 255, 0.18);
+
+  /* 修复3：v-loading / 全屏 loading 的遮罩，默认是 90% 白，会盖成白板 */
+  --el-mask-color: rgba(255, 255, 255, 0.35);
+  --el-mask-color-extra-light: rgba(255, 255, 255, 0.2);
+
+  /* 修复4：边框亮边 */
+  --el-border-color: var(--ani-rss-edge);
+  --el-border-color-light: rgba(255, 255, 255, 0.48);
+  --el-border-color-lighter: rgba(255, 255, 255, 0.38);
+  --el-border-color-extra-light: rgba(255, 255, 255, 0.28);
+
+  /* 修复9：面板半透明时默认灰不够看 */
+  --el-text-color-primary: #16181C;
+  --el-text-color-regular: #3A3E45;
+}
+
+html.dark {
+  /* 深色模式：遮罩更暗一些 */
+  --ani-rss-bg-overlay: rgba(0, 0, 0, calc(var(--ani-rss-bg-overlay-alpha) + 0.16));
+
+  /* 深色模式面板透明度（可单独调） */
+  --ani-rss-surface: rgba(29, 30, 31, calc(var(--ani-rss-surface-alpha) + 0.10));
+  --ani-rss-surface-strong: rgba(29, 30, 31, calc(var(--ani-rss-surface-strong-alpha) + 0.10));
+  --ani-rss-surface-weak: rgba(29, 30, 31, calc(var(--ani-rss-surface-weak-alpha) + 0.10));
+  --ani-rss-surface-popover: rgba(29, 30, 31, calc(var(--ani-rss-surface-strong-alpha) + 0.10));
+
+  --ani-rss-edge: rgba(255, 255, 255, 0.18);
+  --ani-rss-control: rgba(150, 158, 172, 0.5);
+
+  --el-bg-color: var(--ani-rss-surface);
+  --el-bg-color-overlay: var(--ani-rss-surface-strong);
+  --el-fill-color-blank: var(--ani-rss-surface);
+
+  --el-fill-color-light: rgba(29, 30, 31, 0.35);
+  --el-fill-color-lighter: rgba(29, 30, 31, 0.25);
+  --el-fill-color-extra-light: rgba(29, 30, 31, 0.18);
+
+  --el-mask-color: rgba(0, 0, 0, 0.45);
+  --el-mask-color-extra-light: rgba(0, 0, 0, 0.25);
+
+  --el-border-color: var(--ani-rss-edge);
+  --el-border-color-light: rgba(255, 255, 255, 0.14);
+  --el-border-color-lighter: rgba(255, 255, 255, 0.1);
+  --el-border-color-extra-light: rgba(255, 255, 255, 0.07);
+
+  --el-text-color-primary: #F2F4F8;
+  --el-text-color-regular: #C8CDD6;
+}
+
+/* ================= 背景层 ================= */
+body {
+  background: transparent !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: center / cover no-repeat;
+  background-image: var(--ani-rss-bg-image-landscape);
+  /* 背景模糊开关：默认 0px（不模糊），要模糊就在 :root 里调大 */
+  filter: blur(var(--ani-rss-bg-blur));
+  transform: scale(var(--ani-rss-bg-scale));
+}
+
+@media (orientation: portrait) {
+  body::before {
+    background-image: var(--ani-rss-bg-image-portrait);
+  }
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--ani-rss-bg-overlay);
+}
+
+/* ================= 玻璃组件（常用控件） ================= */
+/* 修复2：只有 .el-card 本体刷底色，内层一律透明，避免 0.45 叠 0.45 */
+.el-card {
+  --el-card-bg-color: var(--ani-rss-surface) !important;
+  background: var(--el-card-bg-color) !important;
+  background-color: var(--el-card-bg-color) !important;
+  border-color: var(--ani-rss-edge) !important;
+}
+
+.el-card__body,
+.el-card__header,
+.el-card__footer {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+.el-button.is-text:not(.is-disabled).is-has-bg {
+  background: var(--ani-rss-surface) !important;
+  background-color: var(--ani-rss-surface) !important;
+}
+
+/* 修复8：el-input-tag 有自己的外壳，不吃 .el-input__wrapper */
+.el-input__wrapper,
+.el-select__wrapper,
+.el-textarea__inner,
+.el-input-tag {
+  background: var(--ani-rss-surface) !important;
+  background-color: var(--ani-rss-surface) !important;
+}
+
+.el-dialog {
+  --el-dialog-bg-color: var(--ani-rss-surface-strong);
+  background: var(--ani-rss-surface-strong) !important;
+  background-color: var(--ani-rss-surface-strong) !important;
+}
+
+.el-table {
+  --el-table-header-bg-color: var(--ani-rss-surface-weak);
+  --el-table-tr-bg-color: transparent;
+  --el-table-bg-color: transparent;
+  /* 修复8：hover 行原本是实心浅灰，会在玻璃上闪一条白杠 */
+  --el-table-row-hover-bg-color: var(--ani-rss-surface-weak);
+  --el-table-border-color: var(--ani-rss-edge);
+}
+
+.el-popover {
+  --el-bg-color-overlay: var(--ani-rss-surface-popover);
+  background: var(--ani-rss-surface-popover) !important;
+  background-color: var(--ani-rss-surface-popover) !important;
+}
+
+/* 下拉/气泡等 popper 统一玻璃化 */
+.el-popper.is-light,
+.el-popper.is-dark,
+.el-dropdown__popper,
+.el-select__popper,
+.el-tooltip__popper {
+  backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+}
+
+.el-popper.is-light {
+  background: var(--ani-rss-surface-strong) !important;
+}
+
+/* MessageBox / Message */
+.el-message-box {
+  background: var(--ani-rss-surface-strong) !important;
+  backdrop-filter: blur(calc(var(--ani-rss-backdrop-blur) + 2px));
+  -webkit-backdrop-filter: blur(calc(var(--ani-rss-backdrop-blur) + 2px));
+}
+
+/* 修复6：不再强刷同一个底色，改成保留类型色（成功绿/失败红）的半透明，
+   见下方 color-mix 块；这里只留毛玻璃和边框 */
+.el-message {
+  backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+  border-color: var(--ani-rss-edge) !important;
+}
+
+/* ================= 修复3：loading 遮罩 ================= */
+.el-loading-mask {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* ================= 修复4：壁纸上看得见的控件 ================= */
+/* 开关关闭态：项目把 --el-border-color 调得极淡，叠壁纸就没了 */
+.el-switch {
+  --el-switch-off-color: var(--ani-rss-control);
+}
+
+/* 未勾选的复选框 / 单选框 */
+.el-checkbox__inner,
+.el-radio__inner {
+  background-color: var(--ani-rss-surface) !important;
+  border-color: var(--ani-rss-control) !important;
+}
+
+.el-checkbox__input.is-checked .el-checkbox__inner,
+.el-radio__input.is-checked .el-radio__inner {
+  background-color: var(--el-color-primary) !important;
+  border-color: var(--el-color-primary) !important;
+}
+
+/* 数字输入框左右两个按钮（项目自己刷了 --el-bg-color，这里补边框） */
+.el-input-number > span[role="button"] {
+  border-color: var(--ani-rss-edge) !important;
+}
+
+/* ================= 修复5：标签 / 提示条不再是实心色块 ================= */
+/* color-mix 不支持的老浏览器自动跳过，退回 Element Plus 原样，不会坏 */
+@supports (background: color-mix(in srgb, red 10%, transparent)) {
+  /* 卡片上那一排标签：保留类型色相，透出壁纸 */
+  .el-tag {
+    background-color: color-mix(in srgb, currentColor 18%, var(--ani-rss-surface-weak)) !important;
+    border-color: color-mix(in srgb, currentColor 35%, transparent) !important;
+  }
+
+  /* 设置页里的提示条 */
+  .el-alert.is-light {
+    background-color: color-mix(in srgb, currentColor 14%, var(--ani-rss-surface)) !important;
+  }
+
+  /* 修复6：ElMessage 按类型着色 —— 成功/警告/错误各是各的颜色 */
+  .el-message {
+    background-color: color-mix(in srgb, var(--el-message-text-color) 16%, var(--ani-rss-surface-strong)) !important;
+  }
+}
+
+/* ================= 修复7：登录页 ================= */
+#login-page #form {
+  padding: 28px 24px;
+  border-radius: 16px;
+  background: var(--ani-rss-surface-strong);
+  border: 1px solid var(--ani-rss-edge);
+  box-shadow: 0 18px 42px -26px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(calc(var(--ani-rss-backdrop-blur) + 4px));
+  -webkit-backdrop-filter: blur(calc(var(--ani-rss-backdrop-blur) + 4px));
+}
+
+#login-page .title-h2 {
+  letter-spacing: 0.14em;
+}
+
+/* ================= 修复8：滚动条 ================= */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ani-rss-control);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 有 backdrop-filter 的浏览器更“玻璃”；不支持也能正常显示（只是少了模糊） */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .el-card,
+  .el-button.is-text:not(.is-disabled).is-has-bg,
+  .el-input__wrapper,
+  .el-select__wrapper,
+  .el-textarea__inner,
+  .el-input-tag,
+  .el-dialog,
+  .el-popover,
+  /* 修复8：设置页主体是折叠面板，之前没做毛玻璃 */
+  .el-collapse-item__content {
+    backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+    -webkit-backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+  }
+}

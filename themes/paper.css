@@ -1,0 +1,328 @@
+/**
+ * 纸感极简 · Paper
+ * 字体：中文宋体 / 西文 Georgia 做标题，正文等线 —— 编辑部排版味
+ * 按钮：方角线框，hover 墨色反转填充
+ * 背景：稿纸横纹 + 极淡颗粒
+ * 输入框：只留一条下划线
+ * 明暗跟随切换（深色为暖墨色，不是纯黑）
+ *
+ * 注：--el-color-primary 被 ani-rss 用内联样式写在 <html> 上，只有 !important 能盖过
+ */
+
+/* ---------- 浅色 ---------- */
+html:root:not(.dark) {
+    --el-color-primary: #3E6B8F !important;
+    --el-color-primary-light-3: #7C9CB5;
+    --el-color-primary-light-5: #9FB7CA;
+    --el-color-primary-light-7: #C4D2DE;
+    --el-color-primary-light-8: #D6E0E8;
+    --el-color-primary-light-9: #EDF2F6;
+    --el-color-primary-dark-2: #325775;
+
+    --el-color-success: #4E7C5B;
+    --el-color-warning: #9A7B3F;
+    --el-color-danger: #A85449;
+    --el-color-error: #A85449;
+    --el-color-info: #7A756C;
+
+    --el-bg-color: #FFFFFF;
+    --el-bg-color-page: #FBFAF7;
+    --el-bg-color-overlay: #FFFFFF;
+    --el-card-bg-color: #FFFFFF;
+    --el-dialog-bg-color: #FFFFFF;
+    --el-mask-color: rgba(251, 250, 247, .7);
+
+    --el-text-color-primary: #23211E;
+    --el-text-color-regular: #4A4741;
+    --el-text-color-secondary: #7A756C;
+    --el-text-color-placeholder: #ABA69C;
+    --el-text-color-disabled: #C6C1B7;
+
+    --el-border-color-dark: #D9D4CA;
+    --el-border-color-darker: #CFC9BE;
+    --el-border-color: #E6E2DA;
+    --el-border-color-light: #EDEAE3;
+    --el-border-color-lighter: #F2EFE9;
+    --el-border-color-extra-light: #F7F5F1;
+
+    --el-fill-color-dark: #EDEAE3;
+    --el-fill-color: #F2EFE9;
+    --el-fill-color-light: #F6F4EF;
+    --el-fill-color-lighter: #FAF8F5;
+    --el-fill-color-extra-light: #FCFBF9;
+    --el-fill-color-blank: #FFFFFF;
+
+    --ani-rule: rgba(35, 33, 30, .045);   /* 稿纸横纹 */
+    --ani-grain: rgba(35, 33, 30, .035);  /* 颗粒 */
+}
+
+/* ---------- 深色 ---------- */
+html.dark:root {
+    --el-color-primary: #7FA8C4 !important;
+    --el-color-primary-light-3: #5E8299;
+    --el-color-primary-light-5: #4A6675;
+    --el-color-primary-light-7: #364A54;
+    --el-color-primary-light-8: #2C3B43;
+    --el-color-primary-light-9: #232E34;
+    --el-color-primary-dark-2: #9BBDD3;
+
+    --el-color-success: #7FB08C;
+    --el-color-warning: #C9A76A;
+    --el-color-danger: #C9827A;
+    --el-color-error: #C9827A;
+    --el-color-info: #918A80;
+
+    --el-bg-color: #1D1C19;
+    --el-bg-color-page: #171614;
+    --el-bg-color-overlay: #222120;
+    --el-card-bg-color: #1D1C19;
+    --el-dialog-bg-color: #1D1C19;
+    --el-mask-color: rgba(10, 10, 9, .7);
+
+    --el-text-color-primary: #E8E4DC;
+    --el-text-color-regular: #C4BFB6;
+    --el-text-color-secondary: #918A80;
+    --el-text-color-placeholder: #6E6862;
+    --el-text-color-disabled: #4E4A45;
+
+    --el-border-color-dark: #3A3733;
+    --el-border-color-darker: #454140;
+    --el-border-color: #2C2A26;
+    --el-border-color-light: #262421;
+    --el-border-color-lighter: #22201D;
+    --el-border-color-extra-light: #1F1E1B;
+
+    --el-fill-color-dark: #2A2825;
+    --el-fill-color: #242220;
+    --el-fill-color-light: #211F1D;
+    --el-fill-color-lighter: #1E1D1A;
+    --el-fill-color-extra-light: #1B1A17;
+    --el-fill-color-blank: #1D1C19;
+
+    --ani-rule: rgba(232, 228, 220, .05);
+    --ani-grain: rgba(232, 228, 220, .03);
+}
+
+html:root, html.dark:root {
+    --el-border-radius-small: 2px;
+    --el-border-radius-base: 3px;
+    --el-border-radius-round: 999px;
+
+    --el-box-shadow: none;
+    --el-box-shadow-light: none;
+    --el-box-shadow-lighter: none;
+    --el-box-shadow-dark: none;
+
+    --ani-serif: Georgia, "Songti SC", "Noto Serif SC", "Source Han Serif SC",
+    "STSong", SimSun, "Times New Roman", serif;
+}
+
+/* ================= 字体 ================= */
+/* 正文：等线 / 苹方，比雅黑更轻，纸感更强（html * 提权盖过项目的 * 规则） */
+html * {
+    font-family: "DengXian", "PingFang SC", "Noto Sans SC", "Source Han Sans SC",
+    "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* 标题：宋体 / Georgia —— 整套主题的辨识度全在这 */
+html h1, html h2, html h3, html h4,
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .list-card-title,
+html .list-week-title,
+html .title-h2 {
+    font-family: var(--ani-serif);
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+html .el-dialog__title {
+    font-size: 1.15em;
+}
+
+html .el-collapse-item__header {
+    font-size: 1.02em;
+}
+
+/* 数字对齐，列表看着才齐整 */
+html .el-tag, html .el-descriptions__content, html .list-card-score {
+    font-variant-numeric: tabular-nums;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 背景：稿纸 ================= */
+body {
+    background-color: var(--el-bg-color-page);
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    pointer-events: none;
+    background-image:
+        /* 颗粒 */
+        radial-gradient(var(--ani-grain) .5px, transparent .5px),
+        /* 横纹 */
+        repeating-linear-gradient(to bottom,
+            transparent 0 27px, var(--ani-rule) 27px 28px);
+    background-size: 3px 3px, 100% 28px;
+}
+
+/* ================= 按钮：线框 + 反转填充 ================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: transparent;
+    --el-button-border-color: var(--el-border-color-dark);
+    --el-button-text-color: var(--el-text-color-primary);
+    --el-button-hover-bg-color: var(--el-text-color-primary);
+    --el-button-hover-text-color: var(--el-bg-color);
+    --el-button-hover-border-color: var(--el-text-color-primary);
+    --el-button-active-bg-color: var(--el-text-color-primary);
+    --el-button-active-text-color: var(--el-bg-color);
+    --el-button-active-border-color: var(--el-text-color-primary);
+
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    border-radius: 2px;
+    letter-spacing: .08em;
+    font-weight: 500;
+    box-shadow: none;
+    transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    border-color: var(--el-button-hover-border-color);
+    color: var(--el-button-hover-text-color);
+}
+
+/* 类型色各自成套，hover 填充后一律配白字，不存在看不见的按钮 */
+html .el-button--primary {
+    --el-button-border-color: var(--el-color-primary);
+    --el-button-text-color: var(--el-color-primary);
+    --el-button-hover-bg-color: var(--el-color-primary);
+    --el-button-hover-border-color: var(--el-color-primary);
+    --el-button-hover-text-color: #FFFFFF;
+}
+
+html .el-button--danger {
+    --el-button-border-color: var(--el-color-danger);
+    --el-button-text-color: var(--el-color-danger);
+    --el-button-hover-bg-color: var(--el-color-danger);
+    --el-button-hover-border-color: var(--el-color-danger);
+    --el-button-hover-text-color: #FFFFFF;
+}
+
+html .el-button--success {
+    --el-button-border-color: var(--el-color-success);
+    --el-button-text-color: var(--el-color-success);
+    --el-button-hover-bg-color: var(--el-color-success);
+    --el-button-hover-border-color: var(--el-color-success);
+    --el-button-hover-text-color: #FFFFFF;
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+}
+
+/* ================= 输入框：只留下划线 ================= */
+html .el-input__wrapper,
+html .el-select__wrapper {
+    background-color: transparent;
+    border-radius: 0;
+    box-shadow: 0 1px 0 0 var(--el-border-color-dark);
+    transition: box-shadow .18s ease;
+}
+
+html .el-input__wrapper:hover,
+html .el-select__wrapper:hover {
+    box-shadow: 0 1px 0 0 var(--el-text-color-secondary);
+}
+
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused {
+    box-shadow: 0 2px 0 0 var(--el-color-primary);
+}
+
+html .el-textarea__inner {
+    border-radius: 0;
+    box-shadow: 0 0 0 1px var(--el-border-color) inset;
+}
+
+/* ================= 其余组件 ================= */
+html .el-card,
+html .el-card.is-never-shadow {
+    border: 1px solid var(--el-border-color);
+    box-shadow: none;
+}
+
+html .el-card:hover {
+    border-color: var(--el-border-color-dark);
+}
+
+html .el-overlay-dialog .el-dialog {
+    border: 1px solid var(--el-border-color);
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+html .el-tag {
+    background-color: transparent;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    opacity: .85;
+    letter-spacing: .04em;
+}
+
+/* 评分：项目里写死的品红换成墨色，用衬线摆出刊物感 */
+.list-card-score {
+    color: var(--el-text-color-primary) !important;
+    font-family: var(--ani-serif) !important;
+    font-weight: 600 !important;
+}
+
+.list-card-image {
+    border-radius: 2px !important;
+    border-color: var(--el-border-color) !important;
+}
+
+/* 登录页：一个书名号级别的标题 */
+#login-page .title-h2 {
+    font-weight: 600;
+    letter-spacing: .3em;
+    text-indent: .3em;
+}
+
+#login-page .title-h2::after {
+    content: "";
+    display: block;
+    width: 32px;
+    height: 1px;
+    margin: 14px auto 0;
+    background: var(--el-text-color-primary);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-dark);
+    border-radius: 0;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}

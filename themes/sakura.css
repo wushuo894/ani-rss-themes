@@ -1,0 +1,314 @@
+/**
+ * 樱花物语 · Sakura
+ * 字体：幼圆 / 圆体 Yuanti SC —— 圆头笔画，整套主题的甜味来源
+ * 按钮：全药丸 + 双色渐变，按下有回弹
+ * 背景：飘落花瓣（纯 CSS 动画，不加载任何图）
+ * 明暗跟随切换（深色为梅子紫，不是灰黑）
+ */
+
+/* ---------- 浅色 ---------- */
+html:root:not(.dark) {
+    --el-color-primary: #F2799C !important;
+    --el-color-primary-light-3: #F79CB7;
+    --el-color-primary-light-5: #FAB8CB;
+    --el-color-primary-light-7: #FCD3DF;
+    --el-color-primary-light-8: #FDE1E9;
+    --el-color-primary-light-9: #FEF0F4;
+    --el-color-primary-dark-2: #D95F83;
+
+    --el-color-success: #6FBF9B;
+    --el-color-success-light-9: #EFF9F5;
+    --el-color-warning: #E8B15C;
+    --el-color-warning-light-9: #FCF5EA;
+    --el-color-danger: #E8697A;
+    --el-color-danger-light-9: #FDF0F1;
+    --el-color-error: #E8697A;
+    --el-color-info: #A79098;
+    --el-color-info-light-9: #F7F3F4;
+
+    --el-bg-color: #FFFFFF;
+    --el-bg-color-page: #FFF6F8;
+    --el-bg-color-overlay: #FFFFFF;
+    --el-card-bg-color: #FFFFFF;
+    --el-dialog-bg-color: #FFFDFD;
+    --el-mask-color: rgba(255, 246, 248, .75);
+
+    --el-text-color-primary: #4A3138;
+    --el-text-color-regular: #6E545C;
+    --el-text-color-secondary: #9A7B84;
+    --el-text-color-placeholder: #C0A3AB;
+    --el-text-color-disabled: #D8C4C9;
+
+    --el-border-color-dark: #F4C7D4;
+    --el-border-color-darker: #EFB6C7;
+    --el-border-color: #FBDCE5;
+    --el-border-color-light: #FDE6EC;
+    --el-border-color-lighter: #FEEEF2;
+    --el-border-color-extra-light: #FEF5F7;
+
+    --el-fill-color-dark: #FBE3E9;
+    --el-fill-color: #FDEDF1;
+    --el-fill-color-light: #FEF3F6;
+    --el-fill-color-lighter: #FFF8FA;
+    --el-fill-color-extra-light: #FFFBFC;
+    --el-fill-color-blank: #FFFFFF;
+
+    --ani-shadow-color: rgba(242, 121, 156, .18);
+    --ani-grad: linear-gradient(135deg, #FF9DBB 0%, #F2799C 55%, #E86A99 100%);
+    --ani-petal-a: rgba(255, 150, 180, .55);
+    --ani-petal-b: rgba(255, 190, 208, .5);
+}
+
+/* ---------- 深色 ---------- */
+html.dark:root {
+    --el-color-primary: #FF9EBB !important;
+    --el-color-primary-light-3: #C97A91;
+    --el-color-primary-light-5: #9E5F72;
+    --el-color-primary-light-7: #6E4453;
+    --el-color-primary-light-8: #55353F;
+    --el-color-primary-light-9: #3A2530;
+    --el-color-primary-dark-2: #FFB9CE;
+
+    --el-color-success: #7FC9A8;
+    --el-color-warning: #E5C07B;
+    --el-color-danger: #F2808F;
+    --el-color-error: #F2808F;
+    --el-color-info: #A08A93;
+
+    --el-bg-color: #2A2025;
+    --el-bg-color-page: #221A1E;
+    --el-bg-color-overlay: #322730;
+    --el-card-bg-color: #2A2025;
+    --el-dialog-bg-color: #2E2329;
+    --el-mask-color: rgba(20, 14, 17, .7);
+
+    --el-text-color-primary: #F5E6EC;
+    --el-text-color-regular: #D5BFC8;
+    --el-text-color-secondary: #A98F9A;
+    --el-text-color-placeholder: #86707A;
+    --el-text-color-disabled: #5E4E56;
+
+    --el-border-color-dark: #4E3B44;
+    --el-border-color-darker: #5C464F;
+    --el-border-color: #3E2F36;
+    --el-border-color-light: #382A31;
+    --el-border-color-lighter: #33262C;
+    --el-border-color-extra-light: #2E2228;
+
+    --el-fill-color-dark: #3A2C33;
+    --el-fill-color: #33262C;
+    --el-fill-color-light: #2F2329;
+    --el-fill-color-lighter: #2B2026;
+    --el-fill-color-extra-light: #271D22;
+    --el-fill-color-blank: #2A2025;
+
+    --ani-shadow-color: rgba(0, 0, 0, .35);
+    --ani-grad: linear-gradient(135deg, #FFB0C8 0%, #FF9EBB 55%, #E8809F 100%);
+    --ani-petal-a: rgba(255, 170, 195, .32);
+    --ani-petal-b: rgba(255, 200, 218, .26);
+}
+
+html:root, html.dark:root {
+    --el-border-radius-small: 10px;
+    --el-border-radius-base: 16px;
+    --el-border-radius-round: 999px;
+}
+
+/* ================= 字体：圆体 ================= */
+html * {
+    font-family: "Yuanti SC", "YouYuan", "幼圆", "Quicksand", "Nunito",
+    "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .title-h2,
+html .list-week-title {
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 背景：飘落花瓣 ================= */
+body {
+    background-color: var(--el-bg-color-page);
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: -6% 0 0;
+    z-index: -50;
+    pointer-events: none;
+    background-image:
+        radial-gradient(ellipse 7px 4px at 12% 0, var(--ani-petal-a), transparent 72%),
+        radial-gradient(ellipse 5px 3px at 31% 0, var(--ani-petal-b), transparent 72%),
+        radial-gradient(ellipse 8px 5px at 54% 0, var(--ani-petal-a), transparent 72%),
+        radial-gradient(ellipse 5px 3px at 73% 0, var(--ani-petal-b), transparent 72%),
+        radial-gradient(ellipse 7px 4px at 90% 0, var(--ani-petal-a), transparent 72%);
+    background-size: 100% 360px, 100% 290px, 100% 450px, 100% 330px, 100% 410px;
+    background-repeat: repeat-y;
+    animation: ani-sakura-fall 24s linear infinite;
+}
+
+@keyframes ani-sakura-fall {
+    to {
+        background-position: 22px 360px, -20px 290px, 28px 450px, -14px 330px, 18px 410px;
+    }
+}
+
+/* ================= 按钮：药丸渐变 + 回弹 ================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: var(--el-fill-color);
+    --el-button-border-color: transparent;
+    --el-button-text-color: var(--el-text-color-primary);
+    --el-button-hover-bg-color: var(--el-fill-color-dark);
+    --el-button-hover-text-color: var(--el-color-primary-dark-2);
+    --el-button-hover-border-color: transparent;
+
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    border-radius: 999px;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px -6px var(--ani-shadow-color);
+    transition: transform .22s cubic-bezier(.34, 1.56, .64, 1),
+    box-shadow .22s ease, background-color .18s ease, color .18s ease;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    color: var(--el-button-hover-text-color);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 18px -10px var(--ani-shadow-color);
+}
+
+/* 按下回弹 */
+html .el-button:active,
+html .el-button.is-text:active {
+    transform: translateY(0) scale(.94);
+}
+
+/* 主按钮 / 危险按钮：渐变填充 + 白字，对比度拉满 */
+html .el-button--primary {
+    background: var(--ani-grad);
+    border-color: transparent;
+    color: #FFFFFF;
+    box-shadow: 0 8px 16px -8px var(--el-color-primary);
+}
+
+html .el-button--primary:hover {
+    background: var(--ani-grad);
+    color: #FFFFFF;
+    filter: brightness(1.06);
+    box-shadow: 0 12px 22px -10px var(--el-color-primary);
+}
+
+html .el-button--danger {
+    background: linear-gradient(135deg, #F58A97 0%, #E8697A 100%);
+    border-color: transparent;
+    color: #FFFFFF;
+}
+
+html .el-button--danger:hover {
+    background: linear-gradient(135deg, #F58A97 0%, #E8697A 100%);
+    color: #FFFFFF;
+    filter: brightness(1.06);
+}
+
+html .el-button--success {
+    background: linear-gradient(135deg, #86CFAF 0%, #6FBF9B 100%);
+    border-color: transparent;
+    color: #FFFFFF;
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* ================= 其余组件 ================= */
+html .el-card,
+html .el-card.is-never-shadow {
+    border: 1px solid var(--el-border-color);
+    border-radius: 20px;
+    box-shadow: 0 6px 18px -10px var(--ani-shadow-color);
+    transition: transform .25s cubic-bezier(.34, 1.56, .64, 1), box-shadow .25s ease;
+}
+
+html .el-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 30px -16px var(--ani-shadow-color);
+}
+
+html .el-tag {
+    border-radius: 999px;
+    padding: 0 11px;
+    font-weight: 600;
+}
+
+html .el-input__wrapper,
+html .el-select__wrapper {
+    border-radius: 999px;
+    padding-left: 14px;
+    padding-right: 14px;
+}
+
+html .el-overlay-dialog .el-dialog {
+    border-radius: 24px;
+    box-shadow: 0 20px 50px -24px var(--ani-shadow-color);
+}
+
+.list-card-score {
+    color: var(--el-color-primary) !important;
+    font-weight: 700 !important;
+}
+
+.list-card-image {
+    border-radius: 14px !important;
+}
+
+#login-page .title-h2 {
+    color: var(--el-color-primary);
+    letter-spacing: .12em;
+}
+
+#login-page .title-h2::after {
+    content: "❀";
+    display: block;
+    margin-top: 8px;
+    font-size: .5em;
+    opacity: .7;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-color-primary-light-5);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body::before {
+        animation: none;
+    }
+}

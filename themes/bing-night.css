@@ -1,0 +1,309 @@
+/**
+ * 必应4K · 夜航 · Bing Night
+ * 壁纸：必应每日壁纸随机一张，横屏取 UHD 真 4K，竖屏取 1080x1920（自适应）
+ *      横屏 https://bing.ee123.net/img/?date=random&size=UHD
+ *      竖屏 https://bing.ee123.net/img/?date=random&size=1080x1920
+ * 风格：影院级压暗 + 冰蓝强调色，风景照当电影底片，晚上看着不刺眼
+ * 强制深色
+ *
+ * 网速慢或流量敏感：把 size=UHD 改成 size=1920x1080
+ */
+html:root, html.dark:root {
+    --ani-bg-blur: 0px;      /* 4K 图默认不糊 */
+    --ani-bg-scale: 1.03;
+    --ani-bg-bright: .62;    /* 压暗，这是夜航款的核心旋钮 */
+    --ani-panel-blur: 20px;
+}
+
+body {
+    background-color: #070A10;
+    color: var(--el-text-color-primary);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -50;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    filter: blur(var(--ani-bg-blur)) brightness(var(--ani-bg-bright)) saturate(.9) contrast(1.05);
+    transform: scale(var(--ani-bg-scale));
+}
+
+@media (orientation: landscape) {
+    body::before {
+        background-image: url("https://bing.ee123.net/img/?date=random&size=UHD");
+    }
+}
+
+@media (orientation: portrait) {
+    body::before {
+        background-image: url("https://bing.ee123.net/img/?date=random&size=1080x1920");
+    }
+}
+
+/* 四周压暗，中间留一点风景 */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -49;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 100% at 50% 40%, transparent 25%, rgba(4, 6, 12, .55) 75%),
+        linear-gradient(180deg, rgba(6, 9, 16, .55), rgba(4, 6, 12, .78));
+}
+
+html:root, html.dark:root {
+    --el-color-primary: #5FD3E8 !important;
+    --el-color-primary-light-3: #4AA5B7;
+    --el-color-primary-light-5: #3B808D;
+    --el-color-primary-light-7: #2A5B65;
+    --el-color-primary-light-8: #224951;
+    --el-color-primary-light-9: #1A363C;
+    --el-color-primary-dark-2: #8AE3F2;
+
+    --el-color-success: #56D3A0;
+    --el-color-success-light-9: #123329;
+    --el-color-warning: #E8BC5A;
+    --el-color-warning-light-9: #332B12;
+    --el-color-danger: #F0757F;
+    --el-color-danger-light-9: #33161A;
+    --el-color-error: #F0757F;
+    --el-color-info: #7E8899;
+    --el-color-info-light-9: #1A1E26;
+
+    --el-bg-color: rgba(13, 18, 28, .72);
+    --el-bg-color-page: #070A10;
+    --el-bg-color-overlay: rgba(17, 23, 35, .9);
+    --el-card-bg-color: rgba(13, 18, 28, .64);
+    --el-dialog-bg-color: rgba(17, 23, 35, .9);
+    --el-mask-color: rgba(3, 5, 9, .6);
+
+    --el-text-color-primary: #E8EFF7;
+    --el-text-color-regular: #B6C2D2;
+    --el-text-color-secondary: #8894A6;
+    --el-text-color-placeholder: #66717F;
+    --el-text-color-disabled: #48515D;
+
+    --el-border-color-dark: rgba(255, 255, 255, .26);
+    --el-border-color-darker: rgba(255, 255, 255, .34);
+    --el-border-color: rgba(255, 255, 255, .16);
+    --el-border-color-light: rgba(255, 255, 255, .12);
+    --el-border-color-lighter: rgba(255, 255, 255, .09);
+    --el-border-color-extra-light: rgba(255, 255, 255, .06);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .14);
+    --el-fill-color: rgba(255, 255, 255, .1);
+    --el-fill-color-light: rgba(255, 255, 255, .07);
+    --el-fill-color-lighter: rgba(255, 255, 255, .05);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .03);
+    --el-fill-color-blank: rgba(13, 18, 28, .64);
+
+    --el-border-radius-small: 8px;
+    --el-border-radius-base: 12px;
+}
+
+html .el-card,
+html .el-card.is-never-shadow,
+html .el-overlay-dialog .el-dialog,
+html .el-popper,
+html .el-select__popper,
+html .el-dropdown__popper {
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
+    border: 1px solid var(--el-border-color);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 14px 36px -22px rgba(0, 0, 0, .9);
+}
+
+html .el-card {
+    transition: transform .25s ease, border-color .25s ease;
+}
+
+html .el-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(95, 211, 232, .45);
+}
+
+html .el-input__wrapper,
+html .el-select__wrapper {
+    background-color: var(--el-fill-color-light);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+html .el-tag {
+    background-color: rgba(255, 255, 255, .07);
+    border: 1px solid currentColor;
+}
+
+html .el-table {
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+    --el-table-header-bg-color: rgba(255, 255, 255, .05);
+}
+
+#header {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.list-card-image {
+    border-radius: 10px !important;
+    box-shadow: 0 12px 26px -14px rgba(0, 0, 0, .9) !important;
+}
+
+.list-card-title {
+    text-shadow: 0 1px 8px rgba(0, 0, 0, .5);
+}
+
+.list-card-score {
+    color: var(--el-color-primary) !important;
+    text-shadow: 0 0 14px rgba(95, 211, 232, .5) !important;
+}
+
+#login-page #form {
+    padding: 30px 26px;
+    border-radius: 16px;
+    background: var(--el-card-bg-color);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
+    border: 1px solid var(--el-border-color);
+    box-shadow: 0 22px 50px -28px rgba(0, 0, 0, .95);
+}
+
+#login-page .title-h2 {
+    color: var(--el-color-primary);
+    letter-spacing: .2em;
+    text-shadow: 0 0 22px rgba(95, 211, 232, .5);
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(95, 211, 232, .45);
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ================= 风格强化：字体（DIN 冷峻 + 等宽数字）================= */
+html * {
+    font-family: Bahnschrift, "DIN Alternate", "HarmonyOS Sans SC", "Noto Sans SC",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-variant-numeric: tabular-nums;
+}
+
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .title-h2,
+html .list-week-title {
+    font-weight: 600;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 风格强化：按钮（实心暗块 + 左侧色条）================= */
+/* 取电影字幕条的形，左边一道主色，深色底不刺眼 */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    --el-button-bg-color: rgba(255, 255, 255, .07);
+    --el-button-border-color: rgba(255, 255, 255, .12);
+    --el-button-text-color: #D6DFEA;
+    --el-button-hover-bg-color: rgba(95, 211, 232, .16);
+    --el-button-hover-border-color: rgba(95, 211, 232, .5);
+    --el-button-hover-text-color: #EAF9FD;
+
+    position: relative;
+    overflow: hidden;
+    background-color: var(--el-button-bg-color);
+    border: 1px solid var(--el-button-border-color);
+    color: var(--el-button-text-color);
+    border-radius: 3px;
+    padding-left: 18px;
+    letter-spacing: .1em;
+    font-weight: 500;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+    border-color: var(--el-button-hover-border-color);
+    color: var(--el-button-hover-text-color);
+}
+
+/* 左侧色条，hover 加宽 */
+html .el-button::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--el-color-primary);
+    opacity: .75;
+    transition: width .2s ease, opacity .2s ease;
+}
+
+html .el-button:hover::after {
+    width: 5px;
+    opacity: 1;
+}
+
+html .el-button--primary {
+    background-color: var(--el-color-primary);
+    border-color: var(--el-color-primary);
+    color: #08222A;
+    font-weight: 600;
+}
+
+html .el-button--primary:hover {
+    background-color: #8AE3F2;
+    border-color: #8AE3F2;
+    color: #08222A;
+}
+
+html .el-button--primary::after {
+    background: #08222A;
+    opacity: .35;
+}
+
+html .el-button--danger {
+    --el-button-bg-color: rgba(240, 117, 127, .1);
+    --el-button-border-color: rgba(240, 117, 127, .4);
+    --el-button-text-color: #F0757F;
+    --el-button-hover-bg-color: #F0757F;
+    --el-button-hover-border-color: #F0757F;
+    --el-button-hover-text-color: #240A0D;
+}
+
+html .el-button--danger::after {
+    background: #F0757F;
+}
+
+/* 圆形图标按钮不带色条 */
+html .el-button.is-circle {
+    border-radius: 50%;
+    padding-left: 0;
+}
+
+html .el-button.is-circle::after {
+    display: none;
+}
