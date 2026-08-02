@@ -1,0 +1,822 @@
+/**
+ * 原神启动 · 白昼
+ * 正午的蒙德，天蓝得发白，草地一路铺到山脚
+ *
+ * 字体：汉仪文黑（装了就用真的），标题重体 + 宽字距
+ * 按钮：深色石板 + 金色描边与文字，hover 亮起一圈金光
+ * 背景：无限向前的小径 —— 天空 / 日月 / 远山 / 树线雾 / 地面，纯 CSS 五层
+ * 强制浅色：不跟随明暗切换
+ *
+ * 性能：整个场景只有「地面」一层在动，且只动 transform（合成器直接搬，
+ * 不重绘、不重排），没有 filter / backdrop-filter。核显也能跑满帧。
+ * 嫌费电就把下面的 --gi-run 改成 paused，场景会定格成一张静态画。
+ */
+
+html:root, html.dark:root {
+    /* ======== 旋钮 ======== */
+    --gi-run: running;      /* 改成 paused 可完全停下 */
+    --gi-speed: 5.6s;       /* 一个循环的时间，越小跑得越快 */
+    --gi-tilt: 75deg;       /* 地面倾角，越大越贴地 */
+    --gi-hz: 34vh;          /* 地平线离屏幕底部多高 */
+    --gi-depth: 150vh;      /* 地面进深，调大更远但更吃显存 */
+    --gi-tile: 120px;       /* 地面纹理的纵向周期，动画正好走一个周期 */
+
+    /* tan(75°) = 3.732，用它把地平线钉在 --gi-hz 上 */
+    --gi-persp: calc(var(--gi-hz) * 3.732);
+
+    /* ---- 界面：原神纸质面板 ---- */
+    --el-color-primary: #A07B3C !important;
+    --el-color-primary-light-3: #B99456;
+    --el-color-primary-light-5: #C9AC79;
+    --el-color-primary-light-7: #DCC8A4;
+    --el-color-primary-light-8: #E7D8BC;
+    --el-color-primary-light-9: #F2E8D6;
+    --el-color-primary-dark-2: #82632F;
+
+    --el-color-success: #5C7A4A;
+    --el-color-success-light-9: #E8EFDF;
+    --el-color-warning: #B5822C;
+    --el-color-warning-light-9: #F6EBD5;
+    --el-color-danger: #A8483C;
+    --el-color-danger-light-9: #F6E2DF;
+    --el-color-error: #A8483C;
+    --el-color-error-light-9: #F6E2DF;
+    --el-color-info: #7C8496;
+    --el-color-info-light-9: #ECEDF1;
+
+    --el-bg-color: #F3EDE1;
+    --el-bg-color-page: transparent;
+    --el-bg-color-overlay: #FBF7EE;
+    --el-card-bg-color: #F3EDE1;
+    --el-dialog-bg-color: #F6F1E6;
+    --el-mask-color: rgba(28, 26, 22, .45);
+
+    --el-text-color-primary: #3B4155;
+    --el-text-color-regular: #5A6076;
+    --el-text-color-secondary: #85899A;
+    --el-text-color-placeholder: #A6A99B;
+    --el-text-color-disabled: #BEBBAF;
+
+    --el-border-color-dark: #C6B999;
+    --el-border-color-darker: #B9A883;
+    --el-border-color: #D9CDB2;
+    --el-border-color-light: #E2D8C2;
+    --el-border-color-lighter: #EAE2D1;
+    --el-border-color-extra-light: #F0EADC;
+
+    --el-fill-color-dark: #E4DAC5;
+    --el-fill-color: #EBE3D2;
+    --el-fill-color-light: #F0EADB;
+    --el-fill-color-lighter: #F5F0E5;
+    --el-fill-color-extra-light: #F9F5EC;
+    --el-fill-color-blank: #F3EDE1;
+
+    /* 金：亮金用于按钮文字，深金用于浅底上的强调 */
+    --gi-gold: #DEBC60;
+    --gi-gold-soft: #FFD780;
+    --gi-gold-deep: #A07B3C;
+    --gi-gold-line: rgba(160, 123, 60, .38);
+    --gi-gold-faint: rgba(160, 123, 60, .14);
+
+    /* ---- 天色 ---- */
+    --gi-sky-1: #2E7FD1;
+    --gi-sky-2: #5FA8E8;
+    --gi-sky-3: #9FD1F2;
+    --gi-sky-4: #DDEEFB;
+
+    /* ---- 日月 ---- */
+    --gi-sun-x: 79%;
+    --gi-sun-y: 15%;
+    --gi-sun-r: 22px;
+    --gi-sun-core: rgba(255, 253, 240, .96);
+    --gi-sun-glow: rgba(255, 249, 205, .38);
+
+    /* ---- 云与星 ---- */
+    --gi-cloud-1: rgba(255, 255, 255, .72);
+    --gi-cloud-2: rgba(255, 255, 255, .44);
+    --gi-star-1: none;
+    --gi-star-2: none;
+
+    /* ---- 山与树 ---- */
+    --gi-mtn-far: #88A8C4;
+    --gi-mtn-near: #4E7288;
+    --gi-tree: #33553C;
+    --gi-tree-2: #284530;
+
+    /* ---- 地平线雾 ---- */
+    --gi-haze: rgba(221, 238, 251, .82);
+    --gi-haze-mid: rgba(206, 226, 214, .40);
+    /* 雾的最下一段要接住地面图层的远端边缘，所以用草色，接缝才看不出来 */
+    --gi-grass-fog: rgba(111, 160, 90, .92);
+
+    /* ---- 地面与小径 ---- */
+    --gi-grass: #6FA05A;
+    --gi-grass-2: rgba(255, 255, 220, .10);
+    --gi-grass-3: rgba(140, 186, 116, .40);
+    --gi-path: #CBB98F;
+    --gi-path-edge: #A89571;
+    --gi-path-worn: rgba(238, 226, 196, .32);
+    --gi-stone: rgba(250, 244, 226, .55);
+
+    --el-border-radius-small: 4px;
+    --el-border-radius-base: 8px;
+
+    --el-box-shadow: 0 12px 32px -12px rgba(12, 14, 24, .5);
+    --el-box-shadow-light: 0 8px 22px -12px rgba(12, 14, 24, .42);
+    --el-box-shadow-lighter: 0 6px 16px -10px rgba(12, 14, 24, .34);
+    --el-box-shadow-dark: 0 18px 44px -14px rgba(12, 14, 24, .58);
+
+    --gi-font: "HYWenHei 85W", "HYWenHei", "汉仪文黑", "HarmonyOS Sans SC",
+    "Source Han Sans SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    --gi-title: "HYWenHei 85W", "HYWenHei", "汉仪文黑", "Source Han Serif SC",
+    "Noto Serif SC", "Songti SC", "STSong", serif;
+
+    /* 按钮那块石板：浅色深色两套主题里都是它，这是原神 UI 的招牌 */
+    --gi-btn-bg: #393B44;
+    --gi-btn-bg-hover: #4C4F5A;
+    --gi-btn-text: #DEBC60;
+    --gi-btn-text-hover: #FFD780;
+}
+
+/* ================= 字体：汉仪文黑，标题走重体宽字距 ================= */
+html * {
+    font-family: var(--gi-font);
+    font-variant-numeric: tabular-nums;
+}
+
+html h1, html h2, html h3, html h4,
+html .el-dialog__title,
+html .el-collapse-item__header,
+html .el-tabs__item,
+html .list-week-title,
+html .title-h2 {
+    font-family: var(--gi-title);
+    font-weight: 700;
+    letter-spacing: .12em;
+}
+
+html .el-dialog__title {
+    color: var(--gi-gold-deep);
+    font-size: 1.06em;
+}
+
+html .el-input__inner,
+html .el-textarea__inner {
+    font-family: inherit;
+}
+
+/* ================= 背景一：天色 ================= */
+/* 页面本身只有天空，剩下四层都挂在 html / body 的伪元素上 */
+body {
+    background: linear-gradient(to bottom,
+    var(--gi-sky-1) 0%,
+    var(--gi-sky-2) 30%,
+    var(--gi-sky-3) 46%,
+    var(--gi-sky-4) calc(100% - var(--gi-hz)));
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: var(--el-text-color-primary);
+}
+
+/* ================= 背景二：日月 + 云 + 星（静止） ================= */
+html::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -49;
+    pointer-events: none;
+    background-image:
+        /* 云在日月前面，挡一下更有层次 */
+        radial-gradient(closest-side, var(--gi-cloud-2) 0 46%, transparent 100%),
+        radial-gradient(closest-side, var(--gi-cloud-1) 0 52%, transparent 100%),
+        radial-gradient(circle var(--gi-sun-r) at var(--gi-sun-x) var(--gi-sun-y),
+            var(--gi-sun-core) 0 58%, transparent 98%),
+        radial-gradient(circle calc(var(--gi-sun-r) * 7) at var(--gi-sun-x) var(--gi-sun-y),
+            var(--gi-sun-glow) 0, transparent 72%),
+        var(--gi-star-1),
+        var(--gi-star-2);
+    background-size:
+        680px 120px,
+        520px 150px,
+        auto, auto,
+        190px 170px,
+        260px 210px;
+    background-position:
+        -140px 9vh,
+        60px 19vh,
+        0 0, 0 0,
+        0 0, 0 0;
+    background-repeat:
+        repeat-x, repeat-x,
+        no-repeat, no-repeat,
+        repeat, repeat;
+}
+
+/* ================= 背景三：远山（静止） ================= */
+/* 一整块渐变，用 clip-path 切出山脊线；底部 mask 掉，让山脚化进雾里 */
+html::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--gi-hz) - 3vh);
+    height: 24vh;
+    z-index: -48;
+    pointer-events: none;
+    background: linear-gradient(to bottom, var(--gi-mtn-far), var(--gi-mtn-near));
+    clip-path: polygon(0 66%, 5% 44%, 10% 58%, 16% 26%, 22% 50%, 28% 34%, 34% 60%,
+    40% 20%, 46% 48%, 52% 30%, 58% 54%, 64% 24%, 70% 52%,
+    77% 33%, 83% 59%, 89% 38%, 95% 62%, 100% 46%, 100% 100%, 0 100%);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 74%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0 74%, transparent 100%);
+}
+
+/* ================= 背景四：地面 —— 无限向前的小径（唯一在动的一层） ================= */
+/* 只动 transform：合成器直接搬图层，不触发重绘。位移正好一个纹理周期，
+   循环点上像素完全重合，所以看不出接缝 */
+body::before {
+    content: "";
+    position: fixed;
+    left: -38%;
+    right: -38%;
+    bottom: 0;
+    height: var(--gi-depth);
+    z-index: -47;
+    pointer-events: none;
+    transform-origin: 50% 100%;
+    transform: perspective(var(--gi-persp)) rotateX(var(--gi-tilt)) translate3d(0, 0, 0);
+    will-change: transform;
+    animation: gi-road var(--gi-speed) linear infinite;
+    animation-play-state: var(--gi-run);
+    background-color: var(--gi-grass);
+    background-image:
+        /* 路中间被踩出来的浅色车辙 */
+        linear-gradient(90deg, transparent 48.2%, var(--gi-path-worn) 48.8%,
+            var(--gi-path-worn) 51.2%, transparent 51.8%),
+        /* 路两边的碎石，一格一颗 */
+        radial-gradient(circle 3px at 41.4% 34px, var(--gi-stone) 0 100%, transparent 0),
+        radial-gradient(circle 3px at 58.6% 92px, var(--gi-stone) 0 100%, transparent 0),
+        /* 小径本体：中间土色，两侧各留一段渐变当踩塌的路肩 */
+        linear-gradient(90deg, transparent 39.4%, var(--gi-path-edge) 42.4%,
+            var(--gi-path) 45.4%, var(--gi-path) 54.6%,
+            var(--gi-path-edge) 57.6%, transparent 60.6%),
+        /* 草地横纹：向前推进的速度感全靠它 */
+        repeating-linear-gradient(0deg, var(--gi-grass-2) 0 5px, transparent 5px 60px),
+        /* 草丛斑块，打散横纹的规整感 */
+        radial-gradient(circle 9px at 34px 42px, var(--gi-grass-3) 0 100%, transparent 0),
+        radial-gradient(circle 7px at 128px 88px, var(--gi-grass-3) 0 100%, transparent 0),
+        radial-gradient(circle 5px at 210px 16px, var(--gi-grass-3) 0 100%, transparent 0);
+    background-size:
+        100% var(--gi-tile),
+        100% var(--gi-tile),
+        100% var(--gi-tile),
+        100% var(--gi-tile),
+        100% var(--gi-tile),
+        196px var(--gi-tile),
+        238px var(--gi-tile),
+        304px var(--gi-tile);
+}
+
+@keyframes gi-road {
+    to {
+        transform: perspective(var(--gi-persp)) rotateX(var(--gi-tilt))
+        translate3d(0, var(--gi-tile), 0);
+    }
+}
+
+/* ================= 背景五：树线 + 地平线雾（静止，盖在地面前面） ================= */
+/* 雾这层压在地面之上，地面那块图层的远端边缘就藏在里面了 ——
+   也正因为有它，地面不用做得特别深，省一大块显存 */
+/* 这一条带子的几何是算出来的，不是试出来的：地面图层倾斜 75°、进深 150vh、
+   透视焦距钉在 34vh 上，它的远端边缘正好落在离屏幕底部 18.1vh 处 ——
+   也就是这条带子的 75% 位置。所以雾在 76% 那一站换成草色，接缝就被吃掉了 */
+body::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--gi-hz) - 22vh);
+    height: 24vh;
+    z-index: -46;
+    pointer-events: none;
+    background-image:
+        linear-gradient(to bottom,
+            transparent 0,
+            var(--gi-haze) 9%,
+            var(--gi-haze) 24%,
+            var(--gi-haze-mid) 52%,
+            var(--gi-grass-fog) 76%,
+            transparent 100%),
+        /* conic 切出来的针叶树剪影，两层错开当树线 */
+        conic-gradient(from 135deg at 50% 0, var(--gi-tree) 0 90deg, transparent 0),
+        conic-gradient(from 135deg at 50% 0, var(--gi-tree-2) 0 90deg, transparent 0);
+    background-size: 100% 100%, 40px 25px, 58px 35px;
+    background-position: 0 0, 0 calc(100% - 21vh), 20px calc(100% - 21vh);
+    background-repeat: no-repeat, repeat-x, repeat-x;
+}
+
+/* ================= 按钮：深色石板 + 金字金边 ================= */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    background-color: var(--gi-btn-bg);
+    border: 1px solid var(--gi-gold-line);
+    color: var(--gi-btn-text);
+    border-radius: 8px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+    transition: background-color .18s ease, border-color .18s ease,
+    color .18s ease, box-shadow .18s ease;
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--gi-btn-bg-hover);
+    border-color: var(--gi-gold);
+    color: var(--gi-btn-text-hover);
+    box-shadow: 0 0 0 1px rgba(222, 188, 96, .22),
+    0 6px 18px -8px rgba(222, 188, 96, .5),
+    inset 0 1px 0 rgba(255, 255, 255, .1);
+}
+
+html .el-button:active,
+html .el-button.is-text:active,
+html .el-button.is-text.is-has-bg:active {
+    background-color: #33353E;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, .38);
+}
+
+html .el-button:focus-visible {
+    outline: 2px solid var(--gi-gold);
+    outline-offset: 2px;
+}
+
+html .el-button.is-disabled,
+html .el-button.is-disabled:hover {
+    background-color: #4A4C55;
+    border-color: rgba(222, 188, 96, .16);
+    color: rgba(222, 188, 96, .4);
+    box-shadow: none;
+}
+
+/* 语义色不换底，只换字和边 —— 石板是这套 UI 的统一件 */
+html .el-button--primary {
+    background-image: linear-gradient(180deg, #4A4433, var(--gi-btn-bg));
+    border-color: var(--gi-gold);
+    color: #FFE9A8;
+}
+
+html .el-button--success {
+    border-color: rgba(134, 192, 140, .5);
+    color: #9BE0A8;
+}
+
+html .el-button--success:hover {
+    border-color: #86C08C;
+    color: #BDEFC6;
+    box-shadow: 0 6px 18px -8px rgba(134, 192, 140, .5);
+}
+
+html .el-button--warning {
+    border-color: rgba(224, 169, 78, .5);
+    color: #F0C177;
+}
+
+html .el-button--danger {
+    border-color: rgba(224, 121, 107, .5);
+    color: #F0A093;
+}
+
+html .el-button--danger:hover {
+    background-color: #4B3532;
+    border-color: #E0796B;
+    color: #FFC9BF;
+    box-shadow: 0 6px 18px -8px rgba(224, 121, 107, .55);
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+}
+
+/* ================= 输入框：圆角石槽，聚焦亮金边 ================= */
+html .el-input__wrapper,
+html .el-select__wrapper,
+html .el-textarea__inner {
+    background-color: var(--el-fill-color-light);
+    border: 1px solid var(--el-border-color);
+    border-radius: 8px;
+    box-shadow: none;
+    transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+html .el-input__wrapper:hover,
+html .el-select__wrapper:hover,
+html .el-textarea__inner:hover {
+    border-color: var(--el-border-color-darker);
+    box-shadow: none;
+}
+
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused,
+html .el-textarea__inner:focus {
+    border-color: var(--gi-gold);
+    box-shadow: 0 0 0 3px var(--gi-gold-faint);
+}
+
+html .el-input-number__decrease,
+html .el-input-number__increase {
+    background-color: var(--el-fill-color);
+    color: var(--gi-gold-deep);
+}
+
+/* ================= 卡片与弹窗：四角带金饰的面板 ================= */
+html .el-card,
+html .el-card.is-never-shadow {
+    background-color: var(--el-card-bg-color);
+    border: 1px solid var(--el-border-color);
+    border-radius: 10px;
+    box-shadow: var(--el-box-shadow-lighter);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+html .el-card:hover {
+    border-color: var(--gi-gold-line);
+    box-shadow: var(--el-box-shadow-light), 0 0 0 1px var(--gi-gold-faint);
+}
+
+html .el-overlay-dialog .el-dialog {
+    background-color: var(--el-dialog-bg-color);
+    border: 1px solid var(--gi-gold-line);
+    border-radius: 12px;
+    box-shadow: var(--el-box-shadow-dark);
+    position: relative;
+}
+
+/* 弹窗四角的金色角标：八条渐变拼出四个 L */
+html .el-overlay-dialog .el-dialog::before {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    pointer-events: none;
+    background-image:
+        linear-gradient(var(--gi-gold), var(--gi-gold)),
+        linear-gradient(var(--gi-gold), var(--gi-gold)),
+        linear-gradient(var(--gi-gold), var(--gi-gold)),
+        linear-gradient(var(--gi-gold), var(--gi-gold)),
+        linear-gradient(var(--gi-gold), var(--gi-gold)),
+        linear-gradient(var(--gi-gold), var(--gi-gold)),
+        linear-gradient(var(--gi-gold), var(--gi-gold)),
+        linear-gradient(var(--gi-gold), var(--gi-gold));
+    background-size:
+        16px 1px, 1px 16px,
+        16px 1px, 1px 16px,
+        16px 1px, 1px 16px,
+        16px 1px, 1px 16px;
+    background-position:
+        left top, left top,
+        right top, right top,
+        left bottom, left bottom,
+        right bottom, right bottom;
+    background-repeat: no-repeat;
+    opacity: .75;
+}
+
+html .el-dialog__header {
+    border-bottom: 1px solid var(--gi-gold-line);
+    margin-right: 0;
+    padding-bottom: 12px;
+}
+
+html .el-dialog__headerbtn .el-dialog__close {
+    color: var(--gi-gold-deep);
+}
+
+/* ================= 标签：金边小牌 + 菱形点 ================= */
+html .el-tag {
+    background-color: color-mix(in srgb, currentColor 11%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 42%, transparent);
+    border-radius: 3px;
+    letter-spacing: .04em;
+    font-weight: 500;
+}
+
+/* 原神 UI 里到处都是这个小菱形 */
+html .el-tag::before {
+    content: "";
+    flex: none;
+    width: 5px;
+    height: 5px;
+    margin-right: 5px;
+    background-color: currentColor;
+    transform: rotate(45deg);
+    opacity: .7;
+}
+
+html .el-badge__content {
+    border-radius: 3px;
+    border: none;
+    font-weight: 600;
+}
+
+/* ================= 其余组件 ================= */
+html .el-link {
+    color: var(--gi-gold-deep);
+    font-weight: 500;
+}
+
+html .el-link:hover {
+    color: var(--gi-gold);
+}
+
+html .el-switch {
+    --el-switch-on-color: var(--gi-gold-deep);
+    --el-switch-off-color: var(--el-border-color-dark);
+}
+
+html .el-checkbox,
+html .el-radio {
+    --el-checkbox-checked-bg-color: var(--gi-gold-deep);
+    --el-checkbox-checked-input-border-color: var(--gi-gold-deep);
+    --el-radio-input-border-color-hover: var(--gi-gold-deep);
+}
+
+html .el-collapse-item__header {
+    color: var(--el-text-color-primary);
+    border-bottom-color: var(--el-border-color-lighter);
+}
+
+html .el-collapse-item__header::before {
+    content: "";
+    flex: none;
+    width: 6px;
+    height: 6px;
+    margin-right: 9px;
+    background-color: var(--gi-gold-deep);
+    transform: rotate(45deg);
+}
+
+html .el-tabs__item.is-active {
+    color: var(--gi-gold-deep);
+}
+
+html .el-tabs__active-bar {
+    background-color: var(--gi-gold-deep);
+}
+
+html .el-table th.el-table__cell {
+    background-color: var(--el-fill-color-light);
+    color: var(--gi-gold-deep);
+    font-weight: 600;
+    letter-spacing: .06em;
+}
+
+html .el-progress-bar__inner {
+    background-image: linear-gradient(90deg, var(--gi-gold-deep), var(--gi-gold-soft));
+}
+
+html .el-alert {
+    border: 1px solid var(--gi-gold-line);
+    border-radius: 8px;
+}
+
+html .el-message {
+    border: 1px solid var(--gi-gold-line);
+    border-radius: 8px;
+}
+
+/* ================= 评分与封面 ================= */
+/* 这两处是 Vue scoped 样式（带 [data-v-]），权重压得住普通 class，必须 important */
+.list-card-score {
+    color: var(--gi-gold-deep) !important;
+    font-weight: 600;
+    letter-spacing: .04em;
+}
+
+.list-card-image {
+    border: 1px solid var(--gi-gold-line) !important;
+    border-radius: 6px !important;
+    transition: box-shadow .2s ease !important;
+}
+
+.list-card-image:hover {
+    box-shadow: 0 0 0 1px var(--gi-gold), 0 8px 22px -10px rgba(222, 188, 96, .6) !important;
+}
+
+/* 星期标题：金色菱形 + 金线，照原神那套分隔样式来 */
+html .list-week-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--gi-gold-deep);
+    font-size: 1.2em;
+}
+
+html .list-week-title::before {
+    content: "";
+    flex: none;
+    width: 8px;
+    height: 8px;
+    background-color: var(--gi-gold-deep);
+    transform: rotate(45deg);
+}
+
+html .list-week-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gi-gold-line), transparent);
+}
+
+/* ================= 登录页：原神启动器那张登录卡 ================= */
+/* 白卡片浮在风景上，四个时间点都用这一张 —— 启动器本来就是这样 */
+#login-page #form {
+    position: relative;
+    box-sizing: border-box;
+    max-width: none;
+    width: min(670px, 92vw);
+    padding: 46px clamp(24px, 6vw, 62px) 44px;
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 26px 64px rgba(14, 16, 28, .38);
+    color: #4A5366;
+}
+
+/* 右上角那个关掉的叉，纯装饰 */
+#login-page #form::after {
+    content: "\00d7";
+    position: absolute;
+    top: 12px;
+    right: 22px;
+    font-size: 34px;
+    line-height: 1;
+    color: #C0C3C6;
+    font-family: Arial, sans-serif;
+}
+
+#login-page svg,
+#login-page img {
+    width: 76px;
+    height: 76px;
+    color: var(--gi-gold);
+}
+
+#login-page .title-h2 {
+    color: var(--gi-gold);
+    font-size: 1.7em;
+    letter-spacing: .3em;
+    text-indent: .3em;
+    margin-bottom: 34px;
+    text-shadow: 0 1px 0 rgba(160, 123, 60, .25);
+}
+
+#login-page .el-form-item {
+    margin-bottom: 20px;
+}
+
+#login-page .el-input__wrapper {
+    height: 52px;
+    padding: 0 16px;
+    background-color: #F5F6F8;
+    border: 1px solid #E3E5EA;
+    border-radius: 10px;
+}
+
+#login-page .el-input__wrapper:hover {
+    border-color: #D6C79E;
+}
+
+#login-page .el-input__wrapper.is-focus {
+    border-color: var(--gi-gold);
+    box-shadow: 0 0 0 3px rgba(222, 188, 96, .18);
+}
+
+#login-page .el-input__inner {
+    font-size: 16px;
+    color: #222222;
+}
+
+#login-page .el-input__inner::placeholder {
+    color: #A9ACB4;
+}
+
+#login-page .el-input__icon {
+    color: #B3B6BE;
+}
+
+/* 一行放不下就换行：记住密码 / 忘记密码 一行，登录按钮独占一行 */
+#login-page .action {
+    flex-wrap: wrap;
+    row-gap: 24px;
+    margin-top: 6px;
+}
+
+/* 「忘记密码」是这里凭空加出来的一个 flex 项 —— 登录卡少了它就不像 */
+#login-page .action::before {
+    content: "\5fd8\8bb0\5bc6\7801";
+    order: 2;
+    font-size: 15px;
+    letter-spacing: 1px;
+    color: var(--gi-gold-deep);
+    cursor: default;
+}
+
+#login-page .el-checkbox {
+    order: 1;
+    --el-checkbox-text-color: #98999E;
+    --el-checkbox-checked-text-color: #98999E;
+    --el-checkbox-checked-bg-color: var(--gi-gold);
+    --el-checkbox-checked-input-border-color: var(--gi-gold);
+    --el-checkbox-input-border-color-hover: var(--gi-gold);
+    font-weight: 600;
+}
+
+#login-page .el-checkbox__inner {
+    border-radius: 999px;
+    background-color: #FFFFFF;
+    border-color: #D3D5DC;
+}
+
+/* 深色主题里 --el-fill-color-blank 是深的，不覆盖的话白卡上会出现一个黑点 */
+#login-page .el-checkbox.is-checked .el-checkbox__inner {
+    background-color: var(--gi-gold);
+    border-color: var(--gi-gold);
+}
+
+/* 通栏那颗大按钮 */
+#login-page .el-button,
+#login-page .el-button.is-text.is-has-bg {
+    order: 3;
+    flex: 0 0 100%;
+    height: 62px;
+    border: none;
+    border-radius: 12px;
+    background-color: #393B40;
+    color: var(--gi-gold);
+    box-shadow: none;
+}
+
+#login-page .el-button:hover,
+#login-page .el-button.is-text.is-has-bg:hover {
+    background-color: #4D4F53;
+    color: var(--gi-gold-soft);
+    box-shadow: 0 10px 26px -12px rgba(0, 0, 0, .55);
+}
+
+#login-page .el-button:active,
+#login-page .el-button.is-text.is-has-bg:active {
+    background-color: #33353A;
+}
+
+/* 把「登录」换成启动器上的「点击登录」，图标去掉 */
+#login-page .el-button .el-icon {
+    display: none;
+}
+
+#login-page .el-button span {
+    font-size: 0;
+}
+
+#login-page .el-button span::after {
+    content: "\70b9\51fb\767b\5f55";
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: 4px;
+}
+
+/* 页脚那两个链接压在风景上，给点描边才看得清 */
+body:has(#login-page) .footer .el-link {
+    color: rgba(255, 255, 255, .82);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+}
+
+body:has(#login-page) .footer .el-link:hover {
+    color: var(--gi-gold-soft);
+}
+
+/* ================= 滚动条 ================= */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--gi-gold-line);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gi-gold-deep);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ================= 系统开了「减少动态效果」就定格 ================= */
+@media (prefers-reduced-motion: reduce) {
+    body::before {
+        animation: none;
+    }
+}
