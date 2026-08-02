@@ -1245,7 +1245,10 @@
         }, 2200)
     }
 
-    /* ==================== 主题栏 ==================== */
+    /* ==================== 主题栏 ====================
+     * [文件名, 显示名, 明暗, 配套 JS（可选）]
+     * 第四项只有原神那款有 —— 它的三维背景是自定义 JS 干的，不是 CSS。
+     */
     const THEMES = [
         ['paper.css', '纸感极简 · Paper', 'auto'],
         ['neon.css', '午夜霓虹 · Neon', 'dark'],
@@ -1261,6 +1264,7 @@
         ['acg-glass.css', '二次元 · 玻璃', 'auto'],
         ['bing-mist.css', '必应4K · 晨雾', 'light'],
         ['bing-night.css', '必应4K · 夜航', 'dark'],
+        ['genshin-login.css', '原神启动 · 登录窗口', 'light', 'genshin-login.js'],
     ]
 
     const pick = $('#pick'), modeBtn = $('#mode'), modeNote = $('#modeNote')
@@ -1276,10 +1280,12 @@
     pick.value = current
     localStorage.setItem('ani-preview-theme', current)
 
-    /* ==================== 右上角三个复制按钮 ==================== */
+    /* ==================== 右上角的复制按钮 ==================== */
     /* 写死仓库地址：本地起服务预览时也该给出可用的公网地址，而不是 localhost */
-    const PAGES = 'https://zzzwannasleep.github.io/ani-rss-themes/themes/'
-    const JSDELIVR = 'https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/themes/'
+    const REPO_PAGES = 'https://zzzwannasleep.github.io/ani-rss-themes/'
+    const REPO_JSDELIVR = 'https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/'
+    const PAGES = REPO_PAGES + 'themes/'
+    const JSDELIVR = REPO_JSDELIVR + 'themes/'
     const importOf = base => '@import url("' + base + current + '");'
 
     /* clipboard API 只在 https / localhost 可用，file:// 打开时退回 execCommand */
@@ -1297,22 +1303,31 @@
         })
     }
 
-    function bindCopy(id, get, okText) {
+    /**
+     * okText 可以是函数，nextLabel 也是 —— 这两个口子是给「一个按钮两件事」用的：
+     * 复制成功后由 nextLabel() 翻到下一个档位，并返回按钮恢复后要显示的文字。
+     * 不传 nextLabel 就是原来的行为：1.6 秒后恢复成绑定时那个标签。
+     */
+    function bindCopy(id, get, okText, nextLabel) {
         const b = $(id)
         const label = b.textContent
         b.addEventListener('click', async () => {
             b.disabled = true
+            let ok = false
             try {
                 await copyText(await get())
+                ok = true
                 b.textContent = '✓ 已复制'
                 b.classList.add('done')
-                toast(okText)
+                toast(typeof okText === 'function' ? okText() : okText)
             } catch (e) {
                 b.textContent = '复制失败'
                 toast('复制失败，请手动选中', 'error')
             }
+            /* 失败就别翻档，用户下一次点的还是他本来想要的那个 */
+            const back = (ok && nextLabel) ? nextLabel() : label
             setTimeout(() => {
-                b.textContent = label
+                b.textContent = back
                 b.classList.remove('done')
                 b.disabled = false
             }, 1600)
@@ -1325,6 +1340,49 @@
         if (!r.ok) throw new Error(r.status)
         return r.text()
     }), '已复制 ' + meta[1] + ' 的 CSS 全文')
+
+    /* ---- 配套 JS 的按钮 ----
+     * 「链接」和「全文」两件事，挤两个按钮太占地方（这条栏在窄屏本来就要溢出），
+     * 所以合成一个轮着来的按钮：上面写的就是这一下会复制什么，复制完自动翻到另一个。
+     * 没有配套 JS 的主题直接把按钮摘掉，省得点了个空。
+     */
+    const jsFile = meta[3]
+    if (!jsFile) {
+        $('#copyJs').remove()
+    } else {
+        const jsBtn = $('#copyJs')
+        const JS_MODES = [
+            {
+                label: '复制 JS 链接',
+                title: 'import() 一行，粘到 自定义 → JS。走 jsDelivr，跟着仓库自动更新',
+                ok: '已复制 JS 链接 —— 粘到 自定义 → JS',
+                get: () => 'import("' + REPO_JSDELIVR + 'js/' + jsFile + '")',
+            },
+            {
+                label: '复制 JS 全文',
+                title: '把整份 JS 复制走，粘到 自定义 → JS。不再依赖本仓库',
+                ok: '已复制 ' + meta[1] + ' 的 JS 全文 —— 粘到 自定义 → JS',
+                get: () => fetch('js/' + jsFile).then(r => {
+                    if (!r.ok) throw new Error(r.status)
+                    return r.text()
+                }),
+            },
+        ]
+
+        let i = 0
+        const paint = () => {
+            jsBtn.title = JS_MODES[i].title
+            return JS_MODES[i].label
+        }
+        jsBtn.textContent = paint()
+
+        bindCopy('#copyJs',
+            () => JS_MODES[i].get(),
+            () => JS_MODES[i].ok,
+            () => { i = 1 - i; return paint() })
+
+        $('#pasteHint').textContent = '这款要填两个框：CSS 一份、JS 一份'
+    }
 
     function setMode(dark) {
         document.documentElement.classList.toggle('dark', dark)

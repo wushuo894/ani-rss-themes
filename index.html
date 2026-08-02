@@ -79,6 +79,18 @@
             background: #1e232c;
         }
 
+        /* 配套 JS 的按钮走金色，跟旁边三个复制 CSS 的区分开 */
+        .pv-bar button.pv-js {
+            border-color: #5a4c26;
+            background: #221d10;
+            color: #DEBC60;
+        }
+
+        .pv-bar button.pv-js:hover:not(:disabled) {
+            border-color: #7f6b34;
+            background: #2d2615;
+        }
+
         .pv-bar button.done {
             border-color: #2f7d54;
             background: #14301f;
@@ -231,10 +243,12 @@
     <button id="loginToggle" type="button">看登录页</button>
     <span class="pv-note pv-hint">顶部按钮可打开各弹窗</span>
     <span class="pv-grow"></span>
-    <span class="pv-note pv-hint">复制到 设置 → 基础设置 → 页面设置 → 自定义 → CSS</span>
+    <span class="pv-note pv-hint" id="pasteHint">复制到 设置 → 基础设置 → 页面设置 → 自定义 → CSS</span>
     <button id="copyPages" type="button" title="@import GitHub Pages">复制链接 · GitHub</button>
     <button id="copyJsd" type="button" title="@import jsDelivr（国内更快）">复制链接 · jsDelivr</button>
     <button id="copyCss" type="button" title="把整份 CSS 复制走，离线可用">复制 CSS 全文</button>
+    <!-- 只有配了 JS 的主题才留着，文字和 title 由 preview.js 按当前档位写 -->
+    <button id="copyJs" class="pv-js" type="button"></button>
 </div>
 
 <div id="app" style="max-width: 1600px;">
