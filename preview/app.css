@@ -1,0 +1,203 @@
+/**
+ * 预览页布局层
+ *
+ * 对齐 ani-rss 各组件 scoped 样式的尺寸与排布，让预览的排版和真实界面一致。
+ * ani-rss 本体为 GPL-2.0，这里没有复制其代码，按同样的布局数值重写。
+ * 真实实现以上游为准：https://github.com/wushuo894/ani-rss
+ *
+ * 主题文件在本文件之后加载，所以主题可以覆盖这里的一切。
+ */
+
+html, body, #app {
+    width: 100%;
+    height: 100%;
+}
+
+#app {
+    margin: 0 auto;
+}
+
+/* ---------- 主容器（对应 home/App.vue） ---------- */
+.content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.add-button {
+    display: flex;
+    justify-content: flex-end;
+    margin: 10px;
+}
+
+.spacer {
+    width: 8px;
+    height: 8px;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (min-width: 451px) {
+    #header {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+}
+
+@media (min-width: 1000px) {
+    .auto-flex {
+        display: flex;
+    }
+}
+
+/* ---------- 列表（对应 home/List.vue） ---------- */
+.list-container {
+    height: 100%;
+    overflow: hidden;
+}
+
+.list-content {
+    margin: 0 10px;
+}
+
+.list-week-title {
+    margin: 16px 0 8px 4px;
+}
+
+.grid-container {
+    display: grid;
+    grid-gap: 8px;
+    grid-template-columns: repeat(var(--ani-grid-columns), 1fr);
+    width: 100%;
+}
+
+.list-bottom-spacer {
+    height: 8px;
+}
+
+/* ---------- 订阅卡片（对应 home/AniCard.vue） ---------- */
+.list-card-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.list-card-image-container {
+    height: 100%;
+}
+
+.list-card-image {
+    width: 92px;
+    height: 130px;
+    border: 1px solid var(--el-border-color-light);
+    border-radius: var(--el-border-radius-base);
+    cursor: pointer;
+    object-fit: cover;
+}
+
+.list-card-info {
+    position: relative;
+    flex-grow: 1;
+}
+
+.list-card-info-inner {
+    margin-left: 8px;
+}
+
+.list-card-title {
+    width: 200px;
+    line-height: 1.6;
+    letter-spacing: .0125em;
+    font-weight: 500;
+    font-size: .97em;
+    cursor: pointer;
+    color: var(--el-text-color-primary);
+}
+
+.list-card-score-container {
+    margin-bottom: 8px;
+}
+
+.list-card-score {
+    color: #E800A4;
+    cursor: pointer;
+}
+
+.list-card-tags {
+    width: 180px;
+    display: grid;
+    grid-gap: 4px;
+}
+
+.gtc3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.gtc2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.list-card-subgroup {
+    max-width: 60px;
+    color: var(--el-color-info);
+}
+
+.list-card-actions {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.list-card-spacer {
+    height: 5px;
+}
+
+/* ---------- 登录页（对应 Login.vue） ---------- */
+#login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+#form {
+    max-width: 200px;
+}
+
+.title-h2 {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* ---------- 日志弹窗（对应 home/Logs.vue） ---------- */
+.logs-dialog .content {
+    color: #d8dee9;
+    background-color: #2e3440;
+    border-radius: var(--el-border-radius-base);
+    margin-top: 4px;
+    padding: 4px;
+}
+
+.full-width {
+    width: 100%;
+}

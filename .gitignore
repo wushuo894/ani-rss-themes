@@ -4,3 +4,7 @@ desktop.ini
 *.local
 .idea/
 .vscode/
+
+# 本地保存的真实页面存档：含个人订阅数据与封面图，不得进版本控制
+ANI-RSS.html
+ANI-RSS_files/

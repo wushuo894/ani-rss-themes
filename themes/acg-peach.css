@@ -283,3 +283,9 @@ html .el-button.is-circle {
     padding-left: 0;
     padding-right: 0;
 }
+
+/* 卡片右侧的图标按钮：保持紧凑，否则会把字幕组标签挤到按钮底下 */
+html .list-card-actions .el-button {
+    padding-left: 8px;
+    padding-right: 8px;
+}

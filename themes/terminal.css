@@ -304,3 +304,15 @@ html .logs-dialog {
         animation: none;
     }
 }
+
+/* 卡片右侧的图标按钮：保持紧凑，否则会把字幕组标签挤到按钮底下 */
+html .list-card-actions .el-button {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+/* 图标按钮不加方括号，纯图标加了会撑宽 */
+html .list-card-actions .el-button::before,
+html .list-card-actions .el-button::after {
+    content: none;
+}

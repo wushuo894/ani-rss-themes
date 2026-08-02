@@ -1,0 +1,32 @@
+# preview/ 目录说明
+
+这个目录只服务于 [预览页](../index.html)，和主题本身无关。装主题不需要它。
+
+## element-plus.css
+
+Element Plus 2.x 的构建产物，**MIT License**，版权归 Element Plus 作者所有。
+
+- 上游：https://github.com/element-plus/element-plus
+- 许可证：https://github.com/element-plus/element-plus/blob/dev/LICENSE
+
+放在这里是为了让预览页离线可用、且不依赖任何 CDN —— 预览的意义就是「看到什么样，装上去就是什么样」，所以组件样式必须和 ani-rss 实际用的那份一致。文件是自包含的（内部只有 data URI，没有外部字体或图片请求）。
+
+## app.css
+
+预览页用的布局层，对齐 ani-rss 各组件的 scoped 样式（`.list-card-*`、`.grid-container` 等）的尺寸与排布。
+
+ani-rss 本体是 **GPL-2.0**，所以这里没有复制它的代码，只是按同样的布局数值重写了一份，让预览的排版和真实界面对得上。真实实现以上游为准：
+
+- https://github.com/wushuo894/ani-rss
+
+## ani-rss 自己的那层样式
+
+预览页从 jsDelivr 直接热链上游仓库里的 `ani-rss-ui/src/style.css`：
+
+```
+https://cdn.jsdelivr.net/gh/wushuo894/ani-rss@master/ani-rss-ui/src/style.css
+```
+
+不落地到本仓库，一是避免把 GPL-2.0 的代码混进 MIT 仓库，二是 ani-rss 更新圆角、字体栈之类的东西时预览会自动跟上。
+
+这一条挂了预览也不会崩，只是圆角和字体栈回到 Element Plus 默认值。
