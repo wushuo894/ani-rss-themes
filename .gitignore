@@ -8,3 +8,6 @@ desktop.ini
 # 本地保存的真实页面存档：含个人订阅数据与封面图，不得进版本控制
 ANI-RSS.html
 ANI-RSS_files/
+
+# 上游参考源码，含米哈游游戏资产与 node_modules，不得进版本控制
+genshin-replica-main/
