@@ -193,24 +193,38 @@ html .el-button:hover::after {
     transform: translateX(130%);
 }
 
-html .el-button--primary {
+/* ani-rss 的按钮带 is-text is-has-bg，Element Plus 给这个组合把 background-color
+   写死成 --el-fill-color-light 了，走不到 --el-button-bg-color 这条路。所以下面
+   几处要把底色再显式写一遍，光设变量喂不进去。 */
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     --el-button-bg-color: rgba(0, 229, 255, .16);
     --el-button-text-color: #062028;
     --el-button-border-color: #00E5FF;
     --el-button-hover-bg-color: #00E5FF;
     --el-button-hover-text-color: #04161C;
+    background-color: var(--el-button-bg-color);
 }
 
-html .el-button--danger {
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
+}
+
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     --el-button-bg-color: rgba(255, 61, 113, .1);
     --el-button-border-color: rgba(255, 61, 113, .55);
     --el-button-text-color: #FF8FB0;
     --el-button-hover-bg-color: #FF3D71;
     --el-button-hover-border-color: #FF3D71;
     --el-button-hover-text-color: #26060F;
+    background-color: var(--el-button-bg-color);
 }
 
-html .el-button--danger:hover {
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--el-button-hover-bg-color);
     box-shadow: 0 0 22px -6px rgba(255, 61, 113, .85);
 }
 

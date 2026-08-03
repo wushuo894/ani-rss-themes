@@ -226,7 +226,9 @@ html .el-button:active {
 
 /* 主按钮：直接就是红纸 */
 html .el-button--primary,
-html .el-button--danger {
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg,
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     background-color: var(--el-color-primary);
     border-color: var(--el-color-primary);
     border-top-color: var(--el-color-primary-dark-2);
@@ -234,30 +236,36 @@ html .el-button--danger {
 }
 
 html .el-button--primary:hover,
-html .el-button--danger:hover {
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover,
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: var(--el-color-primary-dark-2);
     border-color: var(--el-color-primary-dark-2);
     color: #FFFFFF;
 }
 
-html .el-button--success {
+html .el-button--success,
+html .el-button--success.is-text:not(.is-disabled).is-has-bg {
     border-top-color: var(--el-color-success);
     color: var(--el-color-success);
 }
 
-html .el-button--success:hover {
+html .el-button--success:hover,
+html .el-button--success.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: var(--el-color-success);
     border-color: var(--el-color-success);
     border-top-color: var(--el-color-success);
     color: #FFFFFF;
 }
 
-html .el-button--warning {
+html .el-button--warning,
+html .el-button--warning.is-text:not(.is-disabled).is-has-bg {
     border-top-color: var(--el-color-warning);
     color: var(--el-color-warning);
 }
 
-html .el-button--warning:hover {
+html .el-button--warning:hover,
+html .el-button--warning.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: var(--el-color-warning);
     border-color: var(--el-color-warning);
     border-top-color: var(--el-color-warning);

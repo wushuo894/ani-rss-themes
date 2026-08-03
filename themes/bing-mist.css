@@ -262,25 +262,29 @@ html .el-button:hover::after {
     transform: scaleX(1);
 }
 
-html .el-button--primary {
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     background-color: var(--el-color-primary);
     border-color: var(--el-color-primary);
     color: #FFFFFF;
 }
 
-html .el-button--primary:hover {
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: var(--el-color-primary-dark-2);
     border-color: var(--el-color-primary-dark-2);
     color: #FFFFFF;
 }
 
-html .el-button--danger {
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     background-color: rgba(207, 90, 87, .12);
     border-color: rgba(207, 90, 87, .45);
     color: #CF5A57;
 }
 
-html .el-button--danger:hover {
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: #CF5A57;
     border-color: #CF5A57;
     color: #FFFFFF;

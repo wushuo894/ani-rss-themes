@@ -256,20 +256,23 @@ html .el-button.is-text.is-has-bg:hover {
     box-shadow: 0 0 0 1px rgba(155, 140, 255, .35), 0 0 26px -4px var(--ani-glow);
 }
 
-html .el-button--primary {
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     background-color: rgba(155, 140, 255, .9);
     border-color: rgba(155, 140, 255, .9);
     color: #14102A;
     font-weight: 600;
 }
 
-html .el-button--primary:hover {
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: #B7ACFF;
     border-color: #B7ACFF;
     color: #14102A;
 }
 
-html .el-button--danger {
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     --el-button-border-color: rgba(255, 107, 157, .45);
     --el-button-text-color: #FF9DBE;
     --el-button-hover-bg-color: #FF6B9D;

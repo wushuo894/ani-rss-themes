@@ -253,26 +253,30 @@ html .el-button:active {
 }
 
 /* 主/危险按钮：蜜桃渐变 + 白字 */
-html .el-button--primary {
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     background: linear-gradient(135deg, #FF9EB4 0%, #F2698F 55%, #E8607F 100%);
     border-color: transparent;
     color: #FFFFFF;
     box-shadow: 0 8px 18px -9px var(--el-color-primary);
 }
 
-html .el-button--primary:hover {
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover {
     background: linear-gradient(135deg, #FF9EB4 0%, #F2698F 55%, #E8607F 100%);
     color: #FFFFFF;
     filter: brightness(1.06);
 }
 
-html .el-button--danger {
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     background: linear-gradient(135deg, #F08292 0%, #E45C6E 100%);
     border-color: transparent;
     color: #FFFFFF;
 }
 
-html .el-button--danger:hover {
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
     background: linear-gradient(135deg, #F08292 0%, #E45C6E 100%);
     color: #FFFFFF;
     filter: brightness(1.06);

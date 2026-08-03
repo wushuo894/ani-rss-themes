@@ -239,7 +239,9 @@ html .el-button:focus-visible {
 
 /* 主 / 成功：GitHub 的绿色实心按钮 */
 html .el-button--primary,
-html .el-button--success {
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg,
+html .el-button--success,
+html .el-button--success.is-text:not(.is-disabled).is-has-bg {
     background-color: var(--ani-primary-bg);
     border-color: var(--ani-primary-border);
     color: #FFFFFF;
@@ -247,32 +249,38 @@ html .el-button--success {
 }
 
 html .el-button--primary:hover,
-html .el-button--success:hover {
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover,
+html .el-button--success:hover,
+html .el-button--success.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: var(--ani-primary-hover);
     border-color: var(--ani-primary-border);
     color: #FFFFFF;
 }
 
 /* 危险：平时只是红字，hover 才整块变红 —— GitHub btn-danger */
-html .el-button--danger {
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     background-color: var(--ani-btn-bg);
     border-color: var(--ani-btn-border);
     color: var(--el-color-danger);
 }
 
-html .el-button--danger:hover {
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: var(--el-color-danger);
     border-color: rgba(31, 35, 40, .15);
     color: #FFFFFF;
 }
 
-html .el-button--warning {
+html .el-button--warning,
+html .el-button--warning.is-text:not(.is-disabled).is-has-bg {
     background-color: var(--ani-btn-bg);
     border-color: var(--ani-btn-border);
     color: var(--el-color-warning);
 }
 
-html .el-button--warning:hover {
+html .el-button--warning:hover,
+html .el-button--warning.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: var(--el-color-warning);
     border-color: rgba(31, 35, 40, .15);
     color: #FFFFFF;

@@ -208,7 +208,8 @@ html .el-button.is-text.is-has-bg:hover {
 }
 
 /* 类型色各自成套，hover 填充后一律配白字，不存在看不见的按钮 */
-html .el-button--primary {
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     --el-button-border-color: var(--el-color-primary);
     --el-button-text-color: var(--el-color-primary);
     --el-button-hover-bg-color: var(--el-color-primary);
@@ -216,7 +217,8 @@ html .el-button--primary {
     --el-button-hover-text-color: #FFFFFF;
 }
 
-html .el-button--danger {
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     --el-button-border-color: var(--el-color-danger);
     --el-button-text-color: var(--el-color-danger);
     --el-button-hover-bg-color: var(--el-color-danger);
@@ -224,7 +226,8 @@ html .el-button--danger {
     --el-button-hover-text-color: #FFFFFF;
 }
 
-html .el-button--success {
+html .el-button--success,
+html .el-button--success.is-text:not(.is-disabled).is-has-bg {
     --el-button-border-color: var(--el-color-success);
     --el-button-text-color: var(--el-color-success);
     --el-button-hover-bg-color: var(--el-color-success);

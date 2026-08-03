@@ -300,20 +300,23 @@ html .el-button:hover::after {
 }
 
 /* 主按钮是页面上唯一的实心块，白字 */
-html .el-button--primary {
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     background-color: var(--el-color-primary);
     border-color: var(--el-color-primary);
     color: #FFFFFF;
     box-shadow: 0 8px 20px -10px var(--el-color-primary);
 }
 
-html .el-button--primary:hover {
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: var(--el-color-primary-dark-2);
     border-color: var(--el-color-primary-dark-2);
     color: #FFFFFF;
 }
 
-html .el-button--danger:hover {
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
     color: #FFFFFF;
 }
 

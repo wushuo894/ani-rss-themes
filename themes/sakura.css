@@ -201,33 +201,38 @@ html .el-button.is-text:active {
 }
 
 /* 主按钮 / 危险按钮：渐变填充 + 白字，对比度拉满 */
-html .el-button--primary {
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     background: var(--ani-grad);
     border-color: transparent;
     color: #FFFFFF;
     box-shadow: 0 8px 16px -8px var(--el-color-primary);
 }
 
-html .el-button--primary:hover {
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover {
     background: var(--ani-grad);
     color: #FFFFFF;
     filter: brightness(1.06);
     box-shadow: 0 12px 22px -10px var(--el-color-primary);
 }
 
-html .el-button--danger {
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     background: linear-gradient(135deg, #F58A97 0%, #E8697A 100%);
     border-color: transparent;
     color: #FFFFFF;
 }
 
-html .el-button--danger:hover {
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
     background: linear-gradient(135deg, #F58A97 0%, #E8697A 100%);
     color: #FFFFFF;
     filter: brightness(1.06);
 }
 
-html .el-button--success {
+html .el-button--success,
+html .el-button--success.is-text:not(.is-disabled).is-has-bg {
     background: linear-gradient(135deg, #86CFAF 0%, #6FBF9B 100%);
     border-color: transparent;
     color: #FFFFFF;

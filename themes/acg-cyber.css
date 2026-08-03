@@ -133,7 +133,8 @@ html .el-card:hover {
     box-shadow: 0 0 0 1px rgba(255, 61, 216, .35), 0 0 34px -12px rgba(255, 61, 216, .7);
 }
 
-html .el-button--primary {
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     box-shadow: 0 0 20px -6px rgba(255, 61, 216, .75);
 }
 
@@ -289,19 +290,22 @@ html .el-button:active {
     transform: translateX(1px);
 }
 
-html .el-button--primary {
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
     background-color: var(--ani-magenta);
     border-color: var(--ani-magenta);
     color: #1A0316;
 }
 
-html .el-button--primary:hover {
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover {
     background-color: #FF74E4;
     border-color: #FF74E4;
     color: #1A0316;
 }
 
-html .el-button--danger {
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     --el-button-bg-color: rgba(255, 71, 87, .1);
     --el-button-border-color: rgba(255, 71, 87, .5);
     --el-button-text-color: #FF8892;

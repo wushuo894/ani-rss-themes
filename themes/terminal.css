@@ -187,7 +187,8 @@ html .el-button:not(.is-circle):not(.is-loading)::after {
     opacity: .65;
 }
 
-html .el-button--danger {
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
     --el-button-border-color: rgba(255, 92, 92, .5);
     --el-button-text-color: #FF5C5C;
     --el-button-hover-bg-color: #FF5C5C;
@@ -195,11 +196,13 @@ html .el-button--danger {
     --el-button-hover-text-color: #180404;
 }
 
-html .el-button--danger:hover {
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
     box-shadow: 0 0 18px -6px #FF5C5C;
 }
 
-html .el-button--warning {
+html .el-button--warning,
+html .el-button--warning.is-text:not(.is-disabled).is-has-bg {
     --el-button-border-color: rgba(224, 192, 56, .5);
     --el-button-text-color: #E0C038;
     --el-button-hover-bg-color: #E0C038;
