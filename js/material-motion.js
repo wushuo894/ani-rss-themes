@@ -61,7 +61,7 @@
      * 从落点扩散的 M3 ripple。
      *
      * 半径取「落点到四角的最远距离」，这样无论点在哪都能铺满整个控件；
-     * 元素本身加 md-ripple-host（position:relative + overflow:hidden）来裁形状，
+     * 元素本身加 md-ripple-host（overflow:hidden）来裁形状，
      * 圆角是 border-radius: inherit 拿到的，所以胶囊按钮上不会露出方角。
      */
     function ripple(e) {
@@ -69,6 +69,12 @@
         if (!host || host.classList.contains('is-disabled')) return
 
         host.classList.add('md-ripple-host')
+
+        // 涟漪那个 span 是 absolute 的，需要宿主是定位元素才不会飞走。
+        // 但只能给本来就 static 的补 —— 弹窗关闭 X 是 absolute 挂在弹窗角上的，
+        // 一旦被改成 relative 就会掉回文档流、跳到标题「设置」后面，
+        // 而且是在 pointerdown 的瞬间跳，鼠标底下就空了，那一下点击直接丢失。
+        if (getComputedStyle(host).position === 'static') host.classList.add('md-ripple-anchor')
 
         const box = host.getBoundingClientRect()
         const x = e.clientX - box.left

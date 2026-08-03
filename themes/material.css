@@ -495,9 +495,17 @@ html .el-select__caret {
     color: var(--md-on-surface-variant);
 }
 
-/* 数字调节框两侧的加减：M3 icon button —— 圆的、透明底、hover 才浮出一层 */
-html .el-input-number__increase,
-html .el-input-number__decrease {
+/* 数字调节框两侧的加减：M3 icon button —— 圆的、透明底、hover 才浮出一层
+ *
+ * 选择器要带上 `> span[role="button"]`，不是我想显摆，是不得不：
+ * ani-rss 自己的 style.css 里有
+ *     .el-input-number > span[role="button"]:nth-child(1) { background-color; border-radius }
+ * 权重 0-3-1，把主题里常规写法 `html .el-input-number__increase`（0-1-1）压得死死的。
+ * 结果就是圆角、透明底全被打回去，加减键在输入框两头留下两个不透明的方角块，
+ * 鼠标一放格外扎眼 —— 「外面做了圆角、里面还是方的」说的就是这处。
+ * 下面这个写法是 0-3-2，比它高一档，稳赢。 */
+html .el-input-number > span[role="button"].el-input-number__increase,
+html .el-input-number > span[role="button"].el-input-number__decrease {
     top: 4px;
     bottom: 4px;
     width: 32px;
@@ -509,19 +517,26 @@ html .el-input-number__decrease {
     color var(--md-dur-short) var(--md-ease-standard);
 }
 
-html .el-input-number__decrease {
+html .el-input-number > span[role="button"].el-input-number__decrease {
     left: 4px;
 }
 
-html .el-input-number__increase {
+html .el-input-number > span[role="button"].el-input-number__increase {
     right: 4px;
 }
 
-html .el-input-number__increase:hover,
-html .el-input-number__decrease:hover {
+html .el-input-number > span[role="button"].el-input-number__increase:hover,
+html .el-input-number > span[role="button"].el-input-number__decrease:hover {
     background-color: color-mix(in srgb,
         var(--md-on-surface) var(--md-state-hover), transparent);
     color: var(--md-primary);
+}
+
+/* 禁用态别再留一块灰底方块，只把图标压暗 */
+html .el-input-number > span[role="button"].el-input-number__increase.is-disabled,
+html .el-input-number > span[role="button"].el-input-number__decrease.is-disabled {
+    background: transparent;
+    color: color-mix(in srgb, var(--md-on-surface) 38%, transparent);
 }
 
 /* EP 在 hover 加减号时给输入框描一圈 1px 主色边，那是它那套「带框输入框」的画法，
@@ -538,8 +553,13 @@ html .el-input-number .el-input__inner {
 
 /* ================= 卡片：M3 filled card ================= */
 /* filled card 平时没有阴影，靠 surface-container 分层；hover 才抬到 elevation 1 */
+/* `html.dark .el-card` 这条不是多余的：ani-rss 的 style.css 在 html.dark 里嵌了
+   `.el-card { border: 1px solid; box-shadow: none }`，展开后 0-2-1，
+   压得过 `html .el-card`（0-1-1）—— 不写这条，深色下 M3 的 filled card 会平白多一圈边。
+   这条同为 0-2-1，靠加载顺序赢（主题 CSS 永远排在最后）。 */
 html .el-card,
-html .el-card.is-never-shadow {
+html .el-card.is-never-shadow,
+html.dark .el-card {
     background-color: var(--md-surface-container-low);
     border: none;
     border-radius: var(--md-shape-m);
@@ -617,14 +637,29 @@ html .el-popper__arrow::before {
     border: none !important;
 }
 
-html .el-select-dropdown__item.is-selected {
+/* 下拉项也得带上 .el-select__popper 这一层：ani-rss 的 style.css 是嵌套写的，
+   展开后是 `.el-select__popper .el-select-dropdown__item:hover`（0-3-0），
+   比 `html .el-select-dropdown__item:hover`（0-2-1）高，M3 的状态层会被它顶掉。
+   EP 给选中项同时挂 is-selected 和 selected 两个类，上游只吃后者，这里两个都接。 */
+html .el-select-dropdown__item.is-selected,
+html .el-select-dropdown__item.selected,
+html .el-select__popper .el-select-dropdown__item.is-selected,
+html .el-select__popper .el-select-dropdown__item.selected {
     background-color: var(--md-secondary-container);
     color: var(--md-on-secondary-container);
 }
 
-html .el-select-dropdown__item:hover {
+html .el-select-dropdown__item:hover,
+html .el-select__popper .el-select-dropdown__item:hover {
     background-color: color-mix(in srgb,
         var(--md-on-surface) var(--md-state-hover), transparent);
+}
+
+/* 下拉菜单同理：`.el-dropdown__popper .el-dropdown-menu__item:hover` 也是 0-3-0 */
+html .el-dropdown__popper .el-dropdown-menu__item:hover {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), transparent);
+    color: var(--md-on-surface);
 }
 
 /* ================= 标签：M3 assist / filter chip ================= */
@@ -1067,9 +1102,16 @@ html.md-motion .el-button::after {
     display: none;
 }
 
+/* 涟漪要被宿主的形状裁住（胶囊按钮上不能露方角），所以宿主一律 overflow: hidden。
+   但 position 不能一刀切成 relative —— 弹窗右上角那个关闭 X 是 position: absolute
+   定位在弹窗角上的，改成 relative 会让它掉回文档流、跑到标题后面去。
+   所以定位基准单独拆一个类，由 JS 判断「本来就是 static 才补」。 */
 html.md-motion .md-ripple-host {
-    position: relative;
     overflow: hidden;
+}
+
+html.md-motion .md-ripple-anchor {
+    position: relative;
 }
 
 /* JS 按指针坐标插一个 span，从落点扩散 —— M3 ripple 的真身 */

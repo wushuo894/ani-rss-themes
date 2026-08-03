@@ -11,9 +11,17 @@
  *   CSS + JS  → 增强版（按指针坐标的真涟漪、顶栏滚动升起、卡片错峰入场、
  *                        从主题色现算整套 M3 配色）
  *
- * ponytail: 两条 @import 是故意的。相对那条给预览页和自建服务用（离线也成立），
- * 绝对那条给「复制 CSS 全文」直接粘进 ani-rss 的场合用（那里没有 base URL，
- * 相对路径会 404 且静默失败）。装成在线引用时两条指向同一个地址，只请求一次。
+ * ⚠ 只准有这一条 @import，而且必须是相对路径。
+ *
+ * 这里原先还并排写了一条写死 jsDelivr 绝对地址的 @import，理由是「复制 CSS 全文
+ * 粘进 ani-rss 时没有 base URL」。那是个会自伤的设计：两条都会加载，绝对那条排在
+ * 后面，等价权重下后来者赢 —— 于是 CDN 上缓存的旧版本会整个盖住刚推上去的新版本，
+ * 改什么都不生效，而且看着像「改错了」。@main 在 jsDelivr 上能缓存很久，这个坑
+ * 会一直踩。相对路径无论从预览页、GitHub Pages 还是 jsDelivr 引，都会解析到同源
+ * 的那一份，永远只有一份，不会打架。
+ *
+ * 「复制 CSS 全文」那条路由预览页负责：它会把 @import 就地展开成实际内容再放进
+ * 剪贴板（见 preview/preview.js 的 inlineImports），所以粘出来是完整的一份 CSS，
+ * 不依赖任何 base URL。
  */
 @import url("material.css");
-@import url("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/themes/material.css");

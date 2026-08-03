@@ -247,8 +247,11 @@
         (footer ? '<footer class="el-dialog__footer">' + footer + '</footer>' : '') +
         '</div></div></div>'
 
-    const okCancel = btn('确定', {type: 'success', text: true, icon: 'check', act: null}).replace('<button', '<button data-close') +
-        btn('取消', {text: true, icon: 'close'}).replace('<button', '<button data-close')
+    /* 按上游 home/Config.vue 抄：两颗都是 `bg text`，确定那颗是 type="primary"。
+       之前这里写成 success 又漏了 bg，预览里的确定是绿的、底也不对，
+       主题在预览页看着没问题、装进 ani-rss 才露馅。 */
+    const okCancel = btn('确定', {type: 'primary', text: true, bg: true, icon: 'check', act: null}).replace('<button', '<button data-close') +
+        btn('取消', {text: true, bg: true, icon: 'close'}).replace('<button', '<button data-close')
 
     /* ==================== 首页：工具栏与列表 ==================== */
     const TOOLS = [
@@ -1337,12 +1340,35 @@
         })
     }
 
+    /**
+     * 把 CSS 里的相对 @import 就地展开成实际内容。
+     *
+     * 有的主题本体在另一份文件里（material-motion.css 就一行 @import material.css），
+     * 直接把原文复制走，粘进 ani-rss 的自定义 CSS 框就是一行相对路径 —— 那里没有
+     * base URL，解析不到而且静默失败，用户只会看到「主题没生效」。展开之后粘出来
+     * 是自洽的一整份，不依赖任何外部地址。
+     *
+     * 只展开相对路径：写死绝对地址的 @import 是有意的外部引用，照原样留着。
+     * 只展开一层 —— 本仓库没有更深的嵌套，真出现了再说。
+     */
+    async function inlineImports(text, dir) {
+        const found = []
+        text.replace(/@import\s+url\((["']?)([^"')]+)\1\)\s*;?/g, (m, q, href) => (found.push([m, href]), m))
+        for (const [raw, href] of found) {
+            if (/^(https?:)?\/\//.test(href)) continue
+            const body = await fetch(dir + href).then(r => r.ok ? r.text() : Promise.reject(new Error(r.status)))
+            /* 用函数式 replace：CSS 正文里的 $& / $1 不能被当成替换模式吃掉 */
+            text = text.replace(raw, () => '/* ↓ 以下内容展开自 ' + href + ' */\n' + body)
+        }
+        return text
+    }
+
     bindCopy('#copyPages', () => importOf(PAGES), '已复制 @import（GitHub Pages）')
     bindCopy('#copyJsd', () => importOf(JSDELIVR), '已复制 @import（jsDelivr）')
     bindCopy('#copyCss', () => fetch('themes/' + current).then(r => {
         if (!r.ok) throw new Error(r.status)
         return r.text()
-    }), '已复制 ' + meta[1] + ' 的 CSS 全文')
+    }).then(t => inlineImports(t, 'themes/')), '已复制 ' + meta[1] + ' 的 CSS 全文')
 
     /* ---- 配套 JS 的按钮 ----
      * 「链接」和「全文」两件事，挤两个按钮太占地方（这条栏在窄屏本来就要溢出），
