@@ -1,6 +1,6 @@
 # ani-rss-themes
 
-给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的一组自定义 CSS 主题。15 款，每款有自己的字体、按钮、背景，不是只换配色。
+给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的一组自定义 CSS 主题。16 款，每款有自己的字体、按钮、背景，不是只换配色。
 
 纯 CSS，不需要改动 ani-rss 本体，也不需要重新编译前端。
 
@@ -20,6 +20,7 @@
 | `themes/terminal.css` | 绿光终端 · Terminal | 等宽 + 全大写 + 等宽数字 | `[ 方括号 ]`，hover 整块反色 | 扫描线 + CRT 闪烁 + 暗角 | 强制深色 |
 | `themes/github.css` | 代码仓库 · GitHub | Primer 系统字栈，数值走等宽 | Primer 规格，主按钮是那只绿色 | 贡献热力图格子，向下渐隐 | 跟随 |
 | `themes/calendar.css` | 挂历 · Calendar | 楷体标题 + DIN 等宽数字 | 方角，顶端一道红边，hover 转红 | 月历方格细线 + 纸面颗粒 | 跟随 |
+| `themes/material.css` | 质感设计 · Material 3 | Roboto 字栈，数值走 Roboto Mono | 全圆角胶囊，tonal / filled 分档，按下起涟漪 | 主色与第三色两团渐晕缓慢漂移 | 跟随 |
 
 ### 随机壁纸（横竖屏自适应，每次刷新换图）
 
@@ -38,6 +39,11 @@
 （上下亮、左右暗，上缘偏冷下缘偏暖），顶缘一道弧光，控件全是胶囊形，按下 `scale(.95)` 弹簧回弹，
 背景是高饱和网格渐变，底下还铺了一层细网格 —— 玻璃是靠「把背后的细节抹掉」被认出来的，
 背后只有平滑渐变的话，模糊前后长得一模一样。想省电就把文件开头的 `--lg-blur` 调小。
+
+**Material 3 可以再配一份 JS**：`themes/material.css` 单独装就是完整主题。再加一份
+`js/material-motion.js`，会打开按指针落点扩散的真涟漪、顶栏滚动升起、卡片错峰入场，
+以及从「主题色」取色器现算整套 M3 配色。详见下面[那一节](#附加material-3-动效增强css--js-两件套)。
+预览页里那条「质感设计 · Material 3（动效增强）」就是这个组合。
 
 「强制深色 / 强制浅色」指该主题不跟随右上角的明暗切换 —— 蒙版和面板透明度是按一个方向调好的，反过来会糊。
 
@@ -207,6 +213,45 @@ import("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/js/genshin
   约 3 MB，之后走浏览器缓存。移动网络上这不便宜，介意就只装 CSS。
 - **要 WebGL2**，且系统开了「减弱动态效果」时不建三维场景，此时 CSS 的兜底天空接管；
   「忘记密码」那个链接不受影响，这几种情况下照样补。
+
+## 附加：Material 3 动效增强（CSS + JS 两件套）
+
+`themes/material.css` 里留了一层动效规则，全部关在 `html.md-motion` 底下。
+不装 JS 时一条也不匹配 —— 那就是纯 CSS 版。装上 `js/material-motion.js`，它给
+`<html>` 加上那个类名，这一层就开了：
+
+| 装法 | 涟漪 | 顶栏 | 卡片入场 | 配色 |
+| --- | --- | --- | --- | --- |
+| 只填 CSS | 从按钮正中扩散（CSS 拿不到点击坐标） | 一直平的 | 无 | M3 baseline 紫 |
+| CSS + JS | 从指针落点扩散，长按不消 | 列表滚起来就染色 + 抬起 | 进视口才浮上来，同批错峰 40ms | 取色器给什么种子色，就现算整套 |
+
+```css
+/* CSS 框 */
+@import url("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/themes/material.css");
+```
+
+```js
+/* JS 框 */
+import("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/js/material-motion.js")
+```
+
+**关于动态取色**：ani-rss 那个主题色取色器是把 `--el-color-primary` 以内联样式写在
+`<html>` 上的，主题用 `!important` 盖住之后它就不起作用了 —— 这份 JS 会把它读回来当种子，
+按 M3 的四条色调轨（primary / secondary / tertiary / neutral）现算出 26 个配色变量铺回去，
+于是取色器又生效了，而且改的不只是强调色，是整套配色跟着变。没动过取色器就保持 baseline 紫。
+
+色彩换算用 OKLCh 近似 M3 的 HCT：两者都是感知均匀空间，色调轨的观感差别肉眼基本看不出来，
+但 HCT 要带一整套 CAM16 实现，为了一个配色不值当。彩度按当前明度二分找 sRGB 的边界
+（也就是 HCT 的 gamut mapping），所以 tone 98 那档 surface 不会被抽成纯灰，M3 那点淡紫还在。
+拿 baseline 的 `#6750A4` 当种子跑回去，算出来的 primary 是 `#634CA0`、on-surface 是
+`#1C1B21` —— 和官方 baseline 的 `#6750A4` / `#1D1B20` 基本重合。
+
+**这份 JS 不联网**，零依赖，所有换算在文件里做完。它只加类名和一层内联变量，不改 DOM 结构，
+清空自定义 JS 框刷新一下就全部还原。系统开了「减弱动态效果」时涟漪和入场不启动，
+只留动态取色（那是配色不是动画）。
+
+`themes/material-motion.css` 那个文件本身没有样式，两行 `@import` 指回 `material.css` 而已 ——
+它存在只是为了让预览页里能单独选到「配 JS 的那一版」。
 
 ## 已知点
 

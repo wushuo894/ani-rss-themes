@@ -1258,6 +1258,8 @@
         ['terminal.css', '绿光终端 · Terminal', 'dark'],
         ['github.css', '代码仓库 · GitHub', 'auto'],
         ['calendar.css', '挂历 · Calendar', 'auto'],
+        ['material.css', '质感设计 · Material 3', 'auto'],
+        ['material-motion.css', '质感设计 · Material 3（动效增强）', 'auto', 'material-motion.js'],
         ['acg-wallpaper.css', '二次元 · 随机壁纸', 'auto'],
         ['acg-starry.css', '二次元 · 星空夜', 'dark'],
         ['acg-peach.css', '二次元 · 蜜桃樱', 'light'],

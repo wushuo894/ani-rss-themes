@@ -1,0 +1,19 @@
+/**
+ * 质感设计 · Material 3（动效增强）
+ *
+ * 这份文件本身没有样式，它就是 themes/material.css。
+ * 分成两条只是为了让预览页里能单独选到「配 JS 的那一版」——
+ * 主题本体一份就够了，动效层写在 material.css 末尾的 html.md-motion 里，
+ * 由 js/material-motion.js 打开。
+ *
+ * 所以：
+ *   只填 CSS  → 纯 CSS 版（涟漪从正中扩散，顶栏不升起，卡片不入场）
+ *   CSS + JS  → 增强版（按指针坐标的真涟漪、顶栏滚动升起、卡片错峰入场、
+ *                        从主题色现算整套 M3 配色）
+ *
+ * ponytail: 两条 @import 是故意的。相对那条给预览页和自建服务用（离线也成立），
+ * 绝对那条给「复制 CSS 全文」直接粘进 ani-rss 的场合用（那里没有 base URL，
+ * 相对路径会 404 且静默失败）。装成在线引用时两条指向同一个地址，只请求一次。
+ */
+@import url("material.css");
+@import url("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/themes/material.css");

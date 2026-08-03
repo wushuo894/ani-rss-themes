@@ -1,0 +1,1025 @@
+/**
+ * 质感设计 · Material 3
+ * 色板：Material 3 baseline 官方 token（light / dark 两套原值，没有自己调）
+ * 字体：Roboto 系统字栈，数值走 Roboto Mono
+ * 按钮：M3 全圆角胶囊，filled / tonal / outlined 三档，按下有涟漪
+ * 输入：M3 filled text field —— 顶部圆角、底部一道线，聚焦变 2px 主色
+ * 形状：M3 shape scale 4 / 8 / 12 / 16 / 28
+ * 背景：两团色调渐晕缓慢漂移（Material You 从壁纸取色的那个意思）
+ * 明暗跟随切换
+ *
+ * 这份文件单独装就是完整主题。再装一份 js/material-motion.js 会打开
+ * html.md-motion 下那一层：按指针坐标的真涟漪、顶栏滚动升起、卡片错峰入场、
+ * 从主题色现算整套 M3 配色。不装 JS 时那些规则一条也不生效。
+ *
+ * 注：--el-color-primary 被 ani-rss 用内联样式写在 <html> 上，只有 !important 能盖过
+ */
+
+/* ---------- 浅色（M3 baseline light） ---------- */
+html:root:not(.dark) {
+    --md-primary: #6750A4;
+    --md-on-primary: #FFFFFF;
+    --md-primary-container: #EADDFF;
+    --md-on-primary-container: #21005D;
+
+    --md-secondary: #625B71;
+    --md-on-secondary: #FFFFFF;
+    --md-secondary-container: #E8DEF8;
+    --md-on-secondary-container: #1D192B;
+
+    --md-tertiary: #7D5260;
+    --md-on-tertiary: #FFFFFF;
+    --md-tertiary-container: #FFD8E4;
+    --md-on-tertiary-container: #31111D;
+
+    --md-error: #B3261E;
+    --md-on-error: #FFFFFF;
+    --md-error-container: #F9DEDC;
+    --md-on-error-container: #410E0B;
+
+    /* M3 没有 success / warning 这两条语义色，按同一套色调法自己配的 */
+    --md-success: #146C2E;
+    --md-on-success: #FFFFFF;
+    --md-success-container: #A6F0B9;
+    --md-warning: #825500;
+    --md-on-warning: #FFFFFF;
+    --md-warning-container: #FFDDB3;
+
+    --md-surface: #FEF7FF;
+    --md-on-surface: #1D1B20;
+    --md-surface-variant: #E7E0EC;
+    --md-on-surface-variant: #49454F;
+
+    --md-surface-container-lowest: #FFFFFF;
+    --md-surface-container-low: #F7F2FA;
+    --md-surface-container: #F3EDF7;
+    --md-surface-container-high: #ECE6F0;
+    --md-surface-container-highest: #E6E0E9;
+
+    --md-outline: #79747E;
+    --md-outline-variant: #CAC4D0;
+
+    --md-inverse-surface: #322F35;
+    --md-inverse-on-surface: #F5EFF7;
+    --md-inverse-primary: #D0BCFF;
+
+    /* 阴影在浅色底上要浅，M3 的 key/ambient 两层 */
+    --md-shadow-key: rgba(0, 0, 0, .30);
+    --md-shadow-ambient: rgba(0, 0, 0, .15);
+}
+
+/* ---------- 深色（M3 baseline dark） ---------- */
+html.dark:root {
+    --md-primary: #D0BCFF;
+    --md-on-primary: #381E72;
+    --md-primary-container: #4F378B;
+    --md-on-primary-container: #EADDFF;
+
+    --md-secondary: #CCC2DC;
+    --md-on-secondary: #332D41;
+    --md-secondary-container: #4A4458;
+    --md-on-secondary-container: #E8DEF8;
+
+    --md-tertiary: #EFB8C8;
+    --md-on-tertiary: #492532;
+    --md-tertiary-container: #633B48;
+    --md-on-tertiary-container: #FFD8E4;
+
+    --md-error: #F2B8B5;
+    --md-on-error: #601410;
+    --md-error-container: #8C1D18;
+    --md-on-error-container: #F9DEDC;
+
+    --md-success: #8BD99C;
+    --md-on-success: #00391A;
+    --md-success-container: #00522A;
+    --md-warning: #FFB955;
+    --md-on-warning: #452B00;
+    --md-warning-container: #633F00;
+
+    --md-surface: #141218;
+    --md-on-surface: #E6E0E9;
+    --md-surface-variant: #49454F;
+    --md-on-surface-variant: #CAC4D0;
+
+    --md-surface-container-lowest: #0F0D13;
+    --md-surface-container-low: #1D1B20;
+    --md-surface-container: #211F26;
+    --md-surface-container-high: #2B2930;
+    --md-surface-container-highest: #36343B;
+
+    --md-outline: #938F99;
+    --md-outline-variant: #49454F;
+
+    --md-inverse-surface: #E6E0E9;
+    --md-inverse-on-surface: #322F35;
+    --md-inverse-primary: #6750A4;
+
+    /* 深色底上阴影几乎看不见，M3 靠 surface-container 分层，阴影只留一点边缘 */
+    --md-shadow-key: rgba(0, 0, 0, .60);
+    --md-shadow-ambient: rgba(0, 0, 0, .40);
+}
+
+/* ---------- 两套共用：形状、高度、动效、把 M3 接到 --el-* 上 ---------- */
+html:root, html.dark:root {
+    /* M3 shape scale */
+    --md-shape-xs: 4px;
+    --md-shape-s: 8px;
+    --md-shape-m: 12px;
+    --md-shape-xl: 28px;
+    --md-shape-full: 9999px;
+
+    /* M3 elevation：key shadow + ambient shadow 两层叠 */
+    --md-elev-1: 0 1px 2px 0 var(--md-shadow-key), 0 1px 3px 1px var(--md-shadow-ambient);
+    --md-elev-2: 0 1px 2px 0 var(--md-shadow-key), 0 2px 6px 2px var(--md-shadow-ambient);
+    --md-elev-3: 0 1px 3px 0 var(--md-shadow-key), 0 4px 8px 3px var(--md-shadow-ambient);
+    --md-elev-4: 0 2px 3px 0 var(--md-shadow-key), 0 6px 10px 4px var(--md-shadow-ambient);
+
+    /* M3 motion：decelerate 那条是 emphasized 的减速段，入场动画全用它 */
+    --md-ease-standard: cubic-bezier(.2, 0, 0, 1);
+    --md-ease-decel: cubic-bezier(.05, .7, .1, 1);
+    --md-dur-short: 200ms;
+    --md-dur-med: 300ms;
+    --md-dur-long: 500ms;
+
+    /* M3 state layer：hover 8%、focus/press 10%，全站统一。
+       写成百分号是因为它既要喂给 color-mix()（那里只收 <percentage>），
+       又要当 opacity 用（opacity 从 Level 4 起也收百分号）。 */
+    --md-state-hover: 8%;
+    --md-state-focus: 10%;
+    --md-state-press: 10%;
+
+    --md-font: Roboto, "Roboto Flex", "Noto Sans", -apple-system, BlinkMacSystemFont,
+    "Segoe UI Variable Text", "Segoe UI", "PingFang SC", "HarmonyOS Sans SC",
+    "Microsoft YaHei", Helvetica, Arial, sans-serif;
+    --md-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
+    /* ---- 主色阶：EP 的 light-N 按「往 surface 里兑」算，深浅两套自动成立 ---- */
+    --el-color-primary: var(--md-primary) !important;
+    --el-color-primary-light-3: color-mix(in srgb, var(--md-primary) 70%, var(--md-surface));
+    --el-color-primary-light-5: color-mix(in srgb, var(--md-primary) 50%, var(--md-surface));
+    --el-color-primary-light-7: color-mix(in srgb, var(--md-primary) 30%, var(--md-surface));
+    --el-color-primary-light-8: color-mix(in srgb, var(--md-primary) 20%, var(--md-surface));
+    --el-color-primary-light-9: color-mix(in srgb, var(--md-primary) 12%, var(--md-surface));
+    --el-color-primary-dark-2: color-mix(in srgb, var(--md-primary) 85%, var(--md-on-surface));
+
+    --el-color-success: var(--md-success);
+    --el-color-warning: var(--md-warning);
+    --el-color-danger: var(--md-error);
+    --el-color-error: var(--md-error);
+    --el-color-info: var(--md-on-surface-variant);
+
+    --el-bg-color: var(--md-surface-container-low);
+    --el-bg-color-page: var(--md-surface);
+    --el-bg-color-overlay: var(--md-surface-container-high);
+    --el-card-bg-color: var(--md-surface-container-low);
+    --el-dialog-bg-color: var(--md-surface-container-high);
+    --el-mask-color: rgba(0, 0, 0, .32);
+
+    --el-text-color-primary: var(--md-on-surface);
+    --el-text-color-regular: var(--md-on-surface);
+    --el-text-color-secondary: var(--md-on-surface-variant);
+    --el-text-color-placeholder: color-mix(in srgb, var(--md-on-surface-variant) 74%, transparent);
+    --el-text-color-disabled: color-mix(in srgb, var(--md-on-surface) 38%, transparent);
+
+    --el-border-color-dark: var(--md-outline);
+    --el-border-color-darker: var(--md-outline);
+    --el-border-color: var(--md-outline-variant);
+    --el-border-color-light: var(--md-outline-variant);
+    --el-border-color-lighter: color-mix(in srgb, var(--md-outline-variant) 60%, transparent);
+    --el-border-color-extra-light: color-mix(in srgb, var(--md-outline-variant) 35%, transparent);
+
+    --el-fill-color-dark: var(--md-surface-container-highest);
+    --el-fill-color: var(--md-surface-container-high);
+    --el-fill-color-light: var(--md-surface-container);
+    --el-fill-color-lighter: var(--md-surface-container-low);
+    --el-fill-color-extra-light: var(--md-surface-container-lowest);
+    --el-fill-color-blank: var(--md-surface-container-lowest);
+
+    --el-border-radius-small: var(--md-shape-s);
+    --el-border-radius-base: var(--md-shape-m);
+    --el-border-radius-round: var(--md-shape-full);
+
+    --el-box-shadow: var(--md-elev-3);
+    --el-box-shadow-light: var(--md-elev-1);
+    --el-box-shadow-lighter: var(--md-elev-1);
+    --el-box-shadow-dark: var(--md-elev-4);
+}
+
+/* ================= 字体：M3 type scale ================= */
+html * {
+    font-family: var(--md-font);
+}
+
+/* label-large：按钮、标签页、chip 的字号规格 */
+html .el-button,
+html .el-tabs__item,
+html .el-tag,
+html .el-checkbox__label,
+html .el-radio__label {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .1px;
+}
+
+/* title-large / headline-small：弹窗标题、折叠面板标题 */
+html .el-dialog__title {
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+
+html .el-collapse-item__header,
+html h1, html h2, html h3, html h4 {
+    font-weight: 500;
+    letter-spacing: .15px;
+}
+
+/* 凡是「值」都走等宽并对齐数位 */
+html .list-card-score,
+html .el-input-number .el-input__inner,
+html .el-progress__text,
+html .logs-dialog,
+html code, html kbd, html pre, html samp {
+    font-family: var(--md-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ================= 背景：两团色调渐晕 ================= */
+body {
+    background-color: var(--md-surface);
+    color: var(--md-on-surface);
+}
+
+/* Material You 是从壁纸里取一个种子色再铺满全局，这里用主色和第三色各铺一团 */
+body::before {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    z-index: -50;
+    pointer-events: none;
+    background:
+        radial-gradient(42% 38% at 18% 12%,
+            color-mix(in srgb, var(--md-primary) 22%, transparent) 0, transparent 70%),
+        radial-gradient(48% 44% at 88% 82%,
+            color-mix(in srgb, var(--md-tertiary) 18%, transparent) 0, transparent 72%);
+    animation: md-wash 48s var(--md-ease-standard) infinite alternate;
+    will-change: transform;
+}
+
+@keyframes md-wash {
+    from {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    to {
+        transform: translate3d(3%, -2%, 0) scale(1.08);
+    }
+}
+
+/* ================= 按钮：M3 common buttons ================= */
+/*
+ * ani-rss 的按钮几乎都带 is-text is-has-bg，而 Element Plus 给这个组合写的是
+ *   .el-button.is-text:not(.is-disabled).is-has-bg   →  0-4-0
+ * 比 `html .el-button--primary` 这种变体选择器（0-2-1）高一大截。挨个变体去堆选择器
+ * 打赢它要写五六遍，所以改成：变体只管把颜色塞进两个自定义属性，真正上色的只有下面
+ * 那一条高权重规则。自定义属性走继承不比权重，一次打赢，全部变体跟着成立。
+ */
+html .el-button {
+    --btn-bg: var(--md-secondary-container);
+    --btn-fg: var(--md-on-secondary-container);
+}
+
+/* filled button：主操作，M3 里就这一颗实心的 */
+html .el-button--primary {
+    --btn-bg: var(--md-primary);
+    --btn-fg: var(--md-on-primary);
+}
+
+html .el-button--success {
+    --btn-bg: var(--md-success-container);
+    --btn-fg: var(--md-success);
+}
+
+html .el-button--warning {
+    --btn-bg: var(--md-warning-container);
+    --btn-fg: var(--md-warning);
+}
+
+/* 危险：M3 的删除平时是透明底红字，hover 才浮出一层淡红 */
+html .el-button--danger {
+    --btn-bg: transparent;
+    --btn-fg: var(--md-error);
+}
+
+html .el-button.is-disabled {
+    --btn-bg: color-mix(in srgb, var(--md-on-surface) 12%, transparent);
+    --btn-fg: color-mix(in srgb, var(--md-on-surface) 38%, transparent);
+}
+
+/* 默认档 = tonal button：全圆角，无边框无阴影 */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text:not(.is-disabled).is-has-bg {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    border-radius: var(--md-shape-full);
+    background-color: var(--btn-bg);
+    color: var(--btn-fg);
+    box-shadow: none;
+    height: 40px;
+    padding: 0 24px;
+    transition: background-color var(--md-dur-short) var(--md-ease-standard),
+    box-shadow var(--md-dur-short) var(--md-ease-standard);
+}
+
+/* state layer：M3 的 hover 不是换色，是在原色上盖一层 8% 的 on-色 */
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: color-mix(in srgb, var(--btn-fg) var(--md-state-hover), var(--btn-bg));
+    color: var(--btn-fg);
+    box-shadow: var(--md-elev-1);
+}
+
+html .el-button:active,
+html .el-button.is-text:not(.is-disabled).is-has-bg:active {
+    background-color: color-mix(in srgb, var(--btn-fg) var(--md-state-press), var(--btn-bg));
+    box-shadow: none;
+}
+
+html .el-button.is-disabled,
+html .el-button.is-disabled:hover {
+    box-shadow: none;
+}
+
+html .el-button:focus-visible {
+    outline: 3px solid var(--md-secondary);
+    outline-offset: 2px;
+}
+
+/* 纯 CSS 涟漪：按下时把一个圆从 scale(10) 瞬间收到 0，松手再慢慢摊开淡出。
+   命中不了指针坐标（CSS 拿不到），所以永远从正中扩散 —— 装了 JS 会换成真的。 */
+html .el-button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: radial-gradient(circle, currentColor 12%, transparent 12.5%);
+    background-repeat: no-repeat;
+    background-position: 50%;
+    transform: scale(12);
+    opacity: 0;
+    transition: transform var(--md-dur-long) var(--md-ease-decel),
+    opacity var(--md-dur-long) var(--md-ease-standard);
+}
+
+html .el-button:active::after {
+    transform: scale(0);
+    opacity: var(--md-state-press);
+    transition: 0s;
+}
+
+html .el-button.is-circle {
+    border-radius: var(--md-shape-full);
+    width: 40px;
+    padding: 0;
+}
+
+/* 里头只有一个图标的按钮：M3 icon button，正方形，别留文字用的那 24px 内边距。
+   :has() 不支持的老浏览器上只是宽一点，不会坏。 */
+html .el-button:has(> .el-icon:only-child) {
+    width: 40px;
+    padding: 0;
+}
+
+/* 登录按钮：通栏 filled */
+html #form .el-button {
+    --btn-bg: var(--md-primary);
+    --btn-fg: var(--md-on-primary);
+    width: 100%;
+    justify-content: center;
+}
+
+/* ================= 输入框：M3 filled text field ================= */
+/* 顶上两角圆、底下一道线，聚焦线变粗变主色 —— M3 最好认的一个控件 */
+html .el-input__wrapper,
+html .el-select__wrapper {
+    background-color: var(--md-surface-container-highest);
+    border-radius: var(--md-shape-xs) var(--md-shape-xs) 0 0;
+    box-shadow: inset 0 -1px 0 0 var(--md-on-surface-variant);
+    padding: 1px 16px;
+    transition: background-color var(--md-dur-short) var(--md-ease-standard),
+    box-shadow var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-textarea__inner {
+    background-color: var(--md-surface-container-highest);
+    border-radius: var(--md-shape-xs) var(--md-shape-xs) 0 0;
+    box-shadow: inset 0 -1px 0 0 var(--md-on-surface-variant);
+    padding: 12px 16px;
+    transition: background-color var(--md-dur-short) var(--md-ease-standard),
+    box-shadow var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-input__wrapper:hover,
+html .el-select__wrapper:hover,
+html .el-textarea__inner:hover {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), var(--md-surface-container-highest));
+    box-shadow: inset 0 -1px 0 0 var(--md-on-surface);
+}
+
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused,
+html .el-textarea__inner:focus {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-focus), var(--md-surface-container-highest));
+    box-shadow: inset 0 -2px 0 0 var(--md-primary);
+}
+
+html .el-input__prefix,
+html .el-input__suffix,
+html .el-select__caret {
+    color: var(--md-on-surface-variant);
+}
+
+/* 数字框两侧的加减：M3 icon button */
+html .el-input-number__increase,
+html .el-input-number__decrease {
+    background-color: transparent;
+    border: none;
+    color: var(--md-on-surface-variant);
+    border-radius: var(--md-shape-full);
+}
+
+html .el-input-number__increase:hover,
+html .el-input-number__decrease:hover {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), transparent);
+    color: var(--md-primary);
+}
+
+/* ================= 卡片：M3 filled card ================= */
+/* filled card 平时没有阴影，靠 surface-container 分层；hover 才抬到 elevation 1 */
+html .el-card,
+html .el-card.is-never-shadow {
+    background-color: var(--md-surface-container-low);
+    border: none;
+    border-radius: var(--md-shape-m);
+    box-shadow: none;
+    transition: box-shadow var(--md-dur-med) var(--md-ease-standard),
+    background-color var(--md-dur-med) var(--md-ease-standard);
+}
+
+html .el-card:hover,
+html .el-card.is-never-shadow:hover {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), var(--md-surface-container-low));
+    box-shadow: var(--md-elev-1);
+}
+
+html .el-card__header,
+html .el-card__footer {
+    border-color: var(--md-outline-variant);
+}
+
+/* ================= 弹窗：M3 dialog，28px 是它的招牌 ================= */
+html .el-overlay-dialog .el-dialog {
+    background-color: var(--md-surface-container-high);
+    border: none;
+    border-radius: var(--md-shape-xl);
+    box-shadow: var(--md-elev-3);
+    padding: 24px;
+}
+
+html .el-dialog__header {
+    background-color: transparent;
+    border-bottom: none;
+    margin-right: 0;
+    padding: 0 0 16px;
+    color: var(--md-on-surface);
+}
+
+html .el-dialog__body {
+    color: var(--md-on-surface-variant);
+    padding: 0;
+}
+
+html .el-dialog__footer {
+    padding: 24px 0 0;
+}
+
+html .el-dialog__headerbtn {
+    top: 18px;
+    right: 18px;
+    border-radius: var(--md-shape-full);
+    transition: background-color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-dialog__headerbtn:hover {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), transparent);
+}
+
+html .el-overlay {
+    background-color: var(--el-mask-color);
+}
+
+/* 悬浮层（下拉、气泡、提示）：M3 menu = surface-container elevation 2 */
+html .el-popper,
+html .el-select__popper,
+html .el-dropdown__popper {
+    background-color: var(--md-surface-container) !important;
+    border: none !important;
+    border-radius: var(--md-shape-xs);
+    box-shadow: var(--md-elev-2);
+}
+
+html .el-popper__arrow::before {
+    background-color: var(--md-surface-container) !important;
+    border: none !important;
+}
+
+html .el-select-dropdown__item.is-selected {
+    background-color: var(--md-secondary-container);
+    color: var(--md-on-secondary-container);
+}
+
+html .el-select-dropdown__item:hover {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), transparent);
+}
+
+/* ================= 标签：M3 assist / filter chip ================= */
+html .el-tag {
+    border-radius: var(--md-shape-s);
+    border: 1px solid var(--md-outline-variant);
+    background-color: transparent;
+    padding: 0 8px;
+    color: var(--md-on-surface-variant);
+}
+
+/* 选中态的 chip 才有底色 —— M3 filter chip selected */
+html .el-tag.el-tag--primary {
+    background-color: var(--md-secondary-container);
+    border-color: transparent;
+    color: var(--md-on-secondary-container);
+}
+
+html .el-tag.el-tag--success {
+    background-color: var(--md-success-container);
+    border-color: transparent;
+    color: var(--md-success);
+}
+
+html .el-tag.el-tag--warning {
+    background-color: var(--md-warning-container);
+    border-color: transparent;
+    color: var(--md-warning);
+}
+
+html .el-tag.el-tag--danger {
+    background-color: var(--md-error-container);
+    border-color: transparent;
+    color: var(--md-error);
+}
+
+/* info 走第三色 —— M3 的调色板本来就留了 tertiary 给这种「次要但要分得开」的东西 */
+html .el-tag.el-tag--info {
+    background-color: var(--md-tertiary-container);
+    border-color: transparent;
+    color: var(--md-on-tertiary-container);
+}
+
+html .el-badge__content {
+    border-radius: var(--md-shape-full);
+    background-color: var(--md-error);
+    color: var(--md-on-error);
+    font-family: var(--md-mono);
+    border: none;
+}
+
+/* ================= 开关 / 复选 / 单选 ================= */
+/* M3 switch：52×32 轨道，关是 16px 小圆点 + 2px 描边，开是 24px 大圆点 */
+html .el-switch__core {
+    width: 52px !important;
+    min-width: 52px;
+    height: 32px;
+    border-radius: var(--md-shape-full);
+    border: 2px solid var(--md-outline);
+    background-color: var(--md-surface-container-highest);
+    transition: background-color var(--md-dur-short) var(--md-ease-standard),
+    border-color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-switch__core .el-switch__action {
+    width: 16px;
+    height: 16px;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: var(--md-outline);
+    box-shadow: none;
+    transition: width var(--md-dur-short) var(--md-ease-standard),
+    height var(--md-dur-short) var(--md-ease-standard),
+    left var(--md-dur-short) var(--md-ease-standard),
+    background-color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-switch.is-checked .el-switch__core {
+    background-color: var(--md-primary);
+    border-color: var(--md-primary);
+}
+
+html .el-switch.is-checked .el-switch__core .el-switch__action {
+    width: 24px;
+    height: 24px;
+    left: calc(100% - 26px);
+    background-color: var(--md-on-primary);
+}
+
+/* M3 checkbox：2px 圆角的方框，选中整块填主色 */
+html .el-checkbox__inner {
+    width: 18px;
+    height: 18px;
+    border-radius: 2px;
+    border: 2px solid var(--md-on-surface-variant);
+    background-color: transparent;
+    transition: background-color var(--md-dur-short) var(--md-ease-standard),
+    border-color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-checkbox__inner::after {
+    left: 5px;
+    top: 1px;
+    border-width: 2px;
+    border-color: var(--md-on-primary);
+}
+
+html .el-checkbox__input.is-checked .el-checkbox__inner,
+html .el-checkbox__input.is-indeterminate .el-checkbox__inner {
+    background-color: var(--md-primary);
+    border-color: var(--md-primary);
+}
+
+html .el-checkbox__input.is-checked + .el-checkbox__label {
+    color: var(--md-on-surface);
+}
+
+html .el-radio__inner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--md-on-surface-variant);
+    background-color: transparent;
+}
+
+html .el-radio__input.is-checked .el-radio__inner {
+    background-color: transparent;
+    border-color: var(--md-primary);
+}
+
+html .el-radio__input.is-checked .el-radio__inner::after {
+    width: 10px;
+    height: 10px;
+    background-color: var(--md-primary);
+    transform: translate(-50%, -50%) scale(1);
+}
+
+html .el-radio__input.is-checked + .el-radio__label {
+    color: var(--md-on-surface);
+}
+
+/* 分段按钮：M3 segmented button，两头全圆角 */
+html .el-radio-button__inner {
+    background-color: transparent;
+    border-color: var(--md-outline);
+    color: var(--md-on-surface);
+    box-shadow: none;
+}
+
+html .el-radio-button:first-child .el-radio-button__inner {
+    border-radius: var(--md-shape-full) 0 0 var(--md-shape-full);
+}
+
+html .el-radio-button:last-child .el-radio-button__inner {
+    border-radius: 0 var(--md-shape-full) var(--md-shape-full) 0;
+}
+
+html .el-radio-button.is-active .el-radio-button__inner {
+    background-color: var(--md-secondary-container);
+    border-color: var(--md-outline);
+    color: var(--md-on-secondary-container);
+    box-shadow: none;
+}
+
+/* ================= 标签页：M3 primary tabs ================= */
+html .el-tabs__item {
+    color: var(--md-on-surface-variant);
+    transition: color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-tabs__item.is-active {
+    color: var(--md-primary);
+}
+
+html .el-tabs__item:hover {
+    color: var(--md-on-surface);
+}
+
+/* 指示条：M3 是一条上端带圆角的 3px 短条，不是通栏细线 */
+html .el-tabs__active-bar {
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background-color: var(--md-primary);
+    transition: transform var(--md-dur-med) var(--md-ease-standard),
+    width var(--md-dur-med) var(--md-ease-standard);
+}
+
+html .el-tabs--left .el-tabs__active-bar {
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+}
+
+html .el-tabs__nav-wrap::after {
+    background-color: var(--md-outline-variant);
+    height: 1px;
+}
+
+/* ================= 折叠面板 ================= */
+html .el-collapse,
+html .el-collapse-item__wrap,
+html .el-collapse-item__header {
+    background-color: transparent;
+    border-color: var(--md-outline-variant);
+}
+
+html .el-collapse-item__header {
+    border-radius: var(--md-shape-m);
+    padding: 0 12px;
+    transition: background-color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-collapse-item__header:hover {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), transparent);
+}
+
+/* ================= 表格 / 进度条 / 提示条 / 链接 ================= */
+html .el-table,
+html .el-table tr,
+html .el-table th.el-table__cell {
+    background-color: transparent;
+}
+
+html .el-table th.el-table__cell {
+    color: var(--md-on-surface-variant);
+    font-weight: 500;
+    border-bottom-color: var(--md-outline-variant);
+}
+
+html .el-table td.el-table__cell {
+    border-bottom-color: var(--md-outline-variant);
+}
+
+html .el-table tr:hover > td.el-table__cell {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), transparent);
+}
+
+/* M3 linear progress：轨道用 primary-container，条子全圆角 */
+html .el-progress-bar__outer {
+    background-color: var(--md-primary-container);
+    border-radius: var(--md-shape-full);
+    height: 4px !important;
+}
+
+html .el-progress-bar__inner {
+    background-color: var(--md-primary);
+    border-radius: var(--md-shape-full);
+    transition: width var(--md-dur-long) var(--md-ease-standard);
+}
+
+html .el-progress__text {
+    color: var(--md-on-surface-variant);
+}
+
+/* 提示条：M3 没有 alert，按 banner 处理 —— 圆角矩形 + container 底 */
+html .el-alert {
+    border: none;
+    border-radius: var(--md-shape-m);
+    background-color: var(--md-surface-container-high);
+}
+
+html .el-link {
+    color: var(--md-primary);
+    font-weight: 500;
+}
+
+html .el-link .el-link__inner {
+    border-bottom: none;
+}
+
+html .el-link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* 消息条：M3 snackbar —— inverse-surface 反色，圆角 4px */
+html .el-message {
+    background-color: var(--md-inverse-surface);
+    border: none;
+    border-radius: var(--md-shape-xs);
+    box-shadow: var(--md-elev-3);
+    color: var(--md-inverse-on-surface);
+}
+
+html .el-message .el-message__content {
+    color: var(--md-inverse-on-surface);
+}
+
+/* ================= 订阅卡片 ================= */
+/* 下面几条是 Vue scoped 样式（带 [data-v-]），权重高，必须 !important，别删 */
+.list-card-score {
+    color: var(--md-primary) !important;
+    font-family: var(--md-mono) !important;
+    font-weight: 500 !important;
+    font-variant-numeric: tabular-nums !important;
+}
+
+.list-card-image {
+    border-radius: var(--md-shape-s) !important;
+    border-color: transparent !important;
+}
+
+html .list-card-title {
+    font-weight: 500;
+    letter-spacing: .15px;
+}
+
+html .list-card-time {
+    color: var(--md-on-surface-variant);
+}
+
+/* 星期分组标题：做成 M3 的 filter chip */
+html .list-week-title {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .1px;
+    padding: 6px 16px;
+    color: var(--md-on-secondary-container);
+    background-color: var(--md-secondary-container);
+    border-radius: var(--md-shape-s);
+}
+
+/* 卡片右侧那排图标按钮：M3 icon button，圆的、透明底 */
+/* 顺序要紧：这条和 .el-button--danger 权重相同，靠写在后面才盖得住，
+   所以下面得把 danger 的红字再补回来一次 */
+html .list-card-actions .el-button {
+    --btn-bg: transparent;
+    --btn-fg: var(--md-on-surface-variant);
+    width: 36px;
+    height: 36px;
+    padding: 0;
+}
+
+html .list-card-actions .el-button--danger {
+    --btn-fg: var(--md-error);
+}
+
+html .list-card-actions .el-button:hover {
+    box-shadow: none;
+}
+
+/* ================= 顶栏 ================= */
+/* M3 top app bar：平时和页面同色不分层，滚动了才升起（升起那下由 JS 触发） */
+html #header {
+    background-color: transparent;
+    transition: background-color var(--md-dur-med) var(--md-ease-standard),
+    box-shadow var(--md-dur-med) var(--md-ease-standard);
+}
+
+/* ================= 登录页：M3 dialog 那套形状 ================= */
+#login-page #form {
+    background-color: var(--md-surface-container-low);
+    border: none;
+    border-radius: var(--md-shape-xl);
+    padding: 24px;
+    box-shadow: var(--md-elev-2);
+}
+
+#login-page .title-h2 {
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--md-on-surface);
+    margin-bottom: 16px;
+}
+
+/* ================= 滚动条 ================= */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--md-outline-variant);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    border-radius: var(--md-shape-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--md-outline);
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ==========================================================================
+   动效层 —— 只在装了 js/material-motion.js 时生效（它会给 <html> 加 md-motion）
+   不装 JS 的话下面一条也不匹配，这份文件照样是完整主题。
+   ========================================================================== */
+
+/* 真涟漪接管后，纯 CSS 那个从正中扩散的近似就让位 */
+html.md-motion .el-button::after {
+    display: none;
+}
+
+html.md-motion .md-ripple-host {
+    position: relative;
+    overflow: hidden;
+}
+
+/* JS 按指针坐标插一个 span，从落点扩散 —— M3 ripple 的真身 */
+html.md-motion .md-ripple {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    background-color: currentColor;
+    opacity: var(--md-state-press);
+    transform: scale(0);
+    animation: md-ripple-grow var(--md-dur-long) var(--md-ease-decel) forwards;
+}
+
+html.md-motion .md-ripple.is-out {
+    opacity: 0;
+    transition: opacity var(--md-dur-med) var(--md-ease-standard);
+}
+
+@keyframes md-ripple-grow {
+    to {
+        transform: scale(1);
+    }
+}
+
+/* 顶栏滚动升起：M3 top app bar 的 on-scroll 态 */
+html.md-motion #header.md-scrolled {
+    background-color: var(--md-surface-container);
+    box-shadow: var(--md-elev-2);
+}
+
+/* 卡片错峰入场：emphasized-decelerate，从下方 16px 浮上来 */
+html.md-motion .md-enter {
+    opacity: 0;
+    transform: translateY(16px);
+}
+
+html.md-motion .md-enter.is-in {
+    opacity: 1;
+    transform: none;
+    transition: opacity var(--md-dur-med) var(--md-ease-decel),
+    transform var(--md-dur-long) var(--md-ease-decel);
+}
+
+/* ================= 减弱动态效果 ================= */
+@media (prefers-reduced-motion: reduce) {
+    body::before {
+        animation: none;
+    }
+
+    html .el-button::after,
+html.md-motion .md-ripple {
+        display: none;
+    }
+
+    html.md-motion .md-enter {
+        opacity: 1;
+        transform: none;
+    }
+
+    html .el-button,
+html .el-card,
+html .el-input__wrapper,
+html .el-switch__core,
+html .el-switch__core .el-switch__action,
+html #header {
+        transition-timing-function: linear;
+        transition-duration: .1s;
+    }
+}
