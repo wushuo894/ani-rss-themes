@@ -52,6 +52,10 @@
     const DRACO_DECODER = THREE_CDN + '/examples/jsm/libs/draco/gltf/'
 
     const LOGIN_SEL = '#login-page'   // 登录页挂载点，见 ani-rss 的 Login.vue
+
+    // 「忘记密码」指向的文档页。不想要这个链接就把它置空
+    const FORGOT_URL = 'https://docs.wushuo.top/change-the-password'
+
     const CANVAS_Z = -50              // 压在主题 CSS 画的所有东西（最低 -40）后面
 
     const CAMERA_SPEED = 88           // 相机每秒前进多少世界单位
@@ -1348,9 +1352,32 @@
         return !!el && el.getClientRects().length > 0
     }
 
+    /**
+     * 「忘记密码」那个链接。
+     *
+     * 登录表单里本来没有这个节点，主题 CSS 是拿 .action::after 画出来的 —— 好看，
+     * 但伪元素点不了，CSS 也造不出链接。所以这里补一个真的 <a>；CSS 见到它就把那个
+     * 伪元素收起来（.action:has(.gs-forgot)::after）。
+     *
+     * 本体是 Vue，重渲染会把它冲掉，所以每次 sync 都补一次，已经在就直接返回。
+     */
+    function ensureForgotLink() {
+        if (!FORGOT_URL) return
+        const row = document.querySelector(LOGIN_SEL + ' .action')
+        if (!row || row.querySelector('.gs-forgot')) return
+        const a = document.createElement('a')
+        a.className = 'gs-forgot'
+        a.href = FORGOT_URL
+        a.target = '_blank'
+        a.rel = 'noopener noreferrer'
+        a.textContent = '忘记密码'
+        row.appendChild(a)   // 排在哪由 CSS 的 order 决定，不看 DOM 顺序
+    }
+
     function sync() {
         const onLogin = onLoginPage()
-        if (onLogin && !active) {
+        if (onLogin) ensureForgotLink()
+        if (onLogin && can3d && !active) {
             start().catch(err => {
                 console.warn('[原神启动] 背景没起来：', err)
                 stop()
@@ -1368,19 +1395,30 @@
         console.info('[原神启动] 三维背景未启动：' + why)
     }
 
-    if (!ASSET_BASE) return bail('ASSET_BASE 是空的，等于主动关掉了')
+    /* 三维背景起不起得来，和「忘记密码」那个链接无关：下面任何一条不通过，脚本也
+       不退出，链接照补，只是背后没有天空。 */
+    const can3d = (function () {
+        if (!ASSET_BASE) {
+            bail('ASSET_BASE 是空的，等于主动关掉了')
+            return false
+        }
 
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches && !window.GENSHIN_LOGIN_FORCE) {
-        return bail(
-            '系统开了「减弱动态效果」（Windows：设置 → 辅助功能 → 视觉效果 → 动画效果；' +
-            'macOS：辅助功能 → 显示 → 减弱动态效果）。' +
-            '确定要无视它，就在本脚本之前设 window.GENSHIN_LOGIN_FORCE = true')
-    }
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches && !window.GENSHIN_LOGIN_FORCE) {
+            bail(
+                '系统开了「减弱动态效果」（Windows：设置 → 辅助功能 → 视觉效果 → 动画效果；' +
+                'macOS：辅助功能 → 显示 → 减弱动态效果）。' +
+                '确定要无视它，就在本脚本之前设 window.GENSHIN_LOGIN_FORCE = true')
+            return false
+        }
 
-    // WebGL2 是硬要求：卡通光照那几段是 ESSL3，跑不了 WebGL1
-    if (!document.createElement('canvas').getContext('webgl2')) {
-        return bail('这个浏览器或显卡驱动没有 WebGL2')
-    }
+        // WebGL2 是硬要求：卡通光照那几段是 ESSL3，跑不了 WebGL1
+        if (!document.createElement('canvas').getContext('webgl2')) {
+            bail('这个浏览器或显卡驱动没有 WebGL2')
+            return false
+        }
+
+        return true
+    })()
 
     /* 列表页每次渲染都会触发一堆 mutation，攒到下一帧再查一次就够了。
        attributes 也得看：预览页切登录页改的是 style.display，不是增删节点。 */

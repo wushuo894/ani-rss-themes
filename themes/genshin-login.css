@@ -103,13 +103,14 @@
     pointer-events: none;
 }
 
-/* ==================== logo 与标题 ====================
- * 启动器那个弹窗顶上是米哈游的字标，所以这里把 ani-rss 自己的图标顶掉。
- * 字标是文字排的（几何无衬线 + 收紧的字距），不外链任何图。
+/* ==================== logo ====================
+ * 启动器那个弹窗顶上只有米哈游的字标，所以这里把 ani-rss 自己的图标和
+ * 「ANI-RSS」那行标题一起顶掉。字标是文字排的（几何无衬线 + 收紧的字距），
+ * 不外链任何图。
  */
 #login-page #form > div:first-child {
     height: 48px;
-    margin-bottom: 16px;
+    margin-bottom: 38px;   /* 原来标题占的那段间距，归它 */
     font-size: 0;                    /* 吃掉原图标周围的空白节点 */
     text-align: center;
     background: var(--gs-logo-img) center / auto 44px no-repeat;
@@ -139,13 +140,9 @@
  * }
  */
 
+/* 启动器那个弹窗字标底下直接就是输入框，没有应用名 */
 #login-page .title-h2 {
-    margin: 0 0 34px;
-    text-align: center;
-    font-size: 21px;
-    font-weight: 600;
-    letter-spacing: .14em;
-    color: #2B2E33;
+    display: none;
 }
 
 /* ==================== 输入框 ==================== */
@@ -273,14 +270,35 @@
     border-color: var(--gs-gold);
 }
 
-/* 装饰性的，ani-rss 没有找回密码这回事，所以不做成可点的样子 */
+/* ── 忘记密码 ──
+ * 登录表单里本来没有这个节点。装了 js/genshin-login.js 的话，它会往这行补一个
+ * 真的 <a class="gs-forgot">，指向 ani-rss 文档里改密码那一页；只装 CSS 的话
+ * 就退回下面这个伪元素 —— 样子在，但点不了，CSS 造不出链接。
+ */
+#login-page .action .gs-forgot,
 #login-page .action::after {
-    content: "忘记密码";
     order: 2;
     font-size: 14px;
     letter-spacing: .04em;
     color: var(--gs-gold);
+}
+
+#login-page .action::after {
+    content: "忘记密码";
     pointer-events: none;
+}
+
+/* 真链接在场时，把上面那个装饰的收起来，免得一行两个 */
+#login-page .action:has(.gs-forgot)::after {
+    display: none;
+}
+
+#login-page .action .gs-forgot {
+    text-decoration: none;
+}
+
+#login-page .action .gs-forgot:hover {
+    text-decoration: underline;
 }
 
 #login-page .action .el-button {

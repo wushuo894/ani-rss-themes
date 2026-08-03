@@ -191,9 +191,11 @@ import("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/js/genshin
 - **单用也成立**。不装 JS 的话，背后是一层按真实渲染取色的渐变兜底；装了 JS 就被真的
   天空盖住，canvas 淡入那 1.2 秒正好当过渡。
 - 卡片宽度、金色、按钮底色都在文件开头的 `--gs-*` 变量里。
-- 顶上是米哈游的字标，底下补了启动器那条「其他方式登录」分割线和一排图标。字标是文字
-  排的、图标是内联 SVG 画的，整份 CSS 不请求任何外部资源。想换成真图看文件里
-  「换 logo」那一段，两行的事。
+- 顶上只有米哈游的字标（ani-rss 的图标和「ANI-RSS」那行标题都收起来了，启动器那个弹窗
+  就这样），底下补了那条「其他方式登录」分割线和一排图标。字标是文字排的、图标是内联
+  SVG 画的，整份 CSS 不请求任何外部资源。想换成真图看文件里「换 logo」那一段。
+- 「忘记密码」只装 CSS 时是个伪元素，样子在但点不了 —— CSS 造不出链接。装了 JS 才会
+  变成真链接，指向文档的[改密码那一页](https://docs.wushuo.top/change-the-password)。
 
 **关于这份 JS**
 
@@ -203,7 +205,8 @@ import("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/js/genshin
   任何文件。移植来源与免责声明见 [`js/NOTICE.md`](js/NOTICE.md)。
 - **要流量**。首次进登录页拉 three.js 约 600 KB + Draco 解码器约 200 KB + 模型贴图
   约 3 MB，之后走浏览器缓存。移动网络上这不便宜，介意就只装 CSS。
-- **要 WebGL2**，且系统开了「减弱动态效果」时脚本自行退出，此时 CSS 的兜底天空接管。
+- **要 WebGL2**，且系统开了「减弱动态效果」时不建三维场景，此时 CSS 的兜底天空接管；
+  「忘记密码」那个链接不受影响，这几种情况下照样补。
 
 ## 已知点
 
