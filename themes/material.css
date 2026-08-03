@@ -288,6 +288,8 @@ body::before {
 html .el-button {
     --btn-bg: var(--md-secondary-container);
     --btn-fg: var(--md-on-secondary-container);
+    --btn-h: 40px;          /* M3 common button 的标准高度 */
+    --btn-px: 24px;
 }
 
 /* filled button：主操作，M3 里就这一颗实心的 */
@@ -328,8 +330,9 @@ html .el-button.is-text:not(.is-disabled).is-has-bg {
     background-color: var(--btn-bg);
     color: var(--btn-fg);
     box-shadow: none;
-    height: 40px;
-    padding: 0 24px;
+    height: var(--btn-h);
+    width: var(--btn-w, auto);
+    padding: 0 var(--btn-px);
     transition: background-color var(--md-dur-short) var(--md-ease-standard),
     box-shadow var(--md-dur-short) var(--md-ease-standard);
 }
@@ -382,17 +385,27 @@ html .el-button:active::after {
     transition: 0s;
 }
 
-html .el-button.is-circle {
-    border-radius: var(--md-shape-full);
-    width: 40px;
-    padding: 0;
+/* 尺寸档同理走变量：上面那条上色规则是 0-4-1，`html .el-button--small` 只有 0-1-1，
+   直接写 height 会被压平，看着就是「大小号没适配」。按 M3 的 32 / 40 / 48 三档给变量。 */
+html .el-button--small {
+    --btn-h: 32px;
+    --btn-px: 16px;
+    font-size: 13px;
 }
 
-/* 里头只有一个图标的按钮：M3 icon button，正方形，别留文字用的那 24px 内边距。
+html .el-button--large {
+    --btn-h: 48px;
+    --btn-px: 28px;
+    font-size: 15px;
+}
+
+/* 圆钮和纯图标钮：正方形，别留文字用的那圈内边距。
    :has() 不支持的老浏览器上只是宽一点，不会坏。 */
+html .el-button.is-circle,
 html .el-button:has(> .el-icon:only-child) {
-    width: 40px;
-    padding: 0;
+    --btn-px: 0px;
+    --btn-w: var(--btn-h);
+    border-radius: var(--md-shape-full);
 }
 
 /* 登录按钮：通栏 filled */
@@ -405,23 +418,51 @@ html #form .el-button {
 
 /* ================= 输入框：M3 filled text field ================= */
 /* 顶上两角圆、底下一道线，聚焦线变粗变主色 —— M3 最好认的一个控件 */
+
+/* 高度对齐是这套主题最容易露怯的地方：按钮按 M3 是 40px，而 Element Plus 的
+   输入框、下拉、数字框默认 32px。混在一行里高矮不齐，就是那种「外面改了、
+   里面没改」的观感。这里把这几个控件统一拉到 40px，和按钮一条线。 */
+html .el-input,
+html .el-select,
+html .el-input-number {
+    --el-input-height: 40px;
+}
+
 html .el-input__wrapper,
 html .el-select__wrapper {
+    min-height: 40px;
+    box-sizing: border-box;
     background-color: var(--md-surface-container-highest);
     border-radius: var(--md-shape-xs) var(--md-shape-xs) 0 0;
     box-shadow: inset 0 -1px 0 0 var(--md-on-surface-variant);
-    padding: 1px 16px;
+    padding: 0 16px;
     transition: background-color var(--md-dur-short) var(--md-ease-standard),
     box-shadow var(--md-dur-short) var(--md-ease-standard);
 }
 
+html .el-input__inner {
+    height: 38px;
+    line-height: 38px;
+    color: var(--md-on-surface);
+}
+
 html .el-textarea__inner {
+    min-height: 40px;
     background-color: var(--md-surface-container-highest);
     border-radius: var(--md-shape-xs) var(--md-shape-xs) 0 0;
     box-shadow: inset 0 -1px 0 0 var(--md-on-surface-variant);
-    padding: 12px 16px;
+    padding: 10px 16px;
+    color: var(--md-on-surface);
     transition: background-color var(--md-dur-short) var(--md-ease-standard),
     box-shadow var(--md-dur-short) var(--md-ease-standard);
+}
+
+/* 禁用态：M3 是把整块压到 on-surface 的低透明度，底线也跟着淡下去 */
+html .el-input.is-disabled .el-input__wrapper,
+html .el-select.is-disabled .el-select__wrapper,
+html .el-textarea.is-disabled .el-textarea__inner {
+    background-color: color-mix(in srgb, var(--md-on-surface) 4%, transparent);
+    box-shadow: inset 0 -1px 0 0 color-mix(in srgb, var(--md-on-surface) 38%, transparent);
 }
 
 html .el-input__wrapper:hover,
@@ -446,13 +487,26 @@ html .el-select__caret {
     color: var(--md-on-surface-variant);
 }
 
-/* 数字框两侧的加减：M3 icon button */
+/* 数字调节框两侧的加减：M3 icon button —— 圆的、透明底、hover 才浮出一层 */
 html .el-input-number__increase,
 html .el-input-number__decrease {
-    background-color: transparent;
+    top: 4px;
+    bottom: 4px;
+    width: 32px;
+    background: transparent;
     border: none;
-    color: var(--md-on-surface-variant);
     border-radius: var(--md-shape-full);
+    color: var(--md-on-surface-variant);
+    transition: background-color var(--md-dur-short) var(--md-ease-standard),
+    color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-input-number__decrease {
+    left: 4px;
+}
+
+html .el-input-number__increase {
+    right: 4px;
 }
 
 html .el-input-number__increase:hover,
@@ -460,6 +514,18 @@ html .el-input-number__decrease:hover {
     background-color: color-mix(in srgb,
         var(--md-on-surface) var(--md-state-hover), transparent);
     color: var(--md-primary);
+}
+
+/* EP 在 hover 加减号时给输入框描一圈 1px 主色边，那是它那套「带框输入框」的画法，
+   放到 filled field 上会凭空多出一个方框 —— 换成把底线加粗，和聚焦是同一套语言 */
+html .el-input-number__increase:hover ~ .el-input:not(.is-disabled) .el-input__wrapper,
+html .el-input-number__decrease:hover ~ .el-input:not(.is-disabled) .el-input__wrapper {
+    box-shadow: inset 0 -2px 0 0 var(--md-primary);
+}
+
+/* 数字框里的数值居中，和两边的圆钮拉开距离 */
+html .el-input-number .el-input__inner {
+    color: var(--md-on-surface);
 }
 
 /* ================= 卡片：M3 filled card ================= */
@@ -641,39 +707,72 @@ html .el-switch.is-checked .el-switch__core .el-switch__action {
     background-color: var(--md-on-primary);
 }
 
-/* M3 checkbox：2px 圆角的方框，选中整块填主色 */
-html .el-checkbox__inner {
-    width: 18px;
-    height: 18px;
-    border-radius: 2px;
-    border: 2px solid var(--md-on-surface-variant);
-    background-color: transparent;
-    transition: background-color var(--md-dur-short) var(--md-ease-standard),
-    border-color var(--md-dur-short) var(--md-ease-standard);
+/* M3 checkbox：18px、2px 圆角的方框，选中整块填主色。
+   颜色全走 Element Plus 自己那套变量 —— 它的选中态规则权重比主题高，
+   直接写 color 打不过，喂变量才是稳的。 */
+html .el-checkbox {
+    --el-checkbox-input-width: 18px;
+    --el-checkbox-input-height: 18px;
+    --el-checkbox-border-radius: 2px;
+    --el-checkbox-bg-color: transparent;
+    --el-checkbox-input-border: 2px solid var(--md-on-surface-variant);
+    --el-checkbox-input-border-color-hover: var(--md-primary);
+    --el-checkbox-text-color: var(--md-on-surface);
+    --el-checkbox-checked-bg-color: var(--md-primary);
+    --el-checkbox-checked-input-border-color: var(--md-primary);
+    --el-checkbox-checked-icon-color: var(--md-on-primary);
+    --el-checkbox-checked-text-color: var(--md-on-surface);
+    --el-checkbox-disabled-border-color: color-mix(in srgb, var(--md-on-surface) 38%, transparent);
+    --el-checkbox-disabled-input-fill: transparent;
+    --el-checkbox-disabled-checked-input-fill: color-mix(in srgb, var(--md-on-surface) 38%, transparent);
+    --el-checkbox-disabled-checked-input-border-color: transparent;
+    --el-checkbox-disabled-checked-icon-color: var(--md-surface);
 }
 
+/*
+ * 那个勾。EP 是用一个只留右边和下边框的小方块转 45° 拼出来的，本身已经用
+ * top/left:50% + translate 居中了 —— 之前这里补了 `left:5px; top:1px`，把它的
+ * 定位基准掀了，translate 还在照常生效，勾就被顶到右上角去了。这版不碰 top/left，
+ * 只改尺寸，然后按新尺寸重算 translate。
+ *
+ * 方块 4×8、右下边框各 2px（content-box，所以实际占位 6×10）。转 45° 之后墨迹的
+ * 重心比方块中心低 1.61px，要让勾真的落在框正中，纵向就得多提这一截：
+ *   5 - 10b = -1.61  →  b ≈ 0.66  →  translateY(-66%)
+ * 横向重心转完正好落在中线上，所以是干净的 -50%。
+ *
+ * border-width 只能写右和下：EP 把 border-top/left 设成了 0，用 border-width 简写
+ * 会把这两条一起撑成 2px，虽然透明但一样占位，几何又歪了。
+ */
 html .el-checkbox__inner::after {
-    left: 5px;
-    top: 1px;
-    border-width: 2px;
-    border-color: var(--md-on-primary);
+    width: 4px;
+    height: 8px;
+    border-right-width: 2px;
+    border-bottom-width: 2px;
+    transform: translate(-50%, -66%) rotate(45deg) scaleY(0);
 }
 
-html .el-checkbox__input.is-checked .el-checkbox__inner,
-html .el-checkbox__input.is-indeterminate .el-checkbox__inner {
-    background-color: var(--md-primary);
-    border-color: var(--md-primary);
+html .el-checkbox__input.is-checked .el-checkbox__inner::after {
+    transform: translate(-50%, -66%) rotate(45deg) scaleY(1);
 }
 
-html .el-checkbox__input.is-checked + .el-checkbox__label {
-    color: var(--md-on-surface);
+/* 半选那道横杠：EP 默认按 14px 的框摆的，18px 的框上要重新居中 */
+html .el-checkbox__input.is-indeterminate .el-checkbox__inner::before {
+    top: 50%;
+    left: 2px;
+    right: 2px;
+    height: 2px;
+    transform: translateY(-50%);
 }
 
-html .el-radio__inner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--md-on-surface-variant);
-    background-color: transparent;
+/* M3 radio：20px 圆环，选中时环变主色、中间落一个 10px 的实心点 */
+html .el-radio {
+    --el-radio-input-width: 20px;
+    --el-radio-input-height: 20px;
+    --el-radio-input-bg-color: transparent;
+    --el-radio-input-border: 2px solid var(--md-on-surface-variant);
+    --el-radio-input-border-color: var(--md-on-surface-variant);
+    --el-radio-input-border-color-hover: var(--md-primary);
+    --el-radio-text-color: var(--md-on-surface);
 }
 
 html .el-radio__input.is-checked .el-radio__inner {
@@ -686,10 +785,6 @@ html .el-radio__input.is-checked .el-radio__inner::after {
     height: 10px;
     background-color: var(--md-primary);
     transform: translate(-50%, -50%) scale(1);
-}
-
-html .el-radio__input.is-checked + .el-radio__label {
-    color: var(--md-on-surface);
 }
 
 /* 分段按钮：M3 segmented button，两头全圆角 */
@@ -881,9 +976,9 @@ html .list-week-title {
 html .list-card-actions .el-button {
     --btn-bg: transparent;
     --btn-fg: var(--md-on-surface-variant);
-    width: 36px;
-    height: 36px;
-    padding: 0;
+    --btn-h: 36px;      /* 卡片里挤，比通用的 40 收一档 */
+    --btn-w: 36px;
+    --btn-px: 0px;
 }
 
 html .list-card-actions .el-button--danger {
