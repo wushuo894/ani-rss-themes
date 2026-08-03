@@ -18,9 +18,9 @@
  * 做成卡片本身，走正常流式布局，竖屏和窄屏自己会缩。
  *
  * 另外 v0.1 外链了米哈游的企业 logo 和 TapTap 的图标（pic1.imgdb.cn）。那台图床
- * 带防盗链、不挂 UA 直接返回 0 字节，迟早烂掉；而且企业商标比游戏美术更不适合
- * 硬塞进默认值里。所以默认用的还是 ani-rss 自己的图标，想换成别的看下面
- * 「换 logo」那一段，两行的事。
+ * 带防盗链、不挂 UA 直接返回 0 字节，迟早烂掉。这版要的是同一个效果、不要那条外链：
+ * 字标用文字排（--gs-logo-text），底下「其他方式登录」那排图标用内联 SVG 画，
+ * 整份 CSS 不请求任何外部资源。想换成真图看「换 logo」那一段，两行的事。
  */
 
 /* ==================== 可调 ==================== */
@@ -33,6 +33,12 @@
     --gs-radius: 16px;
     --gs-font: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei",
                "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+
+    /* 顶上的字标。默认拿文字排出来，见下面「换 logo」 */
+    --gs-logo-text: "miHoYo";
+    --gs-logo-img: none;
+    --gs-logo-font: "Century Gothic", "Futura", "Poppins", "Avenir Next",
+                    "Segoe UI", "Trebuchet MS", sans-serif;
 }
 
 /* ==================== 兜底天空 ====================
@@ -97,28 +103,39 @@
     pointer-events: none;
 }
 
-/* ==================== logo 与标题 ==================== */
+/* ==================== logo 与标题 ====================
+ * 启动器那个弹窗顶上是米哈游的字标，所以这里把 ani-rss 自己的图标顶掉。
+ * 字标是文字排的（几何无衬线 + 收紧的字距），不外链任何图。
+ */
 #login-page #form > div:first-child {
-    margin-bottom: 18px;
+    height: 48px;
+    margin-bottom: 16px;
+    font-size: 0;                    /* 吃掉原图标周围的空白节点 */
+    text-align: center;
+    background: var(--gs-logo-img) center / auto 44px no-repeat;
 }
 
-#login-page #form > div:first-child img,
-#login-page #form > div:first-child svg {
-    width: auto;
-    height: 58px;
-    opacity: .82;
-    color: #6E7278;
-    filter: grayscale(1);
+/* 原来的 <img> / <svg> 图标 */
+#login-page #form > div:first-child > * {
+    display: none;
+}
+
+#login-page #form > div:first-child::before {
+    content: var(--gs-logo-text);
+    font-family: var(--gs-logo-font);
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 48px;
+    letter-spacing: -.005em;
+    color: #26282C;
 }
 
 /* ── 换 logo ──
- * 想把上面那个图标换成别的（启动器原样是米哈游的企业 logo，本仓库不默认带），
- * 把下面两条的注释去掉，URL 改成你自己的图：
+ * 想换成真的图片（米哈游官方那张、或者你自己的），改这两行就行：
  *
- * #login-page #form > div:first-child > * { display: none; }
- * #login-page #form > div:first-child {
- *     height: 58px;
- *     background: url("https://例子/logo.png") center / contain no-repeat;
+ * #login-page {
+ *     --gs-logo-img: url("https://例子/logo.png");
+ *     --gs-logo-text: "";
  * }
  */
 
@@ -221,15 +238,39 @@
     height: auto;
     margin: 0;
     font-weight: 500;
-    --el-checkbox-text-color: #98999E;
-    --el-checkbox-checked-text-color: #98999E;
+    --el-checkbox-text-color: #74777D;
+    --el-checkbox-checked-text-color: #74777D;
     --el-checkbox-checked-bg-color: var(--gs-gold);
     --el-checkbox-checked-input-border-color: var(--gs-gold);
     --el-checkbox-input-border-color-hover: var(--gs-gold);
 }
 
+/* 这个圈默认是 1px 的 --el-border-color(#DCDFE6)，压在白卡片上基本看不见。
+ * 卡片是写死的白底，所以这里也把边框写死，别再跟 EP 的明暗变量走。 */
 #login-page .action .el-checkbox__inner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #5C6066;
     border-radius: 50%;
+    background-color: #FFFFFF;
+}
+
+#login-page .action .el-checkbox:hover .el-checkbox__inner {
+    border-color: var(--gs-gold);
+}
+
+/* 圈从 14px 撑到了 18px，勾也跟着放大一点。
+ * 位置不用管：EP 那个勾是 top/left 50% + translate 居中的，跟着圈走。
+ * transform 更不能碰 —— 未勾选时靠 scaleY(0) 收起来的就是它。 */
+#login-page .action .el-checkbox__inner::after {
+    width: 4px;
+    height: 8px;
+    border-width: 0 2px 2px 0;
+}
+
+#login-page .action .el-checkbox__input.is-checked .el-checkbox__inner {
+    background-color: var(--gs-gold);
+    border-color: var(--gs-gold);
 }
 
 /* 装饰性的，ani-rss 没有找回密码这回事，所以不做成可点的样子 */
@@ -279,6 +320,41 @@
     font-weight: 600;
     letter-spacing: .28em;
     text-indent: .28em;   /* 补掉字距在末尾多出来的那一格 */
+}
+
+/* ==================== 其他方式登录 ====================
+ * 启动器登录窗按钮下面还有一条「其他方式登录」分割线和一排圆形图标，缺了这截
+ * 卡片下半身是空的，不像那个弹窗。DOM 里没有对应节点，所以借两个伪元素：
+ *
+ *   .action::before   → 分割线那一行（order:4，排到按钮后面去）
+ *   .el-form::after   → 图标那一排（在 .action 之后，正常流里）
+ *
+ * 都是纯装饰 —— ani-rss 只有用户名密码一种登录方式，所以不给手型、不吃点击。
+ */
+#login-page .action::before {
+    content: "其他方式登录";
+    order: 4;
+    flex: 0 0 100%;
+    margin-top: 30px;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1;
+    color: #A6A9AE;
+    pointer-events: none;
+    /* 文字两侧各一条到头的细线 */
+    background:
+        linear-gradient(#E6E8EB, #E6E8EB) left center / calc(50% - 52px) 1px no-repeat,
+        linear-gradient(#E6E8EB, #E6E8EB) right center / calc(50% - 52px) 1px no-repeat;
+}
+
+/* 扫码 / 消息 / 账号三个圈。内联 SVG，不请求外部图 */
+#login-page .el-form::after {
+    content: "";
+    display: block;
+    height: 40px;
+    margin-top: 18px;
+    pointer-events: none;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 152 40' fill='none' stroke='%238A8E94' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke='%23D5D8DC'%3E%3Ccircle cx='20' cy='20' r='19'/%3E%3Ccircle cx='76' cy='20' r='19'/%3E%3Ccircle cx='132' cy='20' r='19'/%3E%3C/g%3E%3Crect x='12' y='12' width='6' height='6' rx='1'/%3E%3Crect x='12' y='22' width='6' height='6' rx='1'/%3E%3Crect x='22' y='12' width='6' height='6' rx='1'/%3E%3Cpath d='M22 23h3M26 23v3M22 27h6'/%3E%3Cpath d='M68 12h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-5 4v-4h-3a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z'/%3E%3Ccircle cx='132' cy='17' r='4'/%3E%3Cpath d='M126 30a6 6 0 0 1 12 0'/%3E%3C/svg%3E") center / auto 40px no-repeat;
 }
 
 /* ==================== 页脚 ====================
