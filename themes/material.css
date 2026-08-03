@@ -155,9 +155,13 @@ html:root, html.dark:root {
     --md-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", "Courier New", monospace;
 
-    /* 勾选框那个勾：M3 的等粗圆头对勾，当遮罩用。路径在 24 的画布里上下左右都留白
-       相等，所以铺满多大的框都是居中的。整份 CSS 不请求外部资源，这里也是内联的。 */
-    --md-check: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.4L10 16.4L18 8' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    /* 勾选框那个勾：直接用 Google Material Symbols 的 check 图标原路径（Apache-2.0），
+       就是 MD 自己那个勾，不是我照着描的。
+       它是填充路径不是描边，所以外接框是精确的：x 3.85~20.15、y 5.975~18。
+       viewBox 就按这个框裁紧 —— 裁紧之后配 background-size 缩放，画出来多大、
+       落在哪，都只由外面那个盒子说了算，不用再算笔画端头和圆角往外溢多少。
+       内联在这里，整份 CSS 不请求任何外部资源。 */
+    --md-check: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='3.85 5.975 16.3 12.025'%3E%3Cpath d='M9.55 18 3.85 12.3l1.425-1.425L9.55 15.15l9.175-9.175L20.15 7.4 9.55 18Z' fill='%23fff'/%3E%3C/svg%3E");
 
     /* ---- 主色阶：EP 的 light-N 按「往 surface 里兑」算，深浅两套自动成立 ---- */
     --el-color-primary: var(--md-primary) !important;
@@ -734,27 +738,29 @@ html .el-checkbox {
 }
 
 /*
- * 那个勾改用 SVG 遮罩画，不再拿两条边框转 45° 拼。
+ * 那个勾改用 MD 官方 check 图标当遮罩，不再拿两条边框转 45° 拼 —— 边框那套的笔画
+ * 两端是沿原方块的轴切的，转 45° 之后两个端头都成斜切口、转角内侧还是直角豁口，
+ * 位置调得再准，勾本身看着就是歪的。
  *
- * 边框那套有两个治不好的毛病：
- *   1. 笔画两端是沿原方块的轴切的，转 45° 之后两个端头都是斜切口，
- *      加上转角内侧是直角，整个勾看着就是歪的、豁口的；
- *   2. 居中得手算旋转后墨迹的重心去凑 translate 的百分比，差零点几像素就看得出来。
- *
- * 换成遮罩之后：居中由 inset + 遮罩自身居中结构性保证，不用凑系数；笔形是 M3 那个
- * 等粗圆头的对勾，两端和转角都是圆的。inset 取 -2px 是为了盖住 inner 那 2px 边框，
- * 让遮罩铺在完整的 18×18 上，勾的大小才对得上 M3 的比例。
+ * 定位这里有个坑：Element Plus 没给 .el-checkbox__inner 设 position，
+ * 所以 ::after 的定位基准其实是外面那层 .el-checkbox__input —— 那是个
+ * inline-block，比 18×18 的框高出一截（行内的基线空隙），照它来定位，勾就会
+ * 往右下偏、大小也不对。补一句 position: relative 把基准拉回框本身。
  */
+html .el-checkbox__inner {
+    position: relative;
+}
+
 html .el-checkbox__inner::after {
     content: "";
     position: absolute;
-    inset: -2px;
+    inset: -2px;                 /* 抵掉 2px 边框，铺满完整的 18×18 */
     width: auto;
     height: auto;
     border: 0;
     background-color: var(--md-on-primary);
-    -webkit-mask: var(--md-check) center / 100% 100% no-repeat;
-    mask: var(--md-check) center / 100% 100% no-repeat;
+    -webkit-mask: var(--md-check) center / 72% auto no-repeat;
+    mask: var(--md-check) center / 72% auto no-repeat;
     transform: scale(0);
     transform-origin: 50% 50%;
     transition: transform var(--md-dur-short) var(--md-ease-standard);
