@@ -1,0 +1,647 @@
+/**
+ * 液态玻璃 · Liquid Glass
+ * 字体：SF Pro 系统栈，收紧字距（不是 glass.css 那种拉开的气口）
+ * 按钮：胶囊形，按下 scale(.95) 弹簧回弹
+ * 玻璃：边缘一条渐隐「折射带」—— 上下亮、左右暗，上缘偏冷下缘偏暖（色差）
+ * 圆角：同心 —— 内圆角 = 外圆角 − 内边距；控件一律胶囊 = 高度 ÷ 2
+ * 背景：高饱和网格渐变，两层不同周期缓慢漂移
+ * 明暗跟随切换
+ *
+ * 和 themes/glass.css 的区别（别搞混，那是 2020 年那套 glassmorphism）：
+ * 老式毛玻璃 = 均匀模糊 + 半透明白 + 1px 白边；
+ * 液态玻璃 = 渐隐折射带（上下亮左右暗）+ 顶缘弧光 + 色差 + 按下弹簧形变，
+ * 背后还铺了一张细网格 —— 玻璃是靠「把背后的细节抹掉」被认出来的。
+ * 参考 Apple WWDC25「Meet Liquid Glass」与 HIG Materials 章节的规格。
+ *
+ * ⚙️ 三个旋钮，嫌卡 / 嫌花就改这里：
+ *    --lg-blur   面板模糊，调 0 就是纯色不透明，最省电
+ *    --lg-rim    折射带，设成 none 就退回普通毛玻璃
+ *    --lg-sheen  顶缘弧光，设成 transparent 去掉
+ */
+
+/* ---------- 浅色 ---------- */
+html:root:not(.dark) {
+    --el-color-primary: #5E5CE6 !important;   /* SF 紫蓝 */
+    --el-color-primary-light-3: #8785EE;
+    --el-color-primary-light-5: #A5A4F3;
+    --el-color-primary-light-7: #C7C6F8;
+    --el-color-primary-light-8: #D8D8FA;
+    --el-color-primary-light-9: #EDEDFD;
+    --el-color-primary-dark-2: #4341C4;
+
+    --el-color-success: #34C759;
+    --el-color-warning: #FF9F0A;
+    --el-color-danger: #FF375F;
+    --el-color-error: #FF375F;
+    --el-color-info: #7D7D8A;
+
+    /* 玻璃本体：白但不满，靠 backdrop-filter 借背景的颜色 */
+    --el-bg-color: rgba(255, 255, 255, .46);
+    /* 底色是中调而不是近白：白面板压在白墙上没有透明度可言，
+       玻璃靠的是「比背后亮一截」，背后先得有一截可比。 */
+    --el-bg-color-page: #C6CFEE;
+    --el-bg-color-overlay: rgba(255, 255, 255, .62);
+    --el-card-bg-color: rgba(255, 255, 255, .40);
+    --el-dialog-bg-color: rgba(255, 255, 255, .60);
+    /* Element Plus 在 .el-dialog 上自己声明了 --el-dialog-bg-color: var(--el-bg-color)，
+       作用域比 :root 近，在根上改是改不动的 —— 用主题自己的变量绕开这场就近覆盖。 */
+    --lg-dialog-bg: rgba(255, 255, 255, .62);
+    --el-mask-color: rgba(120, 130, 180, .28);
+    /* 弹窗遮罩走的是 --el-overlay-color-*（默认 50% 纯黑），不是 --el-mask-color。
+       50% 纯黑压在彩色背景上是一片脏灰，弹窗也跟着发闷 —— 改成淡的冷色。 */
+    --el-overlay-color: rgba(24, 28, 58, .34);
+    --el-overlay-color-light: rgba(24, 28, 58, .26);
+    --el-overlay-color-lighter: rgba(24, 28, 58, .20);
+
+    --el-text-color-primary: #16182A;
+    --el-text-color-regular: #3A3D52;
+    --el-text-color-secondary: #64687F;
+    --el-text-color-placeholder: #8E92A6;
+    --el-text-color-disabled: #B2B5C4;
+
+    --el-border-color-dark: rgba(255, 255, 255, .85);
+    --el-border-color-darker: rgba(255, 255, 255, .95);
+    --el-border-color: rgba(255, 255, 255, .65);
+    --el-border-color-light: rgba(255, 255, 255, .5);
+    --el-border-color-lighter: rgba(255, 255, 255, .4);
+    --el-border-color-extra-light: rgba(255, 255, 255, .3);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .62);
+    --el-fill-color: rgba(255, 255, 255, .48);
+    --el-fill-color-light: rgba(255, 255, 255, .38);
+    --el-fill-color-lighter: rgba(255, 255, 255, .28);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .2);
+    --el-fill-color-blank: rgba(255, 255, 255, .48);
+
+    /* 背景色块：四团高饱和色，糊开之后才是这个主题的底色来源。
+       这里必须够浓 —— 浅底配浅面板等于没有分离度，玻璃就浮不起来 */
+    --lg-mesh-1: rgba(84, 80, 235, .80);
+    --lg-mesh-2: rgba(255, 64, 160, .66);
+    --lg-mesh-3: rgba(20, 205, 200, .70);
+    --lg-mesh-4: rgba(255, 165, 40, .58);
+    --lg-mesh-5: rgba(120, 90, 245, .52);
+    --lg-grid: rgba(255, 255, 255, .38);
+
+    /* 顶缘弧光：玻璃上沿的圆角把光拉成一条弧 */
+    --lg-sheen: rgba(255, 255, 255, .50);
+    /* 镜面高光：上边缘最亮，下边缘是内反射，弱一半 */
+    --lg-spec-top: rgba(255, 255, 255, .95);
+    --lg-spec-bottom: rgba(255, 255, 255, .45);
+    /* 左右两条：法线朝外，接不到光，压暗 */
+    --lg-spec-side: rgba(22, 24, 42, .07);
+    /* 色差：上冷下暖，蓝光折射得多 */
+    --lg-fringe-cool: rgba(150, 220, 255, .55);
+    --lg-fringe-warm: rgba(255, 190, 220, .40);
+
+    --lg-shadow: 0 10px 34px -12px rgba(31, 38, 135, .30), 0 2px 8px -4px rgba(31, 38, 135, .18);
+    --lg-shadow-lift: 0 20px 48px -14px rgba(31, 38, 135, .38), 0 4px 12px -6px rgba(31, 38, 135, .22);
+}
+
+/* ---------- 深色 ---------- */
+html.dark:root {
+    --el-color-primary: #7D7AFF !important;
+    --el-color-primary-light-3: #6462CE;
+    --el-color-primary-light-5: #4E4C9C;
+    --el-color-primary-light-7: #38376B;
+    --el-color-primary-light-8: #2C2B52;
+    --el-color-primary-light-9: #21203B;
+    --el-color-primary-dark-2: #9E9CFF;
+
+    --el-color-success: #30D158;
+    --el-color-warning: #FFB340;
+    --el-color-danger: #FF4F6E;
+    --el-color-error: #FF4F6E;
+    --el-color-info: #98989F;
+
+    --el-bg-color: rgba(28, 30, 52, .48);
+    --el-bg-color-page: #07090F;
+    --el-bg-color-overlay: rgba(32, 34, 58, .66);
+    --el-card-bg-color: rgba(28, 30, 52, .44);
+    --el-dialog-bg-color: rgba(32, 34, 58, .64);
+    --lg-dialog-bg: rgba(32, 34, 58, .66);
+    --el-mask-color: rgba(4, 5, 12, .5);
+    --el-overlay-color: rgba(2, 3, 10, .58);
+    --el-overlay-color-light: rgba(2, 3, 10, .48);
+    --el-overlay-color-lighter: rgba(2, 3, 10, .40);
+
+    --el-text-color-primary: #F0F1FA;
+    --el-text-color-regular: #C3C6D8;
+    --el-text-color-secondary: #9195AC;
+    /* 占位符压在深色玻璃上，再暗就真读不出来了 */
+    --el-text-color-placeholder: #8B90A8;
+    --el-text-color-disabled: #4A4E63;
+
+    --el-border-color-dark: rgba(255, 255, 255, .26);
+    --el-border-color-darker: rgba(255, 255, 255, .34);
+    --el-border-color: rgba(255, 255, 255, .16);
+    --el-border-color-light: rgba(255, 255, 255, .12);
+    --el-border-color-lighter: rgba(255, 255, 255, .09);
+    --el-border-color-extra-light: rgba(255, 255, 255, .06);
+
+    --el-fill-color-dark: rgba(255, 255, 255, .14);
+    --el-fill-color: rgba(255, 255, 255, .1);
+    --el-fill-color-light: rgba(255, 255, 255, .07);
+    --el-fill-color-lighter: rgba(255, 255, 255, .05);
+    --el-fill-color-extra-light: rgba(255, 255, 255, .035);
+    --el-fill-color-blank: rgba(28, 30, 52, .48);
+
+    --lg-mesh-1: rgba(84, 80, 245, .72);
+    --lg-mesh-2: rgba(224, 50, 200, .58);
+    --lg-mesh-3: rgba(10, 210, 200, .50);
+    --lg-mesh-4: rgba(255, 110, 60, .42);
+    --lg-mesh-5: rgba(110, 70, 240, .40);
+    --lg-grid: rgba(255, 255, 255, .10);
+
+    /* 深色下弧光要收着点，太白就成了塑料反光 */
+    --lg-sheen: rgba(255, 255, 255, .16);
+    --lg-spec-top: rgba(255, 255, 255, .55);
+    --lg-spec-bottom: rgba(255, 255, 255, .22);
+    --lg-spec-side: rgba(0, 0, 0, .3);
+    --lg-fringe-cool: rgba(120, 200, 255, .40);
+    --lg-fringe-warm: rgba(255, 140, 190, .28);
+
+    --lg-shadow: 0 12px 38px -12px rgba(0, 0, 0, .7), 0 2px 8px -4px rgba(0, 0, 0, .5);
+    --lg-shadow-lift: 0 22px 54px -14px rgba(0, 0, 0, .8), 0 4px 14px -6px rgba(0, 0, 0, .55);
+}
+
+html:root, html.dark:root {
+    --lg-blur: 22px;      /* ⚙️ 面板模糊 */
+    --lg-sat: 190%;
+
+    /* ⚙️ 折射带 —— 整套效果的身份证，想退回普通毛玻璃就把这两行设成 none。
+       全部用带模糊半径的 inset 阴影拼，不用伪元素：
+       inset 阴影天生就是渐隐的，而且严格跟随 border-radius，
+       伪元素 + mask 挖出来的带子是硬边，放大看就是一圈白描边，不是透镜。
+       上下亮、左右暗 —— 光从上方进入玻璃，侧面法线朝外接不到光。
+       上缘偏冷、下缘偏暖 —— 蓝光折射角大，先于红光离开玻璃。 */
+    --lg-rim:
+        inset 0 1px 0 var(--lg-spec-top),
+        inset 0 -1px 0 var(--lg-spec-bottom),
+        inset 0 8px 16px -9px var(--lg-fringe-cool),
+        inset 0 -8px 16px -9px var(--lg-fringe-warm),
+        inset 10px 0 20px -15px var(--lg-spec-side),
+        inset -10px 0 20px -15px var(--lg-spec-side);
+    /* 胶囊控件只有 32px 高，大带子会把整颗按钮吃满 */
+    --lg-rim-sm:
+        inset 0 1px 0 var(--lg-spec-top),
+        inset 0 -1px 0 var(--lg-spec-bottom),
+        inset 0 4px 7px -5px var(--lg-fringe-cool),
+        inset 0 -4px 7px -5px var(--lg-fringe-warm),
+        inset 5px 0 9px -8px var(--lg-spec-side),
+        inset -5px 0 9px -8px var(--lg-spec-side);
+
+    /* 同心圆角：内 = 外 − 内边距（Apple HIG 的 concentric 规则） */
+    --lg-r: 22px;
+    --lg-pad: 14px;
+    --lg-r-in: calc(var(--lg-r) - var(--lg-pad));
+    --lg-r-pill: 999px;   /* 胶囊 = 高度 ÷ 2，交给 999px 自动取 */
+
+    --el-border-radius-small: 10px;
+    --el-border-radius-base: var(--lg-r);
+
+    /* 弹簧：snappy —— 轻微过冲，不是 bouncy 那种明显弹跳 */
+    --lg-spring: cubic-bezier(.34, 1.42, .64, 1);
+    --lg-ease: cubic-bezier(.32, .72, 0, 1);
+}
+
+/* ================= 字体：SF 系统栈，收紧字距 ================= */
+html * {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Segoe UI Variable Display", "Segoe UI", "PingFang SC", "HarmonyOS Sans SC",
+    "Noto Sans SC", "Microsoft YaHei", sans-serif;
+}
+
+html h1, html h2, html h3,
+html .el-dialog__title,
+html .title-h2,
+html .list-week-title,
+html .list-card-title {
+    font-weight: 600;
+    letter-spacing: -.018em;   /* Apple 的 display 字距是负的 */
+}
+
+html .el-button,
+html .el-tag,
+html .el-checkbox__label {
+    font-weight: 500;
+    letter-spacing: -.006em;
+}
+
+/* 数字走等宽，评分和集数不会跳 */
+html .list-card-score,
+html .list-card-subgroup {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ================= 背景：网格渐变，两层不同周期 ================= */
+body {
+    background-color: var(--el-bg-color-page);
+    color: var(--el-text-color-primary);
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    z-index: -50;
+    pointer-events: none;
+}
+
+/* 色块层：blur 只给 26px。糊过头就摊成一片灰，玻璃底下也就没有明暗可折射了 */
+body::before {
+    /* 五团，铺满整块画布。四角各一团、正中补一团 ——
+       内容区正好落在画面中央，只在四角放色块等于给白墙镶了个花边，
+       卡片底下还是白的，玻璃就永远浮不起来。 */
+    background-image:
+        radial-gradient(46% 52% at 10% 12%, var(--lg-mesh-1), transparent 70%),
+        radial-gradient(44% 50% at 92% 8%, var(--lg-mesh-2), transparent 68%),
+        radial-gradient(52% 56% at 82% 88%, var(--lg-mesh-3), transparent 70%),
+        radial-gradient(46% 50% at 14% 92%, var(--lg-mesh-4), transparent 66%),
+        radial-gradient(50% 44% at 50% 48%, var(--lg-mesh-5), transparent 72%);
+    filter: blur(26px);
+    animation: lg-drift-a 47s ease-in-out infinite alternate;
+}
+
+/* 细网格层：不模糊。
+   这层是整套效果的关键 —— 玻璃是靠「把背后的细节抹掉」被认出来的，
+   背后只有平滑渐变的话，模糊前后一个样，再多 backdrop-filter 也读不出玻璃。
+   一张 22px 的细网压在下面，面板内是一片柔光、面板外线条清晰，边界立刻成立。 */
+body::after {
+    background-image:
+        repeating-linear-gradient(0deg, var(--lg-grid) 0 1px, transparent 1px 22px),
+        repeating-linear-gradient(90deg, var(--lg-grid) 0 1px, transparent 1px 22px);
+    /* 和色块层错开周期，两层永远不会同时回到起点，看不出循环 */
+    animation: lg-drift-b 71s ease-in-out infinite alternate;
+}
+
+@keyframes lg-drift-a {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    100% { transform: translate3d(6%, 4%, 0) scale(1.18) rotate(6deg); }
+}
+
+/* 网格只平移不缩放不旋转 —— 转起来会看出摩尔纹，缩放会让线宽跳变 */
+@keyframes lg-drift-b {
+    0%   { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(22px, 22px, 0); }
+}
+
+/* =========================================================================
+   玻璃两件套，下面所有面板都靠这两条
+   1. 本体   ：backdrop-filter 借背景的颜色和明暗
+   2. 折射带 ：var(--lg-rim) 一组渐隐 inset 阴影 —— 这是液态玻璃的身份证
+   ========================================================================= */
+
+html .el-card,
+html .el-card.is-never-shadow,
+html .el-overlay-dialog .el-dialog,
+html .el-popper,
+html .el-select__popper,
+html .el-dropdown__popper,
+html .el-message,
+html .el-message-box {
+    position: relative;
+    border: 0;
+    border-radius: var(--lg-r);
+    background-color: var(--el-card-bg-color);
+    backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+    box-shadow: var(--lg-rim), var(--lg-shadow);
+    transition: box-shadow .32s var(--lg-ease), transform .32s var(--lg-spring);
+}
+
+/* 顶缘的镜面弧光：厚玻璃上沿是个圆角，光在那儿被拉成一条弧。
+   刻意用纯渐变而不是再叠一层 backdrop-filter —— 嵌套两层以上开始既糊又掉帧。 */
+html .el-card::before,
+html .el-overlay-dialog .el-dialog::before,
+html #login-page #form::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    /* 纵向半径写死 px 不写百分比：百分比会让弧光高度跟着卡片宽度长，
+       460px 宽的卡上半截会整个发白。厚度得和宽度脱钩。 */
+    background: radial-gradient(150% 42px at 50% -8px,
+        var(--lg-sheen) 0%, transparent 72%);
+}
+
+/* 弹窗要比卡片实一点：里面是表单，底下再花就没法填了 */
+html .el-overlay-dialog .el-dialog,
+html .el-message-box {
+    background-color: var(--lg-dialog-bg);
+}
+
+/* 内容要压在弧光之上。弧光是 position:absolute + z-index:0 的伪元素，
+   而未定位的正常流内容画在它下面 —— 不提上来，标题就会被洗白一层。
+   卡片、弹窗、登录卡三处都得提，只提卡片等于修了三分之一。 */
+html .el-card__body,
+html .el-card__header,
+html .el-card__footer,
+html .el-dialog__header,
+html .el-dialog__body,
+html .el-dialog__footer,
+html #login-page #form > * {
+    position: relative;
+    z-index: 1;
+    background: transparent;
+    border-color: var(--el-border-color-lighter);
+}
+
+html .el-card__body {
+    padding: var(--lg-pad);
+}
+
+html .el-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        var(--lg-rim),
+        var(--lg-shadow-lift);
+}
+
+/* 同心圆角：海报的圆角 = 卡片圆角 − 卡片内边距 */
+html .list-card-image {
+    border-radius: var(--lg-r-in) !important;
+    border: 0 !important;
+    box-shadow: 0 6px 18px -8px rgba(20, 24, 60, .55) !important;
+}
+
+/* ================= 按钮：胶囊 + 弹簧 ================= */
+/* 选择器里那串 .is-text:not(.is-disabled).is-has-bg 不是凑数：
+   Element Plus 自己就是用这个四段选择器给文字按钮上底色的，
+   少写一段特异性就输，主按钮会被刷成白底白字 —— 直接看不见。 */
+html .el-button,
+html .el-button.is-text:not(.is-disabled).is-has-bg {
+    position: relative;
+    border: 0;
+    border-radius: var(--lg-r-pill);
+    padding-left: 18px;
+    padding-right: 18px;
+    background-color: var(--el-fill-color);
+    color: var(--el-text-color-primary);
+    backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+    box-shadow:
+        var(--lg-rim-sm),
+        var(--lg-shadow);
+    /* transform 走弹簧，颜色走普通缓动 —— 弹簧作用在颜色上会看起来发抖 */
+    transition: transform .34s var(--lg-spring),
+                background-color .2s var(--lg-ease),
+                box-shadow .28s var(--lg-ease),
+                color .2s var(--lg-ease);
+}
+
+/* 胶囊顶缘那道弧光。按钮是玻璃里最小的一块，也最需要这道光把「厚度」交代出来 */
+html .el-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(140% 15px at 50% -3px,
+        var(--lg-sheen) 0%, transparent 72%);
+}
+
+html .el-button > span,
+html .el-button > i {
+    position: relative;
+    z-index: 1;
+}
+
+html .el-button:hover,
+html .el-button.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--el-fill-color-dark);
+    color: var(--el-color-primary);
+    transform: translateY(-1px);
+    box-shadow:
+        var(--lg-rim-sm),
+        var(--lg-shadow-lift);
+}
+
+/* 按下：Apple 的规格就是 scale(.95)，松手靠弹簧弹回 */
+html .el-button:active {
+    transform: scale(.95);
+    transition-duration: .08s;
+}
+
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg {
+    background-color: var(--el-color-primary);
+    color: #FFFFFF;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .45),
+        inset 0 -1px 0 rgba(255, 255, 255, .15),
+        0 10px 28px -10px var(--el-color-primary);
+}
+
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--el-color-primary-dark-2);
+    color: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
+    background-color: color-mix(in srgb, var(--el-color-danger) 20%, transparent);
+    color: var(--el-color-danger);
+}
+
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--el-color-danger);
+    color: #FFFFFF;
+}
+
+html .el-button.is-circle {
+    border-radius: 50%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* ================= 输入 / 下拉：胶囊玻璃 ================= */
+html .el-input__wrapper,
+html .el-select__wrapper,
+html .el-textarea__inner,
+html .el-input-number {
+    border-radius: var(--lg-r-pill);
+    background-color: var(--el-fill-color-light);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    box-shadow:
+        var(--lg-rim-sm),
+        0 2px 10px -6px rgba(31, 38, 135, .3);
+    transition: box-shadow .24s var(--lg-ease), background-color .24s var(--lg-ease);
+}
+
+html .el-textarea__inner {
+    border-radius: var(--lg-r);
+}
+
+html .el-input__wrapper.is-focus,
+html .el-input__wrapper:hover,
+html .el-select__wrapper.is-focused,
+html .el-select__wrapper:hover,
+html .el-textarea__inner:focus {
+    background-color: var(--el-fill-color);
+    box-shadow:
+        var(--lg-rim-sm),
+        0 0 0 2px color-mix(in srgb, var(--el-color-primary) 45%, transparent),
+        0 4px 16px -8px var(--el-color-primary);
+}
+
+/* ================= 标签：着色玻璃小胶囊 ================= */
+html .el-tag {
+    border: 0;
+    border-radius: var(--lg-r-pill);
+    background-color: color-mix(in srgb, currentColor 14%, transparent);
+    backdrop-filter: blur(8px) saturate(170%);
+    -webkit-backdrop-filter: blur(8px) saturate(170%);
+    box-shadow:
+        var(--lg-rim-sm);
+}
+
+/* ================= 顶栏 / 周分组 ================= */
+#header {
+    border-radius: var(--lg-r);
+    background-color: var(--el-fill-color-lighter);
+    backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+    box-shadow:
+        var(--lg-rim),
+        var(--lg-shadow);
+}
+
+html .list-week-title {
+    color: var(--el-text-color-primary);
+    opacity: .55;
+}
+
+html .list-card-score {
+    color: var(--el-color-primary) !important;
+    font-weight: 600 !important;
+}
+
+/* ================= 遮罩 / 滚动条 =================
+   遮罩故意不加 backdrop-filter：它夹在弹窗和页面中间，
+   自己先糊一遍，弹窗再糊一遍，弹窗背后就成了一片没有细节的匀色，
+   玻璃也就无从谈起。让遮罩只负责压暗，模糊交给弹窗自己做。 */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--el-border-color-dark);
+    border-radius: var(--lg-r-pill);
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* ================= 登录页 ================= */
+/* 上游 #form 是 max-width:200px。这个主题的控件是胶囊 + 18px 横向内边距，
+   200px 里塞不下「记住密码 + 登录」，按钮会顶出卡片外，输入框还贴边。
+   加宽到 320 并给足内边距 —— 卡片得先像张卡片，才谈得上像玻璃。 */
+#login-page #form {
+    position: relative;
+    width: 320px;
+    max-width: 88vw;
+    padding: 32px 24px 26px;
+    border-radius: 28px;
+    background-color: var(--el-dialog-bg-color);
+    backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(var(--lg-sat));
+    box-shadow:
+        var(--lg-rim),
+        var(--lg-shadow-lift);
+}
+
+#login-page .title-h2 {
+    font-weight: 600;
+    letter-spacing: -.02em;
+}
+
+/* ================= 降级 =================
+   backdrop-filter 用不了就走不透明面板，别留一片糊。
+   Firefox 直到 103 才默认开，老版本会掉进这里。 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    html:root:not(.dark) {
+        --el-bg-color: #FFFFFF;
+        --el-card-bg-color: #FFFFFF;
+        --el-dialog-bg-color: #FFFFFF;
+        --lg-dialog-bg: #FFFFFF;
+        --el-fill-color: #EFF1F8;
+        --el-fill-color-light: #F5F6FB;
+    }
+
+    html.dark:root {
+        --el-bg-color: #171A2B;
+        --el-card-bg-color: #171A2B;
+        --el-dialog-bg-color: #1C1F33;
+        --lg-dialog-bg: #1C1F33;
+        --el-fill-color: #23273D;
+        --el-fill-color-light: #1E2134;
+    }
+
+    /* 面板不透明了，弧光和色差没有底可透，留着只会像脏了一块 */
+    html:root {
+        --lg-sheen: transparent;
+        --lg-fringe-cool: transparent;
+        --lg-fringe-warm: transparent;
+    }
+}
+
+/* 小屏基本等于手机：22px 的 backdrop-filter 在中低端机上会把帧率打到 30 以下，
+   降到 10px。视觉损失有限，因为小屏上本来也没多少面积能看出折射。 */
+@media (max-width: 768px) {
+    html:root {
+        --lg-blur: 10px;
+    }
+}
+
+/* 系统开了「减少透明度」：玻璃变实心，这是无障碍要求，不是可选项 */
+@media (prefers-reduced-transparency: reduce) {
+    html:root {
+        --lg-blur: 0px;
+        --lg-rim: inset 0 0 0 1px var(--el-border-color-dark);
+        --lg-rim-sm: inset 0 0 0 1px var(--el-border-color-dark);
+        --lg-sheen: transparent;
+    }
+
+    html:root:not(.dark) {
+        --el-card-bg-color: rgba(255, 255, 255, .96);
+        --el-dialog-bg-color: rgba(255, 255, 255, .98);
+        --lg-dialog-bg: rgba(255, 255, 255, .98);
+    }
+
+    html.dark:root {
+        --el-card-bg-color: rgba(23, 26, 43, .96);
+        --el-dialog-bg-color: rgba(28, 31, 51, .98);
+        --lg-dialog-bg: rgba(28, 31, 51, .98);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body::before,
+    body::after {
+        animation: none;
+    }
+
+    html .el-card,
+    html .el-button {
+        transition: background-color .2s linear, color .2s linear;
+    }
+
+    html .el-card:hover,
+    html .el-button:hover,
+    html .el-button:active {
+        transform: none;
+    }
+}

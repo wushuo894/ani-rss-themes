@@ -1254,6 +1254,7 @@
         ['neon.css', '午夜霓虹 · Neon', 'dark'],
         ['sakura.css', '樱花物语 · Sakura', 'auto'],
         ['glass.css', '云海玻璃 · Glass', 'auto'],
+        ['liquid-glass.css', '液态玻璃 · Liquid Glass', 'auto'],
         ['terminal.css', '绿光终端 · Terminal', 'dark'],
         ['github.css', '代码仓库 · GitHub', 'auto'],
         ['calendar.css', '挂历 · Calendar', 'auto'],
@@ -1403,7 +1404,11 @@
     modeBtn.disabled = fixedMode
     modeBtn.style.opacity = fixedMode ? '.4' : '1'
     modeNote.textContent = fixedMode ? (meta[2] === 'dark' ? '该主题强制深色' : '该主题强制浅色') : ''
-    setMode(fixedMode ? meta[2] === 'dark' : localStorage.getItem('ani-preview-dark') === '1')
+    /* ?dark=1 / ?dark=0 直接指定明暗，和 ?t= 一样可以分享出去；不带就沿用上次 */
+    const darkParam = new URLSearchParams(location.search).get('dark')
+    setMode(fixedMode ? meta[2] === 'dark'
+        : darkParam !== null ? darkParam === '1'
+            : localStorage.getItem('ani-preview-dark') === '1')
 
     pick.addEventListener('change', () => {
         localStorage.setItem('ani-preview-theme', pick.value)
@@ -1412,13 +1417,15 @@
     modeBtn.addEventListener('click', () => setMode(!document.documentElement.classList.contains('dark')))
 
     const loginBtn = $('#loginToggle')
-    loginBtn.addEventListener('click', () => {
-        const on = $('#login-view').style.display === 'none'
+    const showLogin = on => {
         $('#login-view').style.display = on ? 'flex' : 'none'
         $('#home-view').style.display = on ? 'none' : 'flex'
         loginBtn.textContent = on ? '看首页' : '看登录页'
         loginBtn.classList.toggle('on', on)
-    })
+    }
+    loginBtn.addEventListener('click', () => showLogin($('#login-view').style.display === 'none'))
+    /* ?login=1 直接开在登录页，方便把「某主题的登录页长这样」发给别人 */
+    if (new URLSearchParams(location.search).get('login') === '1') showLogin(true)
 
     positionBars()
     const openWrap = document.querySelector('.el-collapse-item.is-active .el-collapse-item__wrap')

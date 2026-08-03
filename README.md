@@ -1,6 +1,6 @@
 # ani-rss-themes
 
-给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的一组自定义 CSS 主题。14 款，每款有自己的字体、按钮、背景，不是只换配色。
+给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的一组自定义 CSS 主题。15 款，每款有自己的字体、按钮、背景，不是只换配色。
 
 纯 CSS，不需要改动 ani-rss 本体，也不需要重新编译前端。
 
@@ -16,6 +16,7 @@
 | `themes/neon.css` | 午夜霓虹 · Neon | Bahnschrift 窄体，西文全大写 | 切角，hover 扫光划过 | 透视网格地平线，无限推进 | 强制深色 |
 | `themes/sakura.css` | 樱花物语 · Sakura | 幼圆 / Yuanti SC 圆体 | 药丸渐变，按下回弹 | 飘落花瓣，纯 CSS 动画 | 跟随 |
 | `themes/glass.css` | 云海玻璃 · Glass | Optima 细体，超大字距 | 极透玻璃 + 内高光，hover 光泽平移 | 流动极光，漂移换色 | 跟随 |
+| `themes/liquid-glass.css` | 液态玻璃 · Liquid Glass | SF Pro 系统栈，字距收紧 | 胶囊玻璃，按下 scale(.95) 弹簧回弹 | 高饱和网格渐变 + 一层细网格 | 跟随 |
 | `themes/terminal.css` | 绿光终端 · Terminal | 等宽 + 全大写 + 等宽数字 | `[ 方括号 ]`，hover 整块反色 | 扫描线 + CRT 闪烁 + 暗角 | 强制深色 |
 | `themes/github.css` | 代码仓库 · GitHub | Primer 系统字栈，数值走等宽 | Primer 规格，主按钮是那只绿色 | 贡献热力图格子，向下渐隐 | 跟随 |
 | `themes/calendar.css` | 挂历 · Calendar | 楷体标题 + DIN 等宽数字 | 方角，顶端一道红边，hover 转红 | 月历方格细线 + 纸面颗粒 | 跟随 |
@@ -31,6 +32,12 @@
 | `themes/acg-glass.css` | 二次元 · 玻璃 | LoliAPI | 系统默认 | 玻璃质感，透明度可调 | 跟随 |
 | `themes/bing-mist.css` | 必应4K · 晨雾 | 必应 UHD 4K | 衬线标题，摄影画册排法 | 极细线框，hover 下划线展开 | 强制浅色 |
 | `themes/bing-night.css` | 必应4K · 夜航 | 必应 UHD 4K | DIN 冷峻 + 等宽数字 | 实心暗块 + 左侧色条 | 强制深色 |
+
+**玻璃有两款，别选错**：`glass.css` 是 2020 年那套毛玻璃 —— 均匀模糊、半透明白、1px 白边，
+整体偏淡偏轻。`liquid-glass.css` 复刻的是 Apple WWDC25 的 Liquid Glass：边缘一条渐隐折射带
+（上下亮、左右暗，上缘偏冷下缘偏暖），顶缘一道弧光，控件全是胶囊形，按下 `scale(.95)` 弹簧回弹，
+背景是高饱和网格渐变，底下还铺了一层细网格 —— 玻璃是靠「把背后的细节抹掉」被认出来的，
+背后只有平滑渐变的话，模糊前后长得一模一样。想省电就把文件开头的 `--lg-blur` 调小。
 
 「强制深色 / 强制浅色」指该主题不跟随右上角的明暗切换 —— 蒙版和面板透明度是按一个方向调好的，反过来会糊。
 
@@ -68,7 +75,7 @@ ani-rss 里：**设置 → 基础设置 → 页面设置 → 自定义 → CSS**
 
 https://zzzwannasleep.github.io/ani-rss-themes/
 
-左上角下拉换主题，旁边可切明暗、可跳到登录页。选到「强制深色/浅色」的主题时明暗开关会自动锁定并说明原因。URL 支持 `?t=neon.css` 直接指向某个主题。
+左上角下拉换主题，旁边可切明暗、可跳到登录页。选到「强制深色/浅色」的主题时明暗开关会自动锁定并说明原因。URL 支持三个参数，可以叠加后直接分享：`?t=neon.css` 指定主题、`?dark=1` / `?dark=0` 指定明暗（强制明暗的主题会忽略它）、`?login=1` 直接开在登录页。
 
 右上角的按钮，对着当前选中的主题一键复制：
 
