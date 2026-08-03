@@ -155,6 +155,10 @@ html:root, html.dark:root {
     --md-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", "Courier New", monospace;
 
+    /* 勾选框那个勾：M3 的等粗圆头对勾，当遮罩用。路径在 24 的画布里上下左右都留白
+       相等，所以铺满多大的框都是居中的。整份 CSS 不请求外部资源，这里也是内联的。 */
+    --md-check: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.4L10 16.4L18 8' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+
     /* ---- 主色阶：EP 的 light-N 按「往 surface 里兑」算，深浅两套自动成立 ---- */
     --el-color-primary: var(--md-primary) !important;
     --el-color-primary-light-3: color-mix(in srgb, var(--md-primary) 70%, var(--md-surface));
@@ -730,29 +734,40 @@ html .el-checkbox {
 }
 
 /*
- * 那个勾。EP 是用一个只留右边和下边框的小方块转 45° 拼出来的，本身已经用
- * top/left:50% + translate 居中了 —— 之前这里补了 `left:5px; top:1px`，把它的
- * 定位基准掀了，translate 还在照常生效，勾就被顶到右上角去了。这版不碰 top/left，
- * 只改尺寸，然后按新尺寸重算 translate。
+ * 那个勾改用 SVG 遮罩画，不再拿两条边框转 45° 拼。
  *
- * 方块 4×8、右下边框各 2px（content-box，所以实际占位 6×10）。转 45° 之后墨迹的
- * 重心比方块中心低 1.61px，要让勾真的落在框正中，纵向就得多提这一截：
- *   5 - 10b = -1.61  →  b ≈ 0.66  →  translateY(-66%)
- * 横向重心转完正好落在中线上，所以是干净的 -50%。
+ * 边框那套有两个治不好的毛病：
+ *   1. 笔画两端是沿原方块的轴切的，转 45° 之后两个端头都是斜切口，
+ *      加上转角内侧是直角，整个勾看着就是歪的、豁口的；
+ *   2. 居中得手算旋转后墨迹的重心去凑 translate 的百分比，差零点几像素就看得出来。
  *
- * border-width 只能写右和下：EP 把 border-top/left 设成了 0，用 border-width 简写
- * 会把这两条一起撑成 2px，虽然透明但一样占位，几何又歪了。
+ * 换成遮罩之后：居中由 inset + 遮罩自身居中结构性保证，不用凑系数；笔形是 M3 那个
+ * 等粗圆头的对勾，两端和转角都是圆的。inset 取 -2px 是为了盖住 inner 那 2px 边框，
+ * 让遮罩铺在完整的 18×18 上，勾的大小才对得上 M3 的比例。
  */
 html .el-checkbox__inner::after {
-    width: 4px;
-    height: 8px;
-    border-right-width: 2px;
-    border-bottom-width: 2px;
-    transform: translate(-50%, -66%) rotate(45deg) scaleY(0);
+    content: "";
+    position: absolute;
+    inset: -2px;
+    width: auto;
+    height: auto;
+    border: 0;
+    background-color: var(--md-on-primary);
+    -webkit-mask: var(--md-check) center / 100% 100% no-repeat;
+    mask: var(--md-check) center / 100% 100% no-repeat;
+    transform: scale(0);
+    transform-origin: 50% 50%;
+    transition: transform var(--md-dur-short) var(--md-ease-standard);
 }
 
 html .el-checkbox__input.is-checked .el-checkbox__inner::after {
-    transform: translate(-50%, -66%) rotate(45deg) scaleY(1);
+    transform: scale(1);
+}
+
+/* 遮罩是靠 background-color 上色的，EP 那几条改 border-color 的规则管不到，
+   禁用态的勾色得自己写一遍 */
+html .el-checkbox__input.is-disabled.is-checked .el-checkbox__inner::after {
+    background-color: var(--md-surface);
 }
 
 /* 半选那道横杠：EP 默认按 14px 的框摆的，18px 的框上要重新居中 */
