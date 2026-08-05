@@ -340,6 +340,14 @@ html .el-button.is-text:not(.is-disabled).is-has-bg {
     box-shadow: none;
     height: var(--btn-h);
     width: var(--btn-w, auto);
+    /* 这条是给上面那个 overflow: hidden 擦屁股的。
+       弹性盒里的项目本来有个「自动最小尺寸」＝ min-content，按钮又是 nowrap，
+       所以再挤也挤不到文字以下。但规范写明：overflow 一旦不是 visible，
+       这个自动最小尺寸就变成 0 —— 涟漪要裁剪才加的 overflow: hidden，
+       顺手把这层保护也拆了。于是「搜索」这种和输入框同排的按钮，
+       容器一窄就被压扁、文字截掉，宽度还随各页可用空间不同而不同。
+       fit-content 正好把被拆掉的那道下限原样装回去。 */
+    min-width: fit-content;
     padding: 0 var(--btn-px);
     transition: background-color var(--md-dur-short) var(--md-ease-standard),
     box-shadow var(--md-dur-short) var(--md-ease-standard);
@@ -624,12 +632,28 @@ html .el-overlay {
 
 /* 悬浮层（下拉、气泡、提示）：M3 menu = surface-container elevation 2 */
 html .el-popper,
+html .el-popper.is-dark,
 html .el-select__popper,
 html .el-dropdown__popper {
     background-color: var(--md-surface-container) !important;
+    /* 只换底不换字，是这块之前的真 bug：EP 给 .el-popper.is-dark 配的是
+       深底浅字（color: var(--el-bg-color)）。底被上面这条 !important 换成
+       surface-container 之后，字色还留在原地 —— 浅色下浅底浅字，深色下深底深字，
+       两边都是「和背景一个颜色，看都看不清」。悬停标题弹的那条完整名字就栽在这。
+       .is-dark 这一层不能省：EP 那条是 0-2-0，`html .el-popper`（0-1-1）压不过。 */
+    color: var(--md-on-surface);
     border: none !important;
     border-radius: var(--md-shape-xs);
     box-shadow: var(--md-elev-2);
+}
+
+/* 菜单类浮层要比提示气泡圆：上游给里面的选项是 8px 圆角 + 左右 8px 内缩，
+   外框却只有 4px —— 内圆比外圆还大，四个角看着就是没对齐。外 12 内 8 才收得住。 */
+html .el-select__popper,
+html .el-dropdown__popper,
+html .el-picker__popper,
+html .el-popover.el-popper {
+    border-radius: var(--md-shape-m);
 }
 
 html .el-popper__arrow::before {

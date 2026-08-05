@@ -192,12 +192,19 @@
             '<div class="el-alert__content"><span class="el-alert__title is-bold">' + text + '</span></div></div>'
     }
 
+    /* 按 Element Plus 真实渲染写：icon 属性出来的 <i class="el-icon"> 是按钮的直接子节点，
+       只有默认插槽才另包一层 <span>。上游 ani-rss 通篇用的是 icon 属性
+       （<el-button icon="Search" text bg>搜索</el-button> / <el-button :icon="X" bg text/>）。
+       之前这里把图标一律塞进 span 里，于是「纯图标按钮」这个形状在预览页根本不存在，
+       主题里靠 :has(> .el-icon:only-child) 认它的规则永远命中不了 ——
+       预览里图标钮是拉长的胶囊，真程序里是圆的，预览等于在骗人。
+       图标和文字之间的间距由 EP 自带的 `.el-icon+span{margin-left:6px}` 给，不用手写空格。 */
     const btn = (text, o) => {
         o = o || {}
         return '<button type="button" class="el-button' + (o.type ? ' el-button--' + o.type : '') +
             (o.text ? ' is-text' : '') + (o.bg ? ' is-has-bg' : '') + '"' + (o.act ? ' data-act="' + o.act + '"' : '') + '>' +
-            '<span>' + (o.icon ? '<i class="el-icon' + (text ? ' el-icon--left' : '') + '" data-icon="' + o.icon + '"></i>' + (text ? ' ' : '') : '') +
-            esc(text) + '</span></button>'
+            (o.icon ? '<i class="el-icon" data-icon="' + o.icon + '"></i>' : '') +
+            (text ? '<span>' + esc(text) + '</span>' : '') + '</button>'
     }
 
     const item = (label, content, lw) =>
@@ -266,7 +273,7 @@
     $('#toolbar').innerHTML = TOOLS.map(([ic, text, type, act], i) =>
         '<div style="margin:' + (i === TOOLS.length - 1 ? '0 0 0 4px' : '0 4px') + '">' +
         '<button type="button" class="el-button ' + type + ' is-text is-has-bg" data-act="' + act + '">' +
-        '<span class=""><i class="el-icon el-icon--left" data-icon="' + ic + '"></i> ' + text + ' </span></button></div>'
+        '<i class="el-icon" data-icon="' + ic + '"></i><span>' + text + '</span></button></div>'
     ).join('')
 
     const DATA = window.ANI_DATA || []
@@ -277,13 +284,13 @@
         '<div class="list-card-content">' +
         '<div class="list-card-image-container"><img src="' + esc(a.cover) + '" alt="' + esc(a.t) + '" class="list-card-image" data-act="cover" loading="lazy" referrerpolicy="no-referrer"></div>' +
         '<div class="list-card-info"><div class="list-card-info-inner">' +
-        '<div class="flex"><span class="el-text is-truncated is-line-clamp list-card-title" data-act="bgm" style="-webkit-line-clamp:1" title="' + esc(a.t) + '">' + esc(a.t) + '</span></div>' +
+        '<div class="flex"><span class="el-text is-truncated is-line-clamp list-card-title" data-act="bgm" style="-webkit-line-clamp:1" data-tip="' + esc(a.t) + '" data-tip-place="top">' + esc(a.t) + '</span></div>' +
         '<div class="list-card-score-container"><h4 class="list-card-score" data-act="rate">' + esc(a.score) + '</h4></div>' +
         '<span class="el-text el-text--small list-card-url">https://mikanani.me/RSS/Bangumi?bangumiId=' + (3000 + a.t.length * 7) + '</span>' +
         '<div class="list-card-tags gtc3">' +
         tag('primary', ' 第 ' + a.s + ' 季 ') +
         (a.on ? tag('success', ' 已启用 ') : tag('info', ' 未启用 ')) +
-        tag('info', '<span class="el-text el-text--small is-line-clamp list-card-subgroup" style="-webkit-line-clamp:1" title="' + esc(a.sub) + '">' + esc(a.sub) + '</span>') +
+        tag('info', '<span class="el-text el-text--small is-line-clamp list-card-subgroup" style="-webkit-line-clamp:1" data-tip="' + esc(a.sub) + '">' + esc(a.sub) + '</span>') +
         tag('warning', esc(a.ep)) +
         tag('danger', a.ova ? ' ova ' : ' tv ') +
         (a.sb ? tag('primary', ' 备用RSS ') : '') +
@@ -476,19 +483,19 @@
 
     /* ---------- 添加订阅（home/Add.vue） ---------- */
     /* 每个源一个 tab：RSS 文本域 → 右对齐的浏览按钮 → 两行小字说明，表单固定 260px 高 */
-    const addPane = (src, ph, note2) =>
+    const addPane = (src, ph, note2, dlg) =>
         '<form class="el-form el-form--default el-form--label-right full-width" style="height:260px" onsubmit="return false">' +
         item('RSS 地址', '<div class="full-width">' +
             '<div>' + area('', ph, 2) + '</div><br>' +
-            '<div class="flex full-width" style="justify-content:end">' + btn(src, {text: true, bg: true, type: 'primary'}) + '</div>' +
+            '<div class="flex full-width" style="justify-content:end">' + btn(src, {text: true, bg: true, type: 'primary', act: dlg}) + '</div>' +
             '<div>' + hint('不支持聚合订阅，原因是如果一次过多更新会出现遗漏<br>不必在 ' + src +
                 ' 网站添加订阅, 你可以通过上方👆 [' + src + '] 按钮浏览字幕组订阅') + '</div></div>', 80) +
         '</form>'
 
     const addBody = tabs([
-        {title: 'Mikan', pane: addPane('Mikan', 'https://mikanani.me/RSS/Bangumi?bangumiId=xxx&subgroupid=xxx')},
-        {title: 'AniBT', pane: addPane('AniBT', 'https://anibt.net/rss/anime.xml?bgmId=xxx&groupSlug=xxx')},
-        {title: 'AG', pane: addPane('AnimeGarden', 'https://api.animes.garden/feed.xml?subject=xxx&fansub=xxx')},
+        {title: 'Mikan', pane: addPane('Mikan', 'https://mikanani.me/RSS/Bangumi?bangumiId=xxx&subgroupid=xxx', 0, 'dlg-mikan')},
+        {title: 'AniBT', pane: addPane('AniBT', 'https://anibt.net/rss/anime.xml?bgmId=xxx&groupSlug=xxx', 0, 'dlg-anibt')},
+        {title: 'AG', pane: addPane('AnimeGarden', 'https://api.animes.garden/feed.xml?subject=xxx&fansub=xxx', 0, 'dlg-ag')},
         {
             title: 'Other', pane:
                 '<form class="el-form el-form--default el-form--label-right full-width" style="height:200px" onsubmit="return false">' +
@@ -504,6 +511,76 @@
     /* 添加订阅底部只有一个「确定」（home/Add.vue 的 div.action） */
     const addFooter = '<div class="action">' +
         btn('确定', {text: true, bg: true, icon: 'check'}).replace('<button', '<button data-close') + '</div>'
+
+    /* ---------- 浏览字幕组订阅（home/Mikan.vue / AniBT.vue / AnimeGarden.vue） ----------
+     * 三个源的这个弹窗结构完全一样，上游也是三份互相抄的：
+     *   搜索行（全宽输入框 + 4px 间隔 + [搜索]）→ 季度行（下拉 + [批量添加]）→ 三层折叠面板。
+     * 之前预览里根本没有这个弹窗，而「搜索」按钮只在这里出现 ——
+     * 也就是说主题最容易出问题的那一行，预览页从来没画过。
+     * 注意搜索行是 justify-content: space-between 且输入框默认 width:100%，
+     * 按钮天然被挤，正是弹性盒最小尺寸那条规矩要保住的地方。 */
+    const GROUPS = [
+        {label: '桜都字幕组', day: '星期一', tags: ['简日双语', '1080P'], items: [
+            ['[桜都字幕组] 转学后班上的清纯可爱美少女 [05][1080p][简繁内封]', '412.6 MB', '2026-08-04 23:10'],
+            ['[桜都字幕组] 转学后班上的清纯可爱美少女 [04][1080p][简繁内封]', '408.1 MB', '2026-07-28 23:06'],
+        ]},
+        {label: '喵萌奶茶屋', day: '星期一', tags: ['简体', '1080P', 'MKV'], items: []},
+        {label: 'LoliHouse', day: '星期一', tags: ['简繁内封', 'WebRip'], items: []},
+    ]
+
+    const browseGroup = (g, open) =>
+        '<div class="el-collapse-item' + (open ? ' is-active' : '') + '">' +
+        '<div class="el-collapse-item__header' + (open ? ' is-active' : '') + '" role="button">' +
+        '<div class="pv-group-title">' +
+        '<div class="pv-group-check"><label class="el-checkbox pv-check-m">' +
+        '<span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span></label></div>' +
+        '<div class="pv-group-label"><span class="el-text is-truncated" style="max-width:100px">' + esc(g.label) + '</span>' +
+        '&nbsp;<span class="el-text el-text--small mx-1">' + esc(g.day) + '</span></div>' +
+        '<div>' + g.tags.map(t => '<span class="el-tag el-tag--primary el-tag--light pv-tag-m"><span class="el-tag__content">' + esc(t) + '</span></span>').join('') + '</div>' +
+        '<div class="pv-group-action">' + btn('添加', {bg: true, icon: 'plus'}) + '</div></div>' +
+        '<i class="el-icon el-collapse-item__arrow' + (open ? ' is-active' : '') + '" data-icon="arrow"></i></div>' +
+        '<div class="el-collapse-item__wrap"' + (open ? '' : ' style="max-height:0"') + '><div class="el-collapse-item__content">' +
+        '<div class="pv-group-items">' + g.items.map(([t, size, at]) =>
+            '<div class="pv-item-m"><div class="el-card is-never-shadow"><div class="el-card__body">' +
+            '<h5>' + esc(t) + '</h5><div class="pv-item-footer"><p>' + esc(size) + ' ' + esc(at) + '</p><div>' +
+            btn('', {bg: true, text: true, icon: 'files'}) + btn('', {bg: true, text: true, icon: 'download'}) +
+            '</div></div></div></div></div>').join('') + '</div></div></div></div>'
+
+    const browseAni = (a, open) =>
+        '<div class="el-collapse-item' + (open ? ' is-active' : '') + '">' +
+        '<div class="el-collapse-item__header' + (open ? ' is-active' : '') + '" role="button">' +
+        '<div class="flex pv-collapse-title">' +
+        '<img src="' + esc(a.cover) + '" alt="" class="pv-cover" loading="lazy" referrerpolicy="no-referrer">' +
+        '<div class="flex pv-collapse-title"><span class="el-text el-text--small is-line-clamp pv-title-text" style="-webkit-line-clamp:1">' + esc(a.t) + '</span></div>' +
+        '<div class="pv-score-m"><h4 class="pv-score">' + esc(a.score) + '</h4></div>' +
+        (a.on ? '<div class="el-badge pv-badge-m"><sup class="el-badge__content el-badge__content--primary is-fixed">已订阅</sup></div>' : '') +
+        '</div><i class="el-icon el-collapse-item__arrow' + (open ? ' is-active' : '') + '" data-icon="arrow"></i></div>' +
+        '<div class="el-collapse-item__wrap"' + (open ? '' : ' style="max-height:0"') + '><div class="el-collapse-item__content">' +
+        '<div class="pv-group-content"><div class="el-collapse el-collapse-icon-position-right" data-accordion="1">' +
+        GROUPS.map((g, i) => browseGroup(g, i === 0)).join('') + '</div></div></div></div></div>'
+
+    const browseBody = src => {
+        const week = DATA.filter(a => a.w === '星期一').slice(0, 3)
+        return '<div style="min-height:300px">' +
+            '<div class="pv-search-section">' +
+            '<div class="pv-search-header">' +
+            inp('', '请输入搜索标题', {prefix: 'search', full: true}) +
+            '<div class="spacer" style="width:4px"></div>' +
+            btn('搜索', {bg: true, text: true, icon: 'search'}) + '</div>' +
+            '<div class="flex pv-season-selector">' +
+            sel('2026年7月', ['2026年7月', '2026年4月', '2026年1月', '2025年10月'], 140) +
+            btn('批量添加', {bg: true, text: true, icon: 'plus'}) + '</div></div>' +
+            '<div class="pv-scroll-container">' + scroll(420,
+                '<div class="el-collapse el-collapse-icon-position-right">' +
+                '<div class="el-collapse-item is-active">' +
+                '<div class="el-collapse-item__header is-active" role="button">' +
+                '<span class="el-collapse-item__title" style="margin-left:4px;font-weight:bold">星期一</span>' +
+                '<i class="el-icon el-collapse-item__arrow is-active" data-icon="arrow"></i></div>' +
+                '<div class="el-collapse-item__wrap"><div class="el-collapse-item__content">' +
+                '<div class="pv-collapse-content"><div class="el-collapse el-collapse-icon-position-right" data-accordion="1">' +
+                week.map((a, i) => browseAni(a, i === 0)).join('') +
+                '</div></div></div></div></div></div>') + '</div></div>'
+    }
 
     /* ---------- 修改订阅（home/Ani.vue，与「添加订阅」下半段共用） ---------- */
     const A0 = DATA[0] || {t: '', s: 1, sub: ''}
@@ -592,7 +669,9 @@
     /* 2) 下载设置 —— config/Download.vue（下方折叠面板为 config/download/qBittorrent.vue） */
     const downloadPane = form([
         ['下载工具', sel('qBittorrent', ['qBittorrent', 'Transmission', 'Aria2', 'OpenList'], 'full')],
-        ['地址', inp('http://192.168.1.8:8080', 'http://192.168.1.x:8080', {full: true})],
+        /* 演示值一律用打码形式：这里原先填的是一台真机的内网地址+端口，
+           踩了「任何 IP / 端口不得进提交」那条红线。 */
+        ['地址', inp('http://192.168.1.x:8080', 'http://192.168.1.x:8080', {full: true})],
         ['ApiKey', inp('', 'qbt_xxxx', {prefix: 'key', type: 'password', full: true})],
         ['', '<div class="flex" style="width:100%;justify-content:end">' + btn('测试', {text: true, bg: true, icon: 'odometer'}) + '</div>'],
         ['保存位置', inp('/downloads/${title}', '', {full: true})],
@@ -851,7 +930,11 @@
         dialog('dlg-logs', '日志', logsBody, '', '50%', 'logs-dialog') +
         dialog('dlg-add', '添加订阅', addBody + addFooter, '', '50%') +
         dialog('dlg-edit', '修改订阅', editBody + editFooter, '', '50%') +
-        dialog('dlg-settings', '设置', settingsBody + '<div class="action">' + okCancel + '</div>', '', '50%')
+        dialog('dlg-settings', '设置', settingsBody + '<div class="action">' + okCancel + '</div>', '', '50%') +
+        /* 上游这三个是 <el-dialog center title="Mikan">，同样没写 width */
+        dialog('dlg-mikan', 'Mikan', browseBody('Mikan'), '', '50%') +
+        dialog('dlg-anibt', 'AniBT', browseBody('AniBT'), '', '50%') +
+        dialog('dlg-ag', 'AnimeGarden', browseBody('AnimeGarden'), '', '50%')
 
     fillIcons()
 
@@ -937,6 +1020,53 @@
         popper = p
         return p
     }
+
+    /* ==================== 文字提示（模拟 el-tooltip） ====================
+     * 上游 AniCard.vue 给截断的标题包了 <el-tooltip :content placement="top">，
+     * 字幕组那颗 tag 和合集里的 Torrent 文件名用默认的 bottom —— 悬停才看得到全名。
+     * 这里原先只留了原生 title 属性：原生气泡不吃任何 CSS，主题在这一块等于没做。
+     * 走 pv-popper + pointer-events:none，不会和下拉浮层抢点击。 */
+    let tipEl = null, tipAnchor = null, tipTimer = 0
+
+    function killTip() {
+        clearTimeout(tipTimer)
+        if (!tipEl) return
+        const t = tipEl
+        tipEl = null
+        t.style.opacity = '0'
+        setTimeout(() => t.remove(), 200)
+    }
+
+    function showTip(a) {
+        const top = a.dataset.tipPlace === 'top'
+        const el = document.createElement('div')
+        el.className = 'pv-popper el-popper is-dark'
+        el.setAttribute('role', 'tooltip')
+        /* EP 的箭头方位是靠 popper.js 写上来的 data-popper-placement 选的，得补上 */
+        el.dataset.popperPlacement = top ? 'top' : 'bottom'
+        el.innerHTML = esc(a.dataset.tip) + '<span class="el-popper__arrow"></span>'
+        el.style.cssText = 'max-width:min(80vw,420px);pointer-events:none;opacity:0;transition:opacity .15s'
+        document.body.appendChild(el)
+        const r = a.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight
+        const left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8))
+        el.style.left = left + 'px'
+        el.style.top = (top ? r.top - h - 8 : r.bottom + 8) + 'px'
+        el.querySelector('.el-popper__arrow').style.left = (r.left + r.width / 2 - left - 5) + 'px'
+        requestAnimationFrame(() => el.style.opacity = '1')
+        tipEl = el
+    }
+
+    document.addEventListener('mouseover', e => {
+        const a = e.target.closest('[data-tip]')
+        if (a === tipAnchor) return
+        tipAnchor = a
+        killTip()
+        if (a) tipTimer = setTimeout(() => showTip(a), 150)
+    })
+    window.addEventListener('scroll', () => {
+        tipAnchor = null
+        killTip()
+    }, true)
 
     /* 菜单项照上游写：图标 + 按语义着色的 el-text，分组之间有 divided 分割线 */
     function toggleDropdown(btnEl, items) {

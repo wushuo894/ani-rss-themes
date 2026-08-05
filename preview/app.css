@@ -218,3 +218,119 @@ html, body, #app {
 .full-width {
     width: 100%;
 }
+
+/* ---------- 浏览字幕组订阅弹窗（对应 home/Mikan.vue、AniBT.vue、AnimeGarden.vue） ----------
+   三份组件的 scoped 样式一模一样，这里按同样的数值重写一份，类名加 pv- 前缀避免和主题打架。 */
+.pv-search-section {
+    margin: 4px;
+}
+
+/* 输入框默认 width:100%，搜索按钮就是在这一行被挤的 */
+.pv-search-header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.pv-season-selector {
+    margin-top: 4px;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.pv-scroll-container {
+    margin: 8px 0 4px;
+}
+
+.pv-scroll-container .el-collapse {
+    --el-collapse-header-height: 55px;
+}
+
+.pv-collapse-content,
+.pv-group-content {
+    margin-left: 15px;
+}
+
+.pv-group-content {
+    min-height: 50px;
+}
+
+.pv-collapse-title {
+    align-items: center;
+}
+
+.pv-cover {
+    border-radius: var(--el-border-radius-base);
+    cursor: pointer;
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.pv-title-text {
+    margin-left: 6px;
+    line-height: 1.6;
+    font-weight: bold;
+}
+
+.pv-score-m {
+    margin-left: 4px;
+}
+
+.pv-score {
+    color: #E800A4;
+}
+
+.pv-badge-m {
+    margin-left: 12px;
+}
+
+.pv-group-title {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.pv-group-check {
+    height: 100%;
+}
+
+/* 得写两层：上游那条是 scoped 的（带 data-v 属性，0-2-0），主题里的
+   `html .el-checkbox{margin-right:0}` 是 0-1-1，真程序里压不过它。
+   预览这边只写 .pv-check-m（0-1-0）就会被压掉，勾选框和字幕组名会贴在一起。 */
+.pv-group-check .el-checkbox {
+    margin-right: 8px;
+}
+
+.pv-group-label {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    text-align: start;
+}
+
+.pv-tag-m {
+    margin-right: 4px;
+}
+
+.pv-group-action {
+    display: flex;
+    align-items: center;
+    margin-right: 14px;
+    margin-left: 4px;
+}
+
+.pv-group-items {
+    margin-left: 15px;
+}
+
+.pv-item-m {
+    margin-bottom: 4px;
+}
+
+.pv-item-footer {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
