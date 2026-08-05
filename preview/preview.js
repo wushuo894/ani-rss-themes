@@ -67,6 +67,13 @@
         successFilled: P('<path fill="currentColor" d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896m-55.808 536.384-99.52-99.584a38.4 38.4 0 1 0-54.336 54.336l126.72 126.72a38.27 38.27 0 0 0 54.336 0l262.4-262.464a38.4 38.4 0 1 0-54.272-54.336z"/>'),
         infoFilled: P('<path fill="currentColor" d="M512 64a448 448 0 1 1 0 896.064A448 448 0 0 1 512 64m67.2 275.072c33.28 0 60.288-23.104 60.288-57.344s-27.072-57.344-60.288-57.344c-33.28 0-60.16 23.104-60.16 57.344s26.88 57.344 60.16 57.344M590.912 699.2c0-6.848 2.368-24.64 1.024-34.752l-52.608 60.544c-10.88 11.456-24.512 19.392-30.912 17.28a12.99 12.99 0 0 1-8.256-14.72l87.68-276.992c7.168-35.136-12.544-67.2-54.336-71.296-44.096 0-108.992 44.736-148.48 101.504 0 6.784-1.28 23.68.064 33.792l52.544-60.608c10.88-11.328 23.552-19.328 29.952-17.152a12.8 12.8 0 0 1 7.808 16.128L388.48 728.576c-10.048 32.256 8.96 63.872 55.04 71.04 67.84 0 107.904-43.648 147.456-100.416z"/>'),
         calendar: P('<path fill="currentColor" d="M128 384v512h768V192H768v32a32 0 1 1-64 0v-32H320v32a32 32 0 0 1-64 0v-32H128v128h768v64zm192-256h384V96a32 32 0 1 1 64 0v32h160a32 32 0 0 1 32 32v768a32 32 0 0 1-32 32H96a32 32 0 0 1-32-32V160a32 32 0 0 1 32-32h160V96a32 32 0 0 1 64 0zm-32 384h64a32 32 0 0 1 0 64h-64a32 32 0 0 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m192-192h64a32 32 0 0 1 0 64h-64a32 32 0 0 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m192-192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64m0 192h64a32 32 0 1 1 0 64h-64a32 32 0 1 1 0-64"/>'),
+        star: P('<path fill="currentColor" d="M283.84 867.84 512 747.776l228.16 119.936a6.4 6.4 0 0 0 9.28-6.72l-43.52-254.08 184.512-179.904a6.4 6.4 0 0 0-3.52-10.88l-255.104-37.12L517.76 147.904a6.4 6.4 0 0 0-11.52 0L392.192 379.072l-255.104 37.12a6.4 6.4 0 0 0-3.52 10.88L318.08 606.976l-43.52 254.08a6.4 6.4 0 0 0 9.28 6.72z"/>'),
+        uploadFilled: P('<path fill="currentColor" d="M544 864V672h128L512 480 352 672h128v192H320v-1.6c-5.376.32-10.496 1.6-16 1.6A240 240 0 0 1 64 624c0-123.136 93.12-223.488 212.608-237.248A239.81 239.81 0 0 1 512 192a239.81 239.81 0 0 1 235.392 194.752C866.88 400.512 960 500.864 960 624a240 240 0 0 1-240 240c-5.504 0-10.624-1.28-16-1.6v1.6z"/>'),
+        videoPlay: P('<path fill="currentColor" d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896m0 64a384 384 0 1 0 0 768 384 384 0 0 0 0-768m-48 247.616L668.608 512 464 648.384zm-16-119.808 326.4 217.6a32 32 0 0 1 0 53.184l-326.4 217.6A32 32 0 0 1 400 704V320a32 32 0 0 1 48-26.192"/>'),
+        select: P('<path fill="currentColor" d="M77.248 415.04a64 64 0 0 1 90.496 0l226.304 226.304L846.528 188.8a64 64 0 1 1 90.56 90.496l-543.04 543.04-316.8-316.8a64 64 0 0 1 0-90.496z"/>'),
+        ban: P('<path fill="currentColor" d="M512 64a448 448 0 1 1 0 896 448 448 0 0 1 0-896m0 64a384 384 0 1 0 0 768 384 384 0 0 0 0-768m178.752 133.312 45.248 45.248-512 512-45.248-45.248z"/>'),
+        save: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M4 3h12l4 4v14H4zm2 2v4h8V5zm0 8v6h12v-6zM13 5v2h2V5z"/></svg>',
+        document: P('<path fill="currentColor" d="M832 384H576V128H192v768h640zm-26.496-64L640 154.496V320zM160 64h480l256 256v608a32 32 0 0 1-32 32H160a32 32 0 0 1-32-32V96a32 32 0 0 1 32-32"/>'),
     }
 
     const $ = s => document.querySelector(s)
@@ -352,7 +359,7 @@
 
     /* 下拉菜单注册表：act 名 -> 菜单项 [{t 文案, icon, type 文字颜色, dlg 打开的弹窗, divided 上分割线}] */
     const DROPDOWNS = {
-        add: [{t: '添加订阅', dlg: 'dlg-add'}, {t: '添加合集'}],
+        add: [{t: '添加订阅', dlg: 'dlg-add'}, {t: '添加合集', dlg: 'dlg-collection-preview'}],
         'manage-more': [
             {t: '更新总集数', icon: 'refreshRight'},
             {t: '更新总集数 [F]', icon: 'refresh', type: 'warning'},
@@ -360,7 +367,7 @@
             {t: '刮削 [F]', icon: 'refresh', type: 'warning'},
             {t: '启用', icon: 'circleCheck', type: 'primary', divided: true},
             {t: '禁用', icon: 'circleClose', type: 'warning'},
-            {t: '导入', icon: 'download', divided: true},
+            {t: '导入', icon: 'download', divided: true, dlg: 'dlg-import'},
             {t: '导出', icon: 'upload'},
             {t: '删除', icon: 'remove', type: 'danger', divided: true},
         ],
@@ -426,20 +433,24 @@
         '<span class="el-text el-text--small is-line-clamp" style="-webkit-line-clamp:2">https://mikanani.me/RSS/Bangumi?bangumiId=' + (3000 + a.t.length * 7) + '</span>',
     ]
 
-    const manageTable = rows =>
-        '<div class="el-table el-table--fit el-table--small el-table--striped el-table--border-none" style="width:100%">' +
-        '<div class="el-table__inner-wrapper">' +
-        '<div class="el-table__header-wrapper" style="overflow:hidden"><table class="el-table__header" style="table-layout:fixed"><colgroup>' +
-        MANAGE_COLS.map(c => '<col style="width:' + c.w + 'px">').join('') + '</colgroup><thead><tr>' +
-        MANAGE_COLS.map(c => '<th class="el-table__cell is-leaf"><div class="cell">' +
-            (c.sel ? '<label class="el-checkbox"><span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span></label>' : esc(c.label)) +
-            '</div></th>').join('') + '</tr></thead></table></div>' +
-        '<div class="el-table__body-wrapper"><div class="el-scrollbar"><div class="el-scrollbar__wrap" style="height:400px;overflow:auto">' +
-        '<table class="el-table__body" style="table-layout:fixed"><colgroup>' +
-        MANAGE_COLS.map(c => '<col style="width:' + c.w + 'px">').join('') + '</colgroup><tbody>' +
-        rows.map((cells, i) => '<tr class="el-table__row' + (i % 2 ? ' el-table__row--striped' : '') + '">' +
-            cells.map(c => '<td class="el-table__cell"><div class="cell">' + c + '</div></td>').join('') + '</tr>').join('') +
-        '</tbody></table></div></div></div></div></div>'
+    /* el-table 的通用形态：管理、Bangumi、备用订阅、合集预览四处共用一份。
+       cols: [{label, w, sel}]，rows: [[单元格 HTML, …]]，h: 体区高度 */
+    const table = (cols, rows, h) => {
+        const cg = '<colgroup>' + cols.map(c => '<col style="width:' + c.w + 'px">').join('') + '</colgroup>'
+        return '<div class="el-table el-table--fit el-table--small el-table--striped el-table--border-none" style="width:100%">' +
+            '<div class="el-table__inner-wrapper">' +
+            '<div class="el-table__header-wrapper" style="overflow:hidden"><table class="el-table__header" style="table-layout:fixed">' + cg + '<thead><tr>' +
+            cols.map(c => '<th class="el-table__cell is-leaf"><div class="cell">' +
+                (c.sel ? '<label class="el-checkbox"><span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span></label>' : esc(c.label)) +
+                '</div></th>').join('') + '</tr></thead></table></div>' +
+            '<div class="el-table__body-wrapper"><div class="el-scrollbar"><div class="el-scrollbar__wrap" style="height:' + (h || 400) + 'px;overflow:auto">' +
+            '<table class="el-table__body" style="table-layout:fixed">' + cg + '<tbody>' +
+            rows.map((cells, i) => '<tr class="el-table__row' + (i % 2 ? ' el-table__row--striped' : '') + '">' +
+                cells.map(c => '<td class="el-table__cell"><div class="cell">' + c + '</div></td>').join('') + '</tr>').join('') +
+            '</tbody></table></div></div></div></div></div>'
+    }
+
+    const manageTable = rows => table(MANAGE_COLS, rows)
 
     const manageBody =
         '<div class="flex" style="justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap">' +
@@ -500,7 +511,7 @@
             title: 'Other', pane:
                 '<form class="el-form el-form--default el-form--label-right full-width" style="height:200px" onsubmit="return false">' +
                 item('番剧名称', '<div class="flex full-width">' + inp('', '请勿留空', {style: 'flex:1'}) +
-                    '<div style="width:4px"></div>' + btn('', {text: true, bg: true, type: 'primary', icon: 'search'}) + '</div>', 80) +
+                    '<div style="width:4px"></div>' + btn('', {text: true, bg: true, type: 'primary', icon: 'search', act: 'dlg-bgm'}) + '</div>', 80) +
                 item('BgmUrl', inp('', 'https://bgm.tv/subject/123456', {full: true}), 80) +
                 item('RSS 地址', area('', 'https://xxxx.com/a.xml', 2), 80) +
                 '</form>' +
@@ -593,19 +604,19 @@
         ['TMDB', '<div class="flex full-width" style="justify-content:space-between">' +
         '<div class="el-input is-disabled" style="flex:1"><div class="el-input__wrapper" style="justify-content:left;padding:0 11px">' +
         lnk(A0.t, 'https://www.themoviedb.org/tv/209867') + '</div></div>' +
-        '<div style="width:4px"></div>' + btn('', {text: true, bg: true, icon: 'search'}) +
+        '<div style="width:4px"></div>' + btn('', {text: true, bg: true, icon: 'search', act: 'dlg-bgm'}) +
         '<div style="width:4px"></div>' + btn('', {text: true, bg: true, icon: 'refresh'}) + '</div>'],
         ['剧集组', '<div class="flex full-width" style="justify-content:space-between">' +
         inp('', '留空不使用剧集组', {style: 'flex:1'}) + '<div style="width:4px"></div>' +
-        btn('', {text: true, bg: true, icon: 'menu'}) + '</div>'],
+        btn('', {text: true, bg: true, icon: 'menu', act: 'dlg-tmdb'}) + '</div>'],
         ['BgmUrl', inp('https://bgm.tv/subject/425998', 'https://xxx.xxx', {full: true})],
         ['主 RSS', '<div class="full-width"><div class="flex full-width">' +
         inp(A0.sub, '字幕组', {style: 'width:140px'}) + '<div style="width:6px"></div>' +
         inp('https://mikanani.me/RSS/Bangumi?bangumiId=3141', 'https://xxx.xxx', {style: 'flex:1'}) + '</div>' +
         '<div class="flex full-width" style="justify-content:end;margin-top:4px">' +
-        btn('', {text: true, bg: true, icon: 'files'}) + btn('', {text: true, bg: true, icon: 'tickets'}) +
-        btn('', {text: true, bg: true, icon: 'grid'}) + '</div></div>'],
-        ['备用 RSS', flexEnd(btn('管理', {text: true, bg: true, icon: 'editPen'}))],
+        btn('', {text: true, bg: true, icon: 'files', act: 'dlg-mikan'}) + btn('', {text: true, bg: true, icon: 'tickets', act: 'dlg-anibt'}) +
+        btn('', {text: true, bg: true, icon: 'grid', act: 'dlg-ag'}) + '</div></div>'],
+        ['备用 RSS', flexEnd(btn('管理', {text: true, bg: true, icon: 'editPen', act: 'dlg-standby'}))],
         ['日期', flexEnd(datePicker('2026-07-04'))],
         ['季', flexEnd(num(A0.s, 200))],
         ['集数偏移', flexEnd(num(0, 200))],
@@ -663,7 +674,7 @@
         ['排序', sel('评分', ['评分', '拼音', '更新时间'], 150)],
         ['最大内容宽度', '<span id="widthBox">' + num(1600, 150, 'px') + '</span>'],
         ['其他', '<span id="toggles">' + checks([['显示评分', true], ['按星期展示', true], ['显示视频列表', true], ['显示更新时间', true]]) + '</span>'],
-        ['自定义', btn('JavaScript', {bg: true, icon: 'js'}) + btn('CSS', {bg: true, icon: 'css'})],
+        ['自定义', btn('JavaScript', {bg: true, icon: 'js', act: 'dlg-js'}) + btn('CSS', {bg: true, icon: 'css', act: 'dlg-css'})],
     ], 100)
 
     /* 2) 下载设置 —— config/Download.vue（下方折叠面板为 config/download/qBittorrent.vue） */
@@ -923,6 +934,133 @@
         {title: '关于', pane: aboutPane},
     ], {margin: true})
 
+    /* ==================== 其余弹窗（照上游各组件模板 1:1 复刻） ====================
+     * 这一批过去预览页一个都没有。它们带进来的是主题此前根本没被检验过的控件：
+     * el-rate（评分）、el-upload drag（封面 / 导入数据）、el-card 带 header/footer（剧集组）、
+     * 表格里嵌输入框（备用订阅）、circle 大按钮（播放列表）、el-alert 带 close-text（合集预览）。
+     * 装进真程序才发现没适配，就是因为预览里从来没画过它们。 */
+
+    /* ---------- 评分（home/BgmRate.vue，width 300） ---------- */
+    const RATE_TEXTS = ['不忍直视', '很差', '差', '较差', '不过不失', '还行', '推荐', '力荐', '神作', '超神作']
+    const rateBody = score =>
+        '<div><div class="flex flex-center" style="justify-content:center">' +
+        '<div class="el-rate" role="slider">' + Array.from({length: 10}, (_, i) =>
+            '<span class="el-rate__item"><i class="el-icon el-rate__icon' + (i < score ? ' hover" style="color:var(--el-rate-fill-color)' : '') +
+            '" data-icon="star"></i></span>').join('') + '</div></div>' +
+        '<div style="text-align:center;margin-top:8px"><p class="el-rate__text" style="margin:0">' + RATE_TEXTS[score - 1] + '</p></div>' +
+        '<div class="flex" style="justify-content:space-between;margin-top:16px">' +
+        btn('清空评分', {bg: true, text: true, icon: 'ban'}) +
+        btn('保存评分', {bg: true, text: true, icon: 'save'}) + '</div></div>'
+
+    /* ---------- 删除订阅（home/DelAni.vue，width 300） ---------- */
+    const delBody =
+        '<div><div><span class="el-text el-text--large mx-1">是否删除 ' + esc(A0.t) + ' 第' + A0.s + '季?</span></div>' +
+        cb('同时删除下载任务与本地已下载的文件', false, true) + '</div>' +
+        '<div class="action">' +
+        btn('确定', {type: 'danger', text: true, bg: true, icon: 'check'}).replace('<button', '<button data-close') +
+        btn('取消', {text: true, bg: true, icon: 'close'}).replace('<button', '<button data-close') + '</div>'
+
+    /* el-upload 的拖拽区（封面、导入数据两处共用） */
+    const uploadDrag = (main, sub, tip) =>
+        '<div class="pv-upload"><div class="el-upload el-upload--text"><div class="el-upload-dragger">' +
+        '<i class="el-icon el-icon--upload" data-icon="uploadFilled"></i>' +
+        '<div class="el-upload__text">' + main + (sub ? '<em>' + sub + '</em>' : '') + '</div></div></div>' +
+        (tip ? '<div class="el-upload__tip flex" style="justify-content:end">' + esc(tip) + '</div>' : '') + '</div>'
+
+    /* ---------- 封面（home/Cover.vue） ---------- */
+    const coverBody =
+        '<div class="flex"><div><img src="' + esc(A0.cover) + '" alt="" class="pv-cover-lg" referrerpolicy="no-referrer"></div>' +
+        '<div style="width:12px"></div><div style="flex:1">' +
+        form([['URL', '<div class="full-width"><div class="flex full-width">' +
+        inp('', 'https://lain.bgm.tv/pic/cover/1234.jpg', {style: 'flex:1'}) +
+        '<div class="spacer" style="width:8px"></div>' + btn('', {bg: true, text: true, icon: 'refresh'}) + '</div>' +
+        '<div style="margin-top:8px">' + uploadDrag('在这里拖放文件或', '点击上传', 'jpg / png 文件小于 1M') + '</div></div>']]) +
+        '</div></div>' +
+        '<div class="flex" style="justify-content:end;margin-top:12px">' +
+        btn('确定', {bg: true, text: true, icon: 'check'}).replace('<button', '<button data-close') + '</div>'
+
+    /* ---------- 剧集组（home/TmdbGroup.vue，width 400） ---------- */
+    const TMDB_GROUPS = [
+        ['Season 1', 'Original air date', 2, 24, 1],
+        ['Absolute Order', 'Absolute', 1, 24, 0],
+        ['DVD Order', 'DVD', 3, 26, 0],
+    ]
+    const tmdbBody = scroll(420, TMDB_GROUPS.map(([name, type, g, ep, sel]) =>
+        '<div class="el-card is-never-shadow" style="margin-bottom:8px"><div class="el-card__header">' +
+        '<div class="flex" style="justify-content:space-between;align-items:center;width:100%"><div>' +
+        lnk(name, 'https://www.themoviedb.org/') +
+        (sel ? '<span class="el-badge pv-badge-m"><sup class="el-badge__content el-badge__content--primary is-fixed">已选择</sup></span>' : '') +
+        '</div>' + btn('', {text: true, icon: 'select'}) + '</div></div>' +
+        '<div class="el-card__body"><div class="flex" style="justify-content:space-between;align-items:center">' +
+        tagList([type], 'success') + '<div style="display:flex;gap:4px">' + tagList([g + ' 组', ep + ' 集']) + '</div>' +
+        '</div></div></div>').join(''))
+
+    /* ---------- Bangumi 搜索（home/Bgm.vue） ---------- */
+    const BGM_COLS = [{label: 'id', w: 80}, {label: '封面', w: 120}, {label: '名称', w: 200}, {label: 'url', w: 240}, {label: '', w: 120}]
+    const bgmBody =
+        '<div class="pv-search-header" style="margin-bottom:8px">' +
+        inp('', '请输入搜索标题', {full: true}) + '<div class="spacer" style="width:4px"></div>' +
+        btn('搜索', {bg: true, text: true, icon: 'search'}) + '</div>' +
+        table(BGM_COLS, DATA.slice(0, 6).map((a, i) => [
+            String(425990 + i * 7),
+            '<img src="' + esc(a.cover) + '" alt="" width="78" height="100" style="object-fit:cover" referrerpolicy="no-referrer">',
+            '<span>' + esc(a.t) + '</span>',
+            'https://bgm.tv/subject/' + (425990 + i * 7),
+            '<div class="flex flex-center full-width">' + btn('选择', {bg: true, text: true}) + '</div>',
+        ]), 420)
+
+    /* ---------- 备用订阅（home/StandbyRss.vue） ---------- */
+    const STANDBY_COLS = [{label: '字幕组', w: 100}, {label: 'RSS', w: 340}, {label: '偏移', w: 120}, {label: '', w: 110}]
+    const standbyBody =
+        alertBox('当前备用RSS功能并未开启, 可前往 <strong>设置-基本设置-RSS设置-备用RSS</strong> 启用') +
+        '<div class="flex" style="margin:8px 0;gap:4px">' +
+        btn('', {text: true, bg: true, type: 'primary', icon: 'plus'}) +
+        btn('', {text: true, bg: true, icon: 'files', act: 'dlg-mikan'}) +
+        btn('', {text: true, bg: true, icon: 'tickets', act: 'dlg-anibt'}) +
+        btn('', {text: true, bg: true, icon: 'grid', act: 'dlg-ag'}) + '</div>' +
+        table(STANDBY_COLS, [
+            ['喵萌奶茶屋', '<span class="el-text el-text--small is-truncated">https://mikanani.me/RSS/Bangumi?bangumiId=3141&subgroupid=370</span>', num(0, 100), btn('', {text: true, bg: true, icon: 'editPen'}) + btn('', {text: true, bg: true, type: 'danger', icon: 'del'})],
+            ['<div>' + inp('北宇治字幕组', '未知字幕组', {full: true}) + '</div>', area('https://anibt.net/rss/anime.xml?bgmId=3141', '', 1), num(-1, 100), btn('', {text: true, bg: true, icon: 'check'}) + btn('', {text: true, bg: true, icon: 'close'})],
+        ], 300)
+
+    /* ---------- 播放列表（play/PlayList.vue，标题就是番剧名） ---------- */
+    const playBody =
+        scroll(430, '<div class="pv-play-grid">' + Array.from({length: 6}, (_, i) =>
+            '<div><div class="el-card is-never-shadow"><div class="el-card__body">' +
+            '<div class="pv-play-item"><div style="min-width:0">' +
+            '<span class="el-text is-line-clamp" style="-webkit-line-clamp:2" data-tip="' +
+            esc(A0.t + ' S0' + A0.s + 'E' + String(i + 1).padStart(2, '0') + '.mkv') + '" data-tip-place="top">' +
+            esc(A0.t + ' S0' + A0.s + 'E' + String(i + 1).padStart(2, '0') + '.mkv') + '</span><br>' +
+            '<span class="el-text el-text--small el-text--info">' + (380 + i * 13) + '.4 MB&nbsp;|&nbsp;2026-08-0' + ((i % 4) + 1) + ' 22:1' + i + '</span></div>' +
+            '<button type="button" class="el-button el-button--primary el-button--large is-text is-circle">' +
+            '<i class="el-icon" data-icon="videoPlay"></i></button>' +
+            '</div></div></div></div>').join('') + '</div>') +
+        '<p style="text-align:center;margin:8px 0 0">共 6 项</p>'
+
+    /* ---------- 导入数据（home/ImportAni.vue，width 500） ---------- */
+    const importBody =
+        '<div class="pv-section-title">' + icon('document') + '<span>选择文件</span></div>' +
+        uploadDrag('拖拽文件到此处<br>或 ', '点击选择文件', '支持 JSON 格式，文件大小不超过 1MB') +
+        '<div class="pv-section-title" style="margin-top:16px">' + icon('setting') + '<span>冲突处理</span></div>' +
+        radioRow(['跳过已存在', '覆盖已存在'], 0) +
+        '<div class="action">' + okCancel + '</div>'
+
+    /* ---------- 自定义 CSS / JS（config/basic/Page.vue，width 800） ---------- */
+    const codeBody = (v, link) => area(v, '', 6) +
+        (link ? '<div class="flex full-width" style="justify-content:end;margin-top:8px">' + lnk('更多CSS', 'https://github.com/wushuo894/ani-rss-css') + '</div>' : '') +
+        '<div class="flex full-width" style="justify-content:end;margin-top:8px">' +
+        btn('关闭', {bg: true, text: true, icon: 'close'}).replace('<button', '<button data-close') + '</div>'
+
+    /* ---------- 合集预览（home/CollectionPreview.vue，el-dialog-auto-width） ---------- */
+    const PREVIEW_COLS = [{label: '标题', w: 400}, {label: '重命名', w: 280}, {label: '集数', w: 80}, {label: '大小', w: 100}]
+    const collectionPreviewBody =
+        table(PREVIEW_COLS, Array.from({length: 8}, (_, i) => [
+            '[桜都字幕组] ' + A0.t.replace(/\s*\(\d{4}\)/, '') + ' [' + String(i + 1).padStart(2, '0') + '][1080p][简繁内封]',
+            A0.t.replace(/\s*\(\d{4}\)/, '') + ' S0' + A0.s + 'E' + String(i + 1).padStart(2, '0') + '.mkv',
+            String(i + 1), (380 + i * 11) + '.4 MB',
+        ]), 420) +
+        '<div style="margin-top:12px">' + alertBox('检测到字幕组为 桜都字幕组', 'info') + '</div>'
+
     /* 上游这几个弹窗都没写 width，走 el-dialog 默认的 50%；按钮也都在 body 里而不是 footer */
     $('#dialogs').innerHTML =
         dialog('dlg-download', '下载', downloadBody, '', '50%') +
@@ -934,7 +1072,19 @@
         /* 上游这三个是 <el-dialog center title="Mikan">，同样没写 width */
         dialog('dlg-mikan', 'Mikan', browseBody('Mikan'), '', '50%') +
         dialog('dlg-anibt', 'AniBT', browseBody('AniBT'), '', '50%') +
-        dialog('dlg-ag', 'AnimeGarden', browseBody('AnimeGarden'), '', '50%')
+        dialog('dlg-ag', 'AnimeGarden', browseBody('AnimeGarden'), '', '50%') +
+        /* 上游写死了宽度的几个 */
+        dialog('dlg-rate', '评分', rateBody(Math.round(parseFloat(A0.score))), '', '300px') +
+        dialog('dlg-del', '删除订阅', delBody, '', '300px') +
+        dialog('dlg-tmdb', '剧集组', tmdbBody, '', '400px') +
+        dialog('dlg-import', '导入数据', importBody, '', '500px') +
+        dialog('dlg-css', '自定义CSS', codeBody('/* 粘贴主题 CSS */', true), '', '800px') +
+        dialog('dlg-js', '自定义JS', codeBody('// 粘贴主题 JS', false), '', '800px') +
+        dialog('dlg-cover', '封面', coverBody, '', '50%') +
+        dialog('dlg-bgm', 'Bangumi', bgmBody, '', '50%') +
+        dialog('dlg-standby', '备用订阅', standbyBody, '', '50%') +
+        dialog('dlg-playlist', A0.t, playBody, '', '50%') +
+        dialog('dlg-collection-preview', '合集预览', collectionPreviewBody, '', '70%', 'el-dialog-auto-width')
 
     fillIcons()
 
@@ -971,11 +1121,12 @@
             if (DROPDOWNS[act]) return toggleDropdown(b, DROPDOWNS[act])
             if (act === 'refresh') return toast('已开始刷新全部订阅')
             if (act === 'login') return toast('演示页面，不会真的登录')
-            /* 卡片上这几处上游也是能点的：封面换图、标题跳 bgm、评分打分、图标看播放列表 */
-            if (act === 'cover') return toast('更换封面（演示页面不提供）')
+            /* 卡片上这几处上游都会开弹窗，之前预览只弹一句 toast —— 那几个弹窗没画过。
+               只有标题是真跳外链，保持一句提示。 */
+            if (act === 'cover') return openDialog('dlg-cover')
+            if (act === 'rate') return openDialog('dlg-rate')
+            if (act === 'playlist') return openDialog('dlg-playlist')
             if (act === 'bgm') return toast('跳转 Bangumi 条目页（演示页面不提供）')
-            if (act === 'rate') return toast('给这部番打分（演示页面不提供）')
-            if (act === 'playlist') return toast('视频列表（演示页面不提供）')
             if (act && act.indexOf('dlg-') === 0) return openDialog(act)
             return
         }

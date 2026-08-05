@@ -327,6 +327,20 @@ html .el-button.is-disabled {
     --btn-fg: color-mix(in srgb, var(--md-on-surface) 38%, transparent);
 }
 
+/* `text` 但没有 `bg` = M3 的 text button：没有容器，只有字/图标。
+   上游确实有这么写的（播放列表那颗大圆播放键 text type="primary"、剧集组的选择键 text），
+   之前一律按 tonal 填成实心，圆钮变成一坨色块。
+   底色留空之后 hover 的 color-mix 正好退化成 8% 主色的状态层，不用另写。 */
+html .el-button.is-text:not(.is-has-bg):not(.is-disabled) {
+    --btn-bg: transparent;
+    --btn-fg: var(--md-primary);
+    --btn-px: 12px;
+}
+
+html .el-button.is-text:not(.is-has-bg):not(.is-disabled).el-button--danger {
+    --btn-fg: var(--md-error);
+}
+
 /* 默认档 = tonal button：全圆角，无边框无阴影 */
 html .el-button,
 html .el-button.is-text,
@@ -340,14 +354,6 @@ html .el-button.is-text:not(.is-disabled).is-has-bg {
     box-shadow: none;
     height: var(--btn-h);
     width: var(--btn-w, auto);
-    /* 这条是给上面那个 overflow: hidden 擦屁股的。
-       弹性盒里的项目本来有个「自动最小尺寸」＝ min-content，按钮又是 nowrap，
-       所以再挤也挤不到文字以下。但规范写明：overflow 一旦不是 visible，
-       这个自动最小尺寸就变成 0 —— 涟漪要裁剪才加的 overflow: hidden，
-       顺手把这层保护也拆了。于是「搜索」这种和输入框同排的按钮，
-       容器一窄就被压扁、文字截掉，宽度还随各页可用空间不同而不同。
-       fit-content 正好把被拆掉的那道下限原样装回去。 */
-    min-width: fit-content;
     padding: 0 var(--btn-px);
     transition: background-color var(--md-dur-short) var(--md-ease-standard),
     box-shadow var(--md-dur-short) var(--md-ease-standard);
@@ -415,12 +421,26 @@ html .el-button--large {
     font-size: 15px;
 }
 
+/* 这条是给上面那个 overflow: hidden 擦屁股的。
+   弹性盒里的项目本来有个「自动最小尺寸」＝ min-content，按钮又是 nowrap，
+   所以再挤也挤不到文字以下。但规范写明：overflow 一旦不是 visible，
+   这个自动最小尺寸就变成 0 —— 涟漪要裁剪才加的 overflow: hidden，
+   顺手把这层保护也拆了。于是「搜索」这种和输入框同排的按钮，
+   容器一窄就被压扁、文字截掉，宽度还随各页可用空间不同而不同。
+   fit-content 正好把被拆掉的那道下限原样装回去。
+   单独一条、权重压到最低（0-1-1），是为了让下面圆钮那条能改写它 —— 圆钮的下限
+   得是边长而不是内容宽，不然它在挤的容器里会被压成椭圆。 */
+html .el-button {
+    min-width: fit-content;
+}
+
 /* 圆钮和纯图标钮：正方形，别留文字用的那圈内边距。
    :has() 不支持的老浏览器上只是宽一点，不会坏。 */
 html .el-button.is-circle,
 html .el-button:has(> .el-icon:only-child) {
     --btn-px: 0px;
     --btn-w: var(--btn-h);
+    min-width: var(--btn-h);
     border-radius: var(--md-shape-full);
 }
 
@@ -727,12 +747,75 @@ html .el-tag.el-tag--info {
     color: var(--md-on-tertiary-container);
 }
 
+/* 和按钮那边一个套路：这条 0-1-1 会把 EP 的 `.el-badge__content--primary`（0-1-0）
+   整个压死 —— 上游给「已订阅」「已选择」写的是 type="primary"，结果全渲染成报错红。
+   所以底色改走自定义属性，变体只负责往属性里塞值，一次打赢，各 type 跟着成立。 */
 html .el-badge__content {
+    --badge-bg: var(--md-error);
+    --badge-fg: var(--md-on-error);
     border-radius: var(--md-shape-full);
-    background-color: var(--md-error);
-    color: var(--md-on-error);
+    background-color: var(--badge-bg);
+    color: var(--badge-fg);
     font-family: var(--md-mono);
     border: none;
+}
+
+html .el-badge__content--primary {
+    --badge-bg: var(--md-primary);
+    --badge-fg: var(--md-on-primary);
+}
+
+html .el-badge__content--success {
+    --badge-bg: var(--md-success);
+    --badge-fg: var(--md-success-container);
+}
+
+html .el-badge__content--warning {
+    --badge-bg: var(--md-warning);
+    --badge-fg: var(--md-warning-container);
+}
+
+html .el-badge__content--info {
+    --badge-bg: var(--md-surface-container-highest);
+    --badge-fg: var(--md-on-surface-variant);
+}
+
+/* ================= 上传：M3 的拖拽区 ================= */
+/* 封面、导入数据两处用的 el-upload drag。之前一条没写，落到 EP 默认值上 ——
+   浅色下是一块纯白硬边方框，跟周围的 M3 面板完全不是一套东西。 */
+html .el-upload-dragger {
+    background-color: var(--md-surface-container-high);
+    border: 1px dashed var(--md-outline);
+    border-radius: var(--md-shape-m);
+    padding: 32px 16px;
+    transition: background-color var(--md-dur-short) var(--md-ease-standard),
+    border-color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-upload-dragger:hover,
+html .el-upload-dragger.is-dragover {
+    background-color: color-mix(in srgb,
+        var(--md-primary) var(--md-state-hover), var(--md-surface-container-high));
+    border-color: var(--md-primary);
+}
+
+html .el-upload-dragger .el-icon--upload {
+    color: var(--md-primary);
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+html .el-upload__text {
+    color: var(--md-on-surface-variant);
+}
+
+html .el-upload__text em {
+    color: var(--md-primary);
+    font-style: normal;
+}
+
+html .el-upload__tip {
+    color: var(--md-on-surface-variant);
 }
 
 /* ================= 开关 / 复选 / 单选 ================= */

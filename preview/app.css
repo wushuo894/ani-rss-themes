@@ -334,3 +334,47 @@ html, body, #app {
     justify-content: space-between;
     align-items: center;
 }
+
+/* ---------- 封面（home/Cover.vue） ---------- */
+.pv-cover-lg {
+    border: 1px solid var(--el-border-color-light);
+    border-radius: var(--el-border-radius-base);
+    cursor: pointer;
+    height: 260px;
+    width: 180px;
+    object-fit: cover;
+}
+
+/* ---------- 播放列表（play/PlayList.vue） ---------- */
+.pv-play-grid {
+    display: grid;
+    grid-gap: 5px;
+    width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+    padding: 0 5px;
+}
+
+.pv-play-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+/* el-upload 默认按内容宽度撑，上游这两处都放在通栏容器里，得给满 */
+.pv-upload,
+.pv-upload .el-upload,
+.pv-upload .el-upload-dragger {
+    width: 100%;
+}
+
+/* ---------- 导入数据（home/ImportAni.vue） ---------- */
+.pv-section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
