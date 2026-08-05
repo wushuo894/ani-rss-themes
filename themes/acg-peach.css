@@ -150,6 +150,28 @@ html .el-table {
     --el-table-header-bg-color: rgba(255, 255, 255, .45);
 }
 
+/* fixed 列（管理表钉住的「选择框」+「标题」，备用订阅、下载预览各钉一列）是
+   position: sticky —— 横滚时别的单元格要从它底下穿过去，所以这几格不能透明，
+   否则后面的标题和 URL 直接叠在标题列上糊成一团。
+   上面那几个 --el-table-*-bg-color 设成 transparent 是为了让壁纸透上来，
+   而 EP 给 fixed 列写的正是 `background: inherit`，于是一起透明了。
+   权重要压过 EP 那条 0-2-2，所以带上 .el-table 这一层（0-3-1）。
+
+   这几款的面板色本身是半透明的（.55~.9），直接拿来当底挡不住 —— 实测 glass 的
+   .62 叠两层也才 .86，滚过去的标题还是透得出来。所以底下垫一层各主题自己的
+   --el-bg-color-page（页面底色，是不透明的），再把面板色当渐变盖上去：
+   整格实心，颜色仍是这款主题的调子，周围的弹窗照旧是玻璃的。
+   !important 是必须的：EP 的斑马纹那条是 (0,4,2)，比这里的 (0,3,1) 高，
+   不压住的话奇数行的钉住格又会被刷回半透明的 --el-fill-color-lighter。
+   代价是这两列不再跟着斑马纹和悬停变色 —— 冻结列做成一整条纯色在表格 UI 里很常见，
+   要找回条纹和悬停就得再补两条更高权重的规则，为这点观感不值当。 */
+html .el-table .el-table-fixed-column--left.el-table__cell,
+html .el-table .el-table-fixed-column--right.el-table__cell {
+    background-color: var(--el-bg-color-page) !important;
+    background-image: linear-gradient(var(--el-dialog-bg-color), var(--el-dialog-bg-color)) !important;
+}
+
+
 #header {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);

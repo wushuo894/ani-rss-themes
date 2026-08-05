@@ -412,8 +412,8 @@
 
     /* ---------- 管理（home/Manage.vue，上游是 el-table 不是卡片列表） ---------- */
     const MANAGE_COLS = [
-        {label: '', w: 55, sel: true},
-        {label: '标题', w: 200},
+        {label: '', w: 55, sel: true, fx: true},
+        {label: '标题', w: 200, fx: true},
         {label: '季', w: 50},
         {label: '字幕组', w: 100},
         {label: '状态', w: 80},
@@ -434,9 +434,26 @@
     ]
 
     /* el-table 的通用形态：管理、Bangumi、备用订阅、合集预览四处共用一份。
-       cols: [{label, w, sel}]，rows: [[单元格 HTML, …]]，h: 体区高度 */
+       cols: [{label, w, sel, fx}]，rows: [[单元格 HTML, …]]，h: 体区高度
+       fx = 上游那一列写了 fixed（管理钉「选择框」+「标题」，备用订阅、下载预览各钉一列） */
     const table = (cols, rows, h) => {
         const cg = '<colgroup>' + cols.map(c => '<col style="width:' + c.w + 'px">').join('') + '</colgroup>'
+        /* EP 的 fixed 列不是另画一张表，是给那几格加 position:sticky + 行内 left 偏移，
+           挂上 el-table-fixed-column--left，最末一格再带 is-last-column —— 靠它的
+           ::before 投影和右边滚过去的内容分开。
+           之前预览页一列没钉，于是「钉住的格子必须不透明」这条约束在预览里根本不存在，
+           主题把 tr 刷成 transparent 也照样好看 —— 真程序里却是内容从标题底下穿过去。
+           钉上之后这个坑在预览里就藏不住了。 */
+        let lx = 0
+        const fx = cols.map((c, i) => {
+            if (!c.fx) return {cls: '', style: ''}
+            const o = {
+                cls: ' el-table-fixed-column--left' + ((cols[i + 1] || {}).fx ? '' : ' is-last-column'),
+                style: ' style="left:' + lx + 'px"',
+            }
+            lx += c.w
+            return o
+        })
         /* 两张表都得写死同一个 min-width＝各列宽之和。
            上游 el-table 是量完布局把宽度当行内样式写回两张表的，两张一样宽，
            表头才有得滚，横滚才能跟着表体一起动。
@@ -445,16 +462,16 @@
            clientWidth，scrollLeft 怎么设都是 0。于是表现成「内容能左右动、
            标题纹丝不动」。width:100% 是为了列宽之和比容器窄时还能铺满。 */
         const tw = 'table-layout:fixed;min-width:' + cols.reduce((s, c) => s + c.w, 0) + 'px;width:100%'
-        return '<div class="el-table el-table--fit el-table--small el-table--striped el-table--border-none" style="width:100%">' +
+        return '<div class="el-table el-table--fit el-table--small el-table--striped el-table--border-none is-scrolling-left" style="width:100%">' +
             '<div class="el-table__inner-wrapper">' +
             '<div class="el-table__header-wrapper" style="overflow:hidden"><table class="el-table__header" style="' + tw + '">' + cg + '<thead><tr>' +
-            cols.map(c => '<th class="el-table__cell is-leaf"><div class="cell">' +
+            cols.map((c, i) => '<th class="el-table__cell is-leaf' + fx[i].cls + '"' + fx[i].style + '><div class="cell">' +
                 (c.sel ? '<label class="el-checkbox"><span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span></label>' : esc(c.label)) +
                 '</div></th>').join('') + '</tr></thead></table></div>' +
             '<div class="el-table__body-wrapper"><div class="el-scrollbar"><div class="el-scrollbar__wrap" style="height:' + (h || 400) + 'px;overflow:auto">' +
             '<table class="el-table__body" style="' + tw + '">' + cg + '<tbody>' +
             rows.map((cells, i) => '<tr class="el-table__row' + (i % 2 ? ' el-table__row--striped' : '') + '">' +
-                cells.map(c => '<td class="el-table__cell"><div class="cell">' + c + '</div></td>').join('') + '</tr>').join('') +
+                cells.map((c, j) => '<td class="el-table__cell' + fx[j].cls + '"' + fx[j].style + '><div class="cell">' + c + '</div></td>').join('') + '</tr>').join('') +
             '</tbody></table></div></div></div></div></div>'
     }
 
@@ -1020,7 +1037,7 @@
         ]), 420)
 
     /* ---------- 备用订阅（home/StandbyRss.vue） ---------- */
-    const STANDBY_COLS = [{label: '字幕组', w: 100}, {label: 'RSS', w: 340}, {label: '偏移', w: 120}, {label: '', w: 110}]
+    const STANDBY_COLS = [{label: '字幕组', w: 100, fx: true}, {label: 'RSS', w: 340}, {label: '偏移', w: 120}, {label: '', w: 110}]
     const standbyBody =
         alertBox('当前备用RSS功能并未开启, 可前往 <strong>设置-基本设置-RSS设置-备用RSS</strong> 启用') +
         '<div class="flex" style="margin:8px 0;gap:4px">' +
@@ -1062,7 +1079,7 @@
         btn('关闭', {bg: true, text: true, icon: 'close'}).replace('<button', '<button data-close') + '</div>'
 
     /* ---------- 合集预览（home/CollectionPreview.vue，el-dialog-auto-width） ---------- */
-    const PREVIEW_COLS = [{label: '标题', w: 400}, {label: '重命名', w: 280}, {label: '集数', w: 80}, {label: '大小', w: 100}]
+    const PREVIEW_COLS = [{label: '标题', w: 400, fx: true}, {label: '重命名', w: 280}, {label: '集数', w: 80}, {label: '大小', w: 100}]
     const collectionPreviewBody =
         table(PREVIEW_COLS, Array.from({length: 8}, (_, i) => [
             '[桜都字幕组] ' + A0.t.replace(/\s*\(\d{4}\)/, '') + ' [' + String(i + 1).padStart(2, '0') + '][1080p][简繁内封]',
@@ -1192,6 +1209,13 @@
         addTableGutter(inner.parentNode)   /* 自愈：不管表格是怎么显示出来的，滚一下就补齐 */
         const head = inner.querySelector('.el-table__header-wrapper')
         if (head) head.scrollLeft = wrap.scrollLeft
+        /* fixed 列右缘那道投影归 is-scrolling-* 管：贴着最左时不画，一离开就画。
+           上游是 Vue 在滚动里改这个类，这里跟着改，投影的出现时机才一样。 */
+        const max = wrap.scrollWidth - wrap.clientWidth
+        inner.parentNode.classList.remove('is-scrolling-left', 'is-scrolling-middle', 'is-scrolling-right', 'is-scrolling-none')
+        inner.parentNode.classList.add(
+            max <= 0 ? 'is-scrolling-none' : wrap.scrollLeft <= 0 ? 'is-scrolling-left'
+                : wrap.scrollLeft >= max - 1 ? 'is-scrolling-right' : 'is-scrolling-middle')
     }, true)
 
     /* 表体多一根竖向滚动条，表头没有 —— 表头能滚的距离就比表体少一个滚动条宽度，

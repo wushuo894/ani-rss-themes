@@ -1057,10 +1057,31 @@ html .el-collapse-item__header:hover {
 }
 
 /* ================= 表格 / 进度条 / 提示条 / 链接 ================= */
-html .el-table,
-html .el-table tr,
-html .el-table th.el-table__cell {
-    background-color: transparent;
+/* 上游有三张表钉了列：管理（选择框 + 标题）、备用订阅、下载预览。
+   EP 的 fixed 列是 position: sticky，横滚时别的单元格要从它底下穿过去，
+   所以这几格必须不透明 —— EP 给它写的是 `background: inherit`，继承自 <tr>。
+
+   这里原先把 .el-table / tr / th 一律刷成 transparent（图的是让弹窗底色透上来），
+   于是钉住的那几格跟着透明：一横滚，后面的标题和 URL 直接叠在「标题」列上糊成一团，
+   看着就是「标题不动，内容乱穿」。表头那两格反过来更扎眼 —— EP 另有一条 0-3-2
+   给 th.fixed 填 --el-table-header-bg-color（默认 --el-bg-color），压得过这里的
+   0-2-1，在 surface-container-high 的弹窗上就是一块突兀的白/黑方块。
+
+   所以不补 fixed 列的规则，改成把 EP 自己那几个 token 指到弹窗的面色上：
+   五张表全在 el-dialog 里，颜色天然对得上，inherit 链原样成立，
+   striped 和 hover 也跟着一起变不透明，一处改完全部成立。 */
+html .el-table {
+    --md-table-bg: var(--md-surface-container-high);
+    --el-table-bg-color: var(--md-table-bg);
+    --el-table-tr-bg-color: var(--md-table-bg);
+    --el-table-header-bg-color: var(--md-table-bg);
+    --el-table-row-hover-bg-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), var(--md-table-bg));
+}
+
+/* EP 的斑马纹填的是 --el-fill-color-lighter（半透明），同样会让钉住的那格透底 */
+html .el-table--striped .el-table__body tr.el-table__row--striped > td.el-table__cell {
+    background: color-mix(in srgb, var(--md-on-surface) 4%, var(--md-table-bg));
 }
 
 html .el-table th.el-table__cell {
@@ -1073,9 +1094,10 @@ html .el-table td.el-table__cell {
     border-bottom-color: var(--md-outline-variant);
 }
 
+/* EP 真程序里的悬停走 JS 加的 .hover-row，纯 HTML 的预览页只有 :hover ——
+   两条都指向同一个 token，就不用分别调色，也不会再出现半透明的悬停色。 */
 html .el-table tr:hover > td.el-table__cell {
-    background-color: color-mix(in srgb,
-        var(--md-on-surface) var(--md-state-hover), transparent);
+    background-color: var(--el-table-row-hover-bg-color);
 }
 
 /* M3 linear progress：轨道用 primary-container，条子全圆角 */
