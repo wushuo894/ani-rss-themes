@@ -780,6 +780,30 @@ html .el-badge__content--info {
     --badge-fg: var(--md-on-surface-variant);
 }
 
+/* ================= 头像（Bangumi 授权状态） ================= */
+/* EP 默认把底色取成 --el-text-color-disabled，字固定纯白。深色下那是一块浅灰半透明，
+   白字压上去几乎看不见。M3 里头像用 primary-container 一对色，两边都稳。 */
+html .el-avatar {
+    background-color: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+}
+
+/* ================= 更新日志里的 Markdown ================= */
+/* ani-rss 的 style.css 把引用块的颜色写死成 #59636e / #d1d9e0（只照顾了浅色）。
+   深色下就是近黑底上的深灰字 + 一道扎眼的亮边。上游那条是 0-2-0，得多带一层 html。 */
+html .markdown-body blockquote {
+    color: var(--md-on-surface-variant);
+    border-left: 4px solid var(--md-outline-variant);
+}
+
+html .markdown-body code,
+html .markdown-body tt {
+    background-color: var(--md-surface-container-highest);
+    color: var(--md-on-surface);
+    border-radius: var(--md-shape-xs);
+    font-family: var(--md-mono);
+}
+
 /* ================= 上传：M3 的拖拽区 ================= */
 /* 封面、导入数据两处用的 el-upload drag。之前一条没写，落到 EP 默认值上 ——
    浅色下是一块纯白硬边方框，跟周围的 M3 面板完全不是一套东西。 */

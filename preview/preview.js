@@ -155,7 +155,7 @@
             '<span class="el-text el-text--small" style="max-width:300px;color:var(--el-color-primary)">' + esc(t) + '</span>' +
             '</span><i class="el-tag__close el-icon" data-icon="close"></i></span>'
         ).join('') : '<span class="el-tag el-tag--info el-tag--light" style="margin:0 4px 4px 0"><span class="el-tag__content">无</span></span>') +
-        btn('', {bg: true, text: true, icon: 'plus'}) +
+        btn('', {bg: true, text: true, icon: 'plus', act: 'dlg-regex'}) +
         (tags.length ? btn('', {bg: true, text: true, type: 'danger', icon: 'del'}) : '') +
         '</div><div class="flex" style="margin-top:4px;width:100%;justify-content:space-between">' +
         (importable ? btn('导入全局排除', {bg: true, text: true, icon: 'download'}) : '<span></span>') +
@@ -169,7 +169,7 @@
             '<span class="el-tag el-tag--primary el-tag--light" style="margin:4px"><span class="el-tag__content">' + esc(t) +
             '</span><i class="el-tag__close el-icon" data-icon="close"></i></span>').join('') +
         (tags.length ? '' : '<span class="el-tag el-tag--info el-tag--light" style="margin:4px"><span class="el-tag__content">无</span></span>') +
-        btn('', {bg: true, text: true, icon: 'plus'}) + '</div>'
+        btn('', {bg: true, text: true, icon: 'plus', act: 'dlg-keys'}) + '</div>'
 
     const radios = (items, active) =>
         '<div class="el-radio-group">' + items.map((t, i) =>
@@ -309,7 +309,7 @@
         '<div class="list-card-spacer list-card-playlist"></div>' +
         '<button type="button" class="el-button is-text is-has-bg" data-act="dlg-edit"><span class=""><i class="el-icon" data-icon="edit"></i></span></button>' +
         '<div class="list-card-spacer"></div>' +
-        '<button type="button" class="el-button el-button--danger is-text is-has-bg"><span class=""><i class="el-icon" data-icon="del"></i></span></button>' +
+        '<button type="button" class="el-button el-button--danger is-text is-has-bg" data-act="dlg-del"><span class=""><i class="el-icon" data-icon="del"></i></span></button>' +
         '</div></div></div></div></div></div>'
 
     let filterText = '', filterEnable = '已启用'
@@ -548,7 +548,7 @@
         '<div class="pv-group-label"><span class="el-text is-truncated" style="max-width:100px">' + esc(g.label) + '</span>' +
         '&nbsp;<span class="el-text el-text--small mx-1">' + esc(g.day) + '</span></div>' +
         '<div>' + g.tags.map(t => '<span class="el-tag el-tag--primary el-tag--light pv-tag-m"><span class="el-tag__content">' + esc(t) + '</span></span>').join('') + '</div>' +
-        '<div class="pv-group-action">' + btn('添加', {bg: true, icon: 'plus'}) + '</div></div>' +
+        '<div class="pv-group-action">' + btn('添加', {bg: true, icon: 'plus', act: 'dlg-match'}) + '</div></div>' +
         '<i class="el-icon el-collapse-item__arrow' + (open ? ' is-active' : '') + '" data-icon="arrow"></i></div>' +
         '<div class="el-collapse-item__wrap"' + (open ? '' : ' style="max-height:0"') + '><div class="el-collapse-item__content">' +
         '<div class="pv-group-items">' + g.items.map(([t, size, at]) =>
@@ -580,7 +580,7 @@
             btn('搜索', {bg: true, text: true, icon: 'search'}) + '</div>' +
             '<div class="flex pv-season-selector">' +
             sel('2026年7月', ['2026年7月', '2026年4月', '2026年1月', '2025年10月'], 140) +
-            btn('批量添加', {bg: true, text: true, icon: 'plus'}) + '</div></div>' +
+            btn('批量添加', {bg: true, text: true, icon: 'plus', act: 'dlg-batch'}) + '</div></div>' +
             '<div class="pv-scroll-container">' + scroll(420,
                 '<div class="el-collapse el-collapse-icon-position-right">' +
                 '<div class="el-collapse-item is-active">' +
@@ -657,7 +657,7 @@
         '<div class="flex full-width" style="justify-content:space-between;margin-top:10px">' +
         '<div>' + btn('其他', {text: true, bg: true, icon: 'more', act: 'ani-more'}) + '</div>' +
         '<div>' + btn('预览', {text: true, bg: true, icon: 'grid'}) +
-        btn('确定', {type: 'primary', text: true, bg: true, icon: 'check'}).replace('<button', '<button data-close') + '</div></div>'
+        btn('确定', {type: 'primary', text: true, bg: true, icon: 'check', act: 'dlg-move'}) + '</div></div>'
 
     /* ---------- 设置：八个标签页（对照 home/Config.vue 的 el-tabs） ---------- */
 
@@ -802,6 +802,7 @@
                 ['Token', '<div class="full-width">' + inp('', 'ABCDEFGHIJKLMNOPQRS', {full: true}) +
                 hint('你可以在&nbsp;' + lnk('https://next.bgm.tv/demo/access-token', 'https://next.bgm.tv/demo/access-token') + '&nbsp;生成一个 Access Token') +
                 '</div>'],
+                ['', flexEnd(btn('查看授权状态', {bg: true, text: true, icon: 'user', act: 'dlg-bgm-me'}))],
             ], 90) + '<div class="flex" style="justify-content:start">' +
                 lnk('支持自动点格子', 'https://docs.wushuo.top/config/basic/other#emby-webhook') + '</div>'
         },
@@ -900,6 +901,7 @@
         '<span class="el-text el-text--small mx-1">已经捐赠？在这里输入您的订单号以激活您的捐赠</span>' +
         '<div class="flex" style="gap:8px;margin-top:6px;align-items:center">' +
         inp('', '订单号', {prefix: 'key', style: 'max-width:320px'}) + btn('激活', {type: 'primary', text: true, bg: true, icon: 'check'}) +
+        btn('爱发电', {text: true, bg: true, icon: 'mug', act: 'dlg-afdian'}) +
         '</div></div>'
 
     /* 9) 关于 —— config/About.vue */
@@ -916,7 +918,7 @@
         btn('退出', {type: 'danger', text: true, bg: true, icon: 'back'}) +
         btn('重启', {type: 'warning', text: true, bg: true, icon: 'refreshRight'}) +
         btn('关闭', {type: 'danger', text: true, bg: true, icon: 'power'}) +
-        '<div class="el-badge">' + btn('更新', {type: 'success', text: true, bg: true, icon: 'top'}) +
+        '<div class="el-badge">' + btn('更新', {type: 'success', text: true, bg: true, icon: 'top', act: 'dlg-update'}) +
         '<sup class="el-badge__content el-badge__content--danger is-fixed">new</sup></div>' +
         '</div></div>'
 
@@ -1061,6 +1063,81 @@
         ]), 420) +
         '<div style="margin-top:12px">' + alertBox('检测到字幕组为 桜都字幕组', 'info') + '</div>'
 
+    /* ---------- 添加正则（config/Exclude.vue，width 300） ---------- */
+    const regexBody =
+        form([['字幕组', inp('', '留空匹配所有字幕组', {full: true})], '<div class="spacer"></div>',
+            ['正则', inp('', '如 720、简、\\d-\\d', {full: true})]], 60) +
+        '<div class="flex" style="justify-content:end;margin-top:12px">' +
+        btn('添加', {bg: true, text: true, icon: 'plus'}).replace('<button', '<button data-close') + '</div>'
+
+    /* ---------- 关键词设置（config/PrioKeys.vue，width 300） ---------- */
+    const keysBody =
+        form([['关键词', inp('', '如：简体、繁体、1080p', {full: true})]], 60) +
+        '<div class="flex" style="justify-content:end;margin-top:12px">' +
+        btn('添加', {bg: true, text: true, icon: 'plus'}).replace('<button', '<button data-close') + '</div>'
+
+    /* ---------- 移动文件（home/EditAni.vue） ---------- */
+    const moveBody =
+        '<div><strong>检测到修改后的下载位置发生了改动，是否将已下载文件移动到新的位置？</strong><br>' +
+        '<span class="el-text el-text--small mx-1">/downloads/anime/' + esc(A0.t.replace(/\s*\(\d{4}\)/, '')) + '/Season 01</span></div>' +
+        '<div class="action">' +
+        btn('移动', {type: 'danger', text: true, bg: true, icon: 'check'}).replace('<button', '<button data-close') +
+        btn('不移动', {text: true, bg: true, icon: 'close'}).replace('<button', '<button data-close') + '</div>'
+
+    /* ---------- 匹配（Mikan/AniBT/AG 三处共用，width auto） ---------- */
+    const matchBody =
+        '<div style="max-width:500px;min-width:200px;margin-bottom:4px"><div class="el-radio-group">' +
+        [[['简日双语', '1080P']], [['简体', '1080P']], [['繁体', '1080P']], []].map((groups, i) =>
+            '<div style="margin-right:12px;display:inline"><label class="el-radio' + (i === 0 ? ' is-checked' : '') + '">' +
+            '<span class="el-radio__input' + (i === 0 ? ' is-checked' : '') + '"><span class="el-radio__inner"></span></span>' +
+            '<span class="el-radio__label">' +
+            (groups.length ? groups[0].map(t => '<span class="el-tag el-tag--primary el-tag--light pv-tag-m"><span class="el-tag__content">' + esc(t) + '</span></span>').join('')
+                : tagList(['全部'], 'success')) +
+            '</span></label></div>').join('') + '</div></div>' +
+        '<div class="flex" style="justify-content:end">' +
+        btn('确定', {text: true, bg: true, icon: 'check'}).replace('<button', '<button data-close') + '</div>'
+
+    /* ---------- 正在批量添加订阅（width 500，没有关闭按钮） ---------- */
+    const batchBody =
+        '<div class="el-progress el-progress--line"><div class="el-progress-bar">' +
+        '<div class="el-progress-bar__outer"><div class="el-progress-bar__inner" style="width:62%"></div></div></div>' +
+        '<div class="el-progress__text"><span>62%</span></div></div><div>5 / 8</div>'
+
+    /* ---------- 查看授权状态（config/basic/BangumiMe.vue） ---------- */
+    /* el-descriptions + el-avatar：又是两个主题从没碰过的控件 */
+    const bgmMeBody = (() => {
+        const cell = (label, v, span) =>
+            '<td class="el-descriptions__cell el-descriptions__label is-bordered-label"' + (span ? ' rowspan="2"' : '') + '>' + esc(label) + '</td>'
+        const val = v => '<td class="el-descriptions__cell el-descriptions__content is-bordered-content">' + v + '</td>'
+        return '<div class="el-descriptions el-descriptions--vertical is-bordered"><div class="el-descriptions__body">' +
+            '<table class="el-descriptions__table is-bordered"><tbody>' +
+            '<tr class="el-descriptions-row">' + cell('头像') + cell('用户名') + cell('主页') + '</tr>' +
+            '<tr class="el-descriptions-row">' +
+            '<td class="el-descriptions__cell el-descriptions__content is-bordered-content" rowspan="1" style="text-align:center">' +
+            '<span class="el-avatar el-avatar--circle el-avatar--large">' + LOGO(40) + '</span></td>' +
+            val('<span class="el-text">demo_user</span>') +
+            val(lnk('https://bgm.tv/user/demo_user', 'https://bgm.tv/')) + '</tr>' +
+            '<tr class="el-descriptions-row">' + cell('邮箱') + cell('注册日期') + cell('昵称') + '</tr>' +
+            '<tr class="el-descriptions-row">' + val('demo@example.invalid') + val('2019-04-12') + val('演示账号') + '</tr>' +
+            '</tbody></table></div></div>'
+    })()
+
+    /* ---------- 版本更新（config/About.vue） ---------- */
+    const updateBody =
+        form([['版本号', lnk('v3.1.78', 'https://github.com/wushuo894/ani-rss/releases')],
+            ['发布时间', '2026-08-01 09:12'], ['大小', '38.4 MB'],
+            ['更新内容', '<div class="full-width">' + scroll(220,
+                '<div class="markdown-body"><h3>What\'s Changed</h3><ul>' +
+                '<li>修复 <code>备用RSS</code> 在多字幕组共存模式下的重复下载</li>' +
+                '<li>Mikan 列表支持按季度筛选</li>' +
+                '<li>刮削失败时回退到 <code>Bangumi</code> 元数据</li></ul>' +
+                '<blockquote>更新依赖于 Github, 需要网络环境支持</blockquote></div>' +
+                '<div style="margin-top:8px">' + alertBox('更新依赖于Github, 需要网络环境支持', 'info') + '</div>') + '</div>'],
+        ], 80) +
+        '<div class="flex" style="justify-content:end;margin-top:12px;gap:8px">' +
+        btn('更新日志', {bg: true, text: true, icon: 'tickets'}) +
+        btn('立即更新', {type: 'primary', bg: true, text: true, icon: 'top'}) + '</div>'
+
     /* 上游这几个弹窗都没写 width，走 el-dialog 默认的 50%；按钮也都在 body 里而不是 footer */
     $('#dialogs').innerHTML =
         dialog('dlg-download', '下载', downloadBody, '', '50%') +
@@ -1084,7 +1161,15 @@
         dialog('dlg-bgm', 'Bangumi', bgmBody, '', '50%') +
         dialog('dlg-standby', '备用订阅', standbyBody, '', '50%') +
         dialog('dlg-playlist', A0.t, playBody, '', '50%') +
-        dialog('dlg-collection-preview', '合集预览', collectionPreviewBody, '', '70%', 'el-dialog-auto-width')
+        dialog('dlg-collection-preview', '合集预览', collectionPreviewBody, '', '70%', 'el-dialog-auto-width') +
+        dialog('dlg-regex', '添加正则', regexBody, '', '300px') +
+        dialog('dlg-keys', '关键词设置', keysBody, '', '300px') +
+        dialog('dlg-move', '移动文件', moveBody, '', '50%') +
+        dialog('dlg-match', '匹配', matchBody, '', 'auto') +
+        dialog('dlg-batch', '正在批量添加订阅', batchBody, '', '500px') +
+        dialog('dlg-bgm-me', '查看授权状态', bgmMeBody, '', '50%') +
+        dialog('dlg-update', '版本更新', updateBody, '', '50%') +
+        dialog('dlg-afdian', '爱发电', afdianPane, '', '50%')
 
     fillIcons()
 
