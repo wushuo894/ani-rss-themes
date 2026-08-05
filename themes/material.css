@@ -435,9 +435,16 @@ html .el-button {
 }
 
 /* 圆钮和纯图标钮：正方形，别留文字用的那圈内边距。
-   :has() 不支持的老浏览器上只是宽一点，不会坏。 */
+   :has() 不支持的老浏览器上只是宽一点，不会坏。
+
+   判据不能写成 `> .el-icon:only-child`：涟漪是按下的瞬间往按钮里塞一个
+   <span class="md-ripple">，图标当场就不是「唯一子元素」了，这条规则跟着失效，
+   按钮从 40×40 弹回 62×40 —— 右对齐的还会顺势左移 22px，鼠标底下当场就空了，
+   那一下点击直接丢失，得再点一次；类名不摘，之后就一直是个歪胶囊。
+   「管理」右上角那颗更多键栽的就是这个。
+   改成「有图标 且 没有除涟漪以外的 span 子元素」，按下前后判定不变。 */
 html .el-button.is-circle,
-html .el-button:has(> .el-icon:only-child) {
+html .el-button:has(> .el-icon):not(:has(> span:not(.md-ripple))) {
     --btn-px: 0px;
     --btn-w: var(--btn-h);
     min-width: var(--btn-h);

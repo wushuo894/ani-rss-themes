@@ -437,14 +437,22 @@
        cols: [{label, w, sel}]，rows: [[单元格 HTML, …]]，h: 体区高度 */
     const table = (cols, rows, h) => {
         const cg = '<colgroup>' + cols.map(c => '<col style="width:' + c.w + 'px">').join('') + '</colgroup>'
+        /* 两张表都得写死同一个 min-width＝各列宽之和。
+           上游 el-table 是量完布局把宽度当行内样式写回两张表的，两张一样宽，
+           表头才有得滚，横滚才能跟着表体一起动。
+           这里原来只给了 colgroup 没给表宽：表体在 overflow:auto 里还能撑开，
+           表头那层是 overflow:hidden，表就被压成容器宽 —— scrollWidth 等于
+           clientWidth，scrollLeft 怎么设都是 0。于是表现成「内容能左右动、
+           标题纹丝不动」。width:100% 是为了列宽之和比容器窄时还能铺满。 */
+        const tw = 'table-layout:fixed;min-width:' + cols.reduce((s, c) => s + c.w, 0) + 'px;width:100%'
         return '<div class="el-table el-table--fit el-table--small el-table--striped el-table--border-none" style="width:100%">' +
             '<div class="el-table__inner-wrapper">' +
-            '<div class="el-table__header-wrapper" style="overflow:hidden"><table class="el-table__header" style="table-layout:fixed">' + cg + '<thead><tr>' +
+            '<div class="el-table__header-wrapper" style="overflow:hidden"><table class="el-table__header" style="' + tw + '">' + cg + '<thead><tr>' +
             cols.map(c => '<th class="el-table__cell is-leaf"><div class="cell">' +
                 (c.sel ? '<label class="el-checkbox"><span class="el-checkbox__input"><span class="el-checkbox__inner"></span></span></label>' : esc(c.label)) +
                 '</div></th>').join('') + '</tr></thead></table></div>' +
             '<div class="el-table__body-wrapper"><div class="el-scrollbar"><div class="el-scrollbar__wrap" style="height:' + (h || 400) + 'px;overflow:auto">' +
-            '<table class="el-table__body" style="table-layout:fixed">' + cg + '<tbody>' +
+            '<table class="el-table__body" style="' + tw + '">' + cg + '<tbody>' +
             rows.map((cells, i) => '<tr class="el-table__row' + (i % 2 ? ' el-table__row--striped' : '') + '">' +
                 cells.map(c => '<td class="el-table__cell"><div class="cell">' + c + '</div></td>').join('') + '</tr>').join('') +
             '</tbody></table></div></div></div></div></div>'
@@ -1173,18 +1181,42 @@
 
     fillIcons()
 
-    /* el-table 的表头和表体是两个独立的滚动容器，横向滚动要手动同步，否则表头对不上列 */
-    $$('.el-table__inner-wrapper').forEach(t => {
-        const head = t.querySelector('.el-table__header-wrapper')
-        const body = t.querySelector('.el-table__body-wrapper .el-scrollbar__wrap')
-        if (head && body) body.addEventListener('scroll', () => head.scrollLeft = body.scrollLeft)
-    })
+    /* el-table 的表头和表体是两个独立的滚动容器，横向滚动要手动同步，否则一拉表体
+       标题就留在原地。scroll 不冒泡，所以挂在 document 上走捕获 —— 一条覆盖所有表格，
+       包括之后新加的，不用记得回来补注册。 */
+    document.addEventListener('scroll', e => {
+        const wrap = e.target
+        if (!wrap.classList || !wrap.classList.contains('el-scrollbar__wrap')) return
+        const inner = wrap.closest('.el-table__inner-wrapper')
+        if (!inner) return
+        addTableGutter(inner.parentNode)   /* 自愈：不管表格是怎么显示出来的，滚一下就补齐 */
+        const head = inner.querySelector('.el-table__header-wrapper')
+        if (head) head.scrollLeft = wrap.scrollLeft
+    }, true)
+
+    /* 表体多一根竖向滚动条，表头没有 —— 表头能滚的距离就比表体少一个滚动条宽度，
+       拉到最右会差那么一截对不齐。上游 el-table 的做法是在表头右侧补一列同宽的 gutter，
+       这里照做。滚动条宽度得等弹窗真的显示出来才量得到，所以放在打开时做，量一次就够。 */
+    function addTableGutter(root) {
+        root.querySelectorAll('.el-table__inner-wrapper').forEach(t => {
+            if (t.dataset.gutter) return
+            const wrap = t.querySelector('.el-table__body-wrapper .el-scrollbar__wrap')
+            const headTable = t.querySelector('.el-table__header')
+            if (!wrap || !headTable || !wrap.offsetWidth) return
+            t.dataset.gutter = '1'
+            const g = wrap.offsetWidth - wrap.clientWidth
+            if (!g) return
+            headTable.querySelector('colgroup').insertAdjacentHTML('beforeend', '<col style="width:' + g + 'px">')
+            headTable.querySelector('thead tr').insertAdjacentHTML('beforeend', '<th class="el-table__cell gutter"></th>')
+        })
+    }
 
     /* ==================== 弹窗开关：走真实过渡 ==================== */
     function openDialog(id) {
         const ov = document.getElementById(id)
         if (!ov) return
         ov.style.display = ''
+        addTableGutter(ov)
         ov.classList.add('dialog-fade-enter-active')
         setTimeout(() => ov.classList.remove('dialog-fade-enter-active'), 300)
         requestAnimationFrame(() => positionBars(ov))
