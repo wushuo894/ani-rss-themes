@@ -551,17 +551,18 @@ html .el-radio {
     min-height: 40px;
 }
 
-/* 标签跟着控件走。Element Plus 的 `.el-form-item__label` 是
+/* 标签在整行里居中。Element Plus 的 `.el-form-item__label` 是
    `height: 32px; line-height: 32px; align-items: flex-start` —— 行盒钉死在它默认控件的
-   32px 上。这套主题把控件拉到 40px，标签中线本来就比控件高 4px；上面那条 margin-block
-   再把控件往下推 8px，就成了 12px：「地址」「下载工具」这些字明显浮在输入框上沿。
-   把标签的行盒撑到「控件高度 + 上下两圈外边距」，两条中线自然重合。
+   32px 上，标签就顶在整行的最上面。这套主题把控件拉到 40px、又加了上下外边距，
+   那两个字既够不着第一个控件的中线，也不在整行的中间，悬在半空最难看。
 
-   写死高度而不是 `align-items: center`：内容区高的那些行（文本域、一整列开关、
-   一片标签）标签本来就该贴着第一行，居中会让它飘到中间去。 */
+   `.el-form-item` 本身是 flex，标签作为弹性项默认就会拉满整行高度 —— 把写死的 32px
+   放开、行高改成正常倍数，再让它自己纵向居中，两个字就落在整行的正中间。
+   单控件的行里，「整行中间」和「控件中线」本来就是同一条线，两种情况一条规则管完。 */
 html .el-form-item__label {
-    height: calc(40px + 2 * var(--md-gap-y));
-    line-height: calc(40px + 2 * var(--md-gap-y));
+    height: auto;
+    line-height: 1.5;
+    align-items: center;
 }
 
 /* 两处例外：
