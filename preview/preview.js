@@ -534,9 +534,9 @@
         '</div>'
 
     /* ---------- 添加订阅（home/Add.vue） ---------- */
-    /* 每个源一个 tab：RSS 文本域 → 右对齐的浏览按钮 → 两行小字说明，表单固定 260px 高 */
+    /* 每个源一个 tab：RSS 文本域 → 右对齐的浏览按钮 → 两行小字说明，表单留 260px 底高 */
     const addPane = (src, ph, note2, dlg) =>
-        '<form class="el-form el-form--default el-form--label-right full-width" style="height:260px" onsubmit="return false">' +
+        '<form class="el-form el-form--default el-form--label-right full-width" style="min-height:260px" onsubmit="return false">' +
         item('RSS 地址', '<div class="full-width">' +
             '<div>' + area('', ph, 2) + '</div><br>' +
             '<div class="flex full-width" style="justify-content:end">' + btn(src, {text: true, bg: true, type: 'primary', act: dlg}) + '</div>' +
@@ -550,7 +550,7 @@
         {title: 'AG', pane: addPane('AnimeGarden', 'https://api.animes.garden/feed.xml?subject=xxx&fansub=xxx', 0, 'dlg-ag')},
         {
             title: 'Other', pane:
-                '<form class="el-form el-form--default el-form--label-right full-width" style="height:200px" onsubmit="return false">' +
+                '<form class="el-form el-form--default el-form--label-right full-width" style="min-height:200px" onsubmit="return false">' +
                 item('番剧名称', '<div class="flex full-width">' + inp('', '请勿留空', {style: 'flex:1'}) +
                     '<div style="width:4px"></div>' + btn('', {text: true, bg: true, type: 'primary', icon: 'search', act: 'dlg-bgm'}) + '</div>', 80) +
                 item('BgmUrl', inp('', 'https://bgm.tv/subject/123456', {full: true}), 80) +
