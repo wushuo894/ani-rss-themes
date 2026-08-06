@@ -499,6 +499,12 @@ html #form .el-button {
  * 竖排才用控件自己的上下外边距。
  */
 
+/* 两个量抽出来，因为下面「标签对齐」那条要用同一个数算 —— 分开写迟早对不上 */
+html {
+    --md-gap-x: 12px;   /* 同一行里两个控件之间 */
+    --md-gap-y: 8px;    /* 控件自己的上下外边距，上下相邻两个就是 2 倍 */
+}
+
 /* 横排：用 :has() 认「直接放着一个控件的那层 div」，不去认上游的间隔条。
    gap 对非 flex / grid 容器无效，所以选中了也不会有副作用。
 
@@ -514,7 +520,7 @@ html div:not([class*="list-card"]):has(> .el-select),
 html div:not([class*="list-card"]):has(> .el-input-number),
 html div:not([class*="list-card"]):has(> .el-textarea),
 html .el-form-item__content {
-    gap: 12px !important;
+    gap: var(--md-gap-x) !important;
 }
 
 /* 竖排：上下堆叠的两行，父级往往是块级容器，gap 落不上去，只能靠控件自己。
@@ -527,7 +533,35 @@ html .el-textarea,
 html .el-switch,
 html .el-checkbox,
 html .el-radio {
-    margin-block: 8px;
+    margin-block: var(--md-gap-y);
+}
+
+/* 控件套控件的时候只算外面那层。数字调节框里面还包着一个 `.el-input`，两层都加就是
+   8 + 8 = 16px，那一行比别人高一截 —— 「端口」「RSS间隔」这些行的标签就是这么被顶歪的。
+   输入框的前后插槽里塞按钮也是同理，插槽里的东西本来就该贴着框。 */
+html :is(.el-input, .el-select, .el-input-number, .el-textarea, .el-autocomplete, .el-date-editor)
+:is(.el-input, .el-select, .el-input-number, .el-textarea, .el-switch, .el-checkbox, .el-radio, .el-button) {
+    margin-block: 0;
+}
+
+/* 复选框和单选按 Element Plus 是 32px，比这套主题里 40px 的输入框矮一截，
+   一行里混着摆就差 4px。拉到同高，标签那条中线才对所有控件都成立。 */
+html .el-checkbox,
+html .el-radio {
+    min-height: 40px;
+}
+
+/* 标签跟着控件走。Element Plus 的 `.el-form-item__label` 是
+   `height: 32px; line-height: 32px; align-items: flex-start` —— 行盒钉死在它默认控件的
+   32px 上。这套主题把控件拉到 40px，标签中线本来就比控件高 4px；上面那条 margin-block
+   再把控件往下推 8px，就成了 12px：「地址」「下载工具」这些字明显浮在输入框上沿。
+   把标签的行盒撑到「控件高度 + 上下两圈外边距」，两条中线自然重合。
+
+   写死高度而不是 `align-items: center`：内容区高的那些行（文本域、一整列开关、
+   一片标签）标签本来就该贴着第一行，居中会让它飘到中间去。 */
+html .el-form-item__label {
+    height: calc(40px + 2 * var(--md-gap-y));
+    line-height: calc(40px + 2 * var(--md-gap-y));
 }
 
 /* 两处例外：

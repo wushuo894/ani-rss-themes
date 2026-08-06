@@ -14,37 +14,13 @@ ani-rss 里：**设置 → 基础设置 → 页面设置 → 自定义 → CSS**
 @import url("https://zzzwannasleep.github.io/ani-rss-themes/themes/paper.css");
 ```
 
-把 `paper.css` 换成下表任意文件名。国内慢就走 jsDelivr：
-
-```css
-@import url("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/themes/paper.css");
-```
-
-jsDelivr 也不通、或者想让更新立刻生效，走备用源 githack：
+把 `paper.css` 换成下表任意文件名。Pages 不通就走备用源 githack：
 
 ```css
 @import url("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/themes/paper.css");
 ```
 
 保存刷新即可。**一次只放一个主题**，混着放会打架。不想依赖外部站点，就把 `.css` 全文复制粘进去。
-
-三条线的区别只有一个 —— 浏览器会把文件抱多久：
-
-| 源 | 浏览器缓存 | 说明 |
-| --- | --- | --- |
-| GitHub Pages | 10 分钟 | 默认这条 |
-| jsDelivr | **7 天** | 国内一般最快，但更新最迟 |
-| githack | 60 秒 | 稍慢一点，改完一分钟内自动生效 |
-
-> **主题更新了但没变化？** jsDelivr 给浏览器的是 `max-age=604800`（7 天），换句话说仓库这边修完，
-> 你的浏览器最多还会抱着旧文件一星期 —— 刷新页面也没用，那是本地缓存不是服务端。
-> 强刷一次即可（Windows `Ctrl+F5`，macOS `Cmd+Shift+R`），或者换上面那条 githack。
-
-> **别用 gh-proxy / ghproxy 那类 raw 加速站。** 它们是 `raw.githubusercontent.com` 的纯透传，
-> 会把 GitHub 的 `Content-Type: text/plain` 和 `X-Content-Type-Options: nosniff` 一起带回来。
-> 浏览器拒绝套用 MIME 不是 `text/css` 的跨域样式表，`nosniff` 让这条没有回旋余地 ——
-> 链接能打开、文件也下得下来，但样式一条都不会生效。配套的 JS 同理（`import()` 直接抛
-> `Failed to fetch dynamically imported module`）。
 
 ## 主题一览
 
@@ -114,7 +90,7 @@ https://zzzwannasleep.github.io/ani-rss-themes/
 
 左上角换主题、切明暗、跳登录页。URL 参数可叠加后分享：`?t=neon.css`、`?dark=1`、`?login=1`。
 
-右上角一键复制：GitHub 链接 / jsDelivr 链接 / CSS 全文。配了 JS 的主题会多出一个金色按钮（点一下拿 `import(…)` 一行，再点一下拿 JS 全文）。
+右上角一键复制：GitHub 链接 / githack 链接 / CSS 全文。配了 JS 的主题会多出一个金色按钮（点一下拿 `import(…)` 一行，再点一下拿 JS 全文）。
 
 **用的是真东西，不是截图也不是仿写：** Element Plus 样式表和 ani-rss 实际引用的是同一份；ani-rss 自己那层样式从上游热链，跟着它更新；DOM 结构、类名、图标 1:1 复刻；弹窗、下拉、标签页走 Element Plus 真实过渡；番剧数据取自 [Bangumi 每日放送](https://api.bgm.tv/calendar)。
 
@@ -142,12 +118,12 @@ cd ani-rss-themes && python -m http.server 8080
 
 ```css
 /* CSS 框 */
-@import url("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/themes/material.css");
+@import url("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/themes/material.css");
 ```
 
 ```js
 /* JS 框 */
-import("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/js/material-motion.js")
+import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/material-motion.js")
 ```
 
 **动态取色**：ani-rss 的取色器把 `--el-color-primary` 以内联样式写在 `<html>` 上，主题用 `!important` 盖住后它就失效了。这份 JS 把它读回来当种子，按 M3 四条色调轨现算 26 个配色变量铺回去 —— 取色器又生效了，而且改的是整套配色不只强调色。换算用 OKLCh 近似 HCT（两者都是感知均匀空间，观感差别肉眼基本看不出，但 HCT 要带一整套 CAM16 实现，不值当）。拿 baseline 的 `#6750A4` 跑回去得到 `#634CA0` / `#1C1B21`，和官方 `#6750A4` / `#1D1B20` 基本重合。
@@ -168,11 +144,11 @@ import("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/js/materia
 | `js/genshin-login.js` | 自定义 **JS** | 卡片后面那片天：渐变天空、云海、极光、星尘、悬空桥柱，相机往前推 |
 
 ```css
-@import url("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/themes/genshin-login.css");
+@import url("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/themes/genshin-login.css");
 ```
 
 ```js
-import("https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/js/genshin-login.js")
+import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/genshin-login.js")
 ```
 
 - **只管登录页**，列表页一行不碰 —— 可以和上面任意主题叠着用。也因此不跟随明暗，启动器那个弹窗本来就只有白色。

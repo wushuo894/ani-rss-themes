@@ -1811,17 +1811,12 @@
     /* ==================== 右上角的复制按钮 ==================== */
     /* 写死仓库地址：本地起服务预览时也该给出可用的公网地址，而不是 localhost */
     const REPO_PAGES = 'https://zzzwannasleep.github.io/ani-rss-themes/'
-    const REPO_JSDELIVR = 'https://cdn.jsdelivr.net/gh/zzzwannasleep/ani-rss-themes@main/'
-    /* 备用源。挑 githack 不是因为它快（从国内实测比 jsDelivr 还慢 0.25s），
-       是因为它的 Cache-Control 是 max-age=60 —— jsDelivr 那条是 604800（7 天），
-       仓库这边修完，浏览器还会抱着旧文件一星期，刷新都没用。
-       用 raw.githack.com 而不是 rawcdn.githack.com：后者是 immutable 一年，
+    /* 备用源。用 raw.githack.com 而不是 rawcdn.githack.com：后者是 immutable 一年，
        那个是配合固定 commit 发版用的，日常拿它就永远收不到更新了。
-       另外别换成 gh-proxy 那类 raw 透传站：它们原样带回 GitHub 的
+       别换成 gh-proxy 那类 raw 透传站：它们原样带回 GitHub 的
        `Content-Type: text/plain` + `nosniff`，浏览器会拒绝套用这份样式表 —— 实测不生效。 */
     const REPO_GITHACK = 'https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/'
     const PAGES = REPO_PAGES + 'themes/'
-    const JSDELIVR = REPO_JSDELIVR + 'themes/'
     const GITHACK = REPO_GITHACK + 'themes/'
     const importOf = base => '@import url("' + base + current + '");'
 
@@ -1895,7 +1890,6 @@
     }
 
     bindCopy('#copyPages', () => importOf(PAGES), '已复制 @import（GitHub Pages）')
-    bindCopy('#copyJsd', () => importOf(JSDELIVR), '已复制 @import（jsDelivr）')
     bindCopy('#copyGithack', () => importOf(GITHACK), '已复制 @import（githack 备用源）')
     bindCopy('#copyCss', () => fetch('themes/' + current).then(r => {
         if (!r.ok) throw new Error(r.status)
@@ -1915,9 +1909,9 @@
         const JS_MODES = [
             {
                 label: '复制 JS 链接',
-                title: 'import() 一行，粘到 自定义 → JS。走 jsDelivr，跟着仓库自动更新',
+                title: 'import() 一行，粘到 自定义 → JS。走 githack，跟着仓库自动更新',
                 ok: '已复制 JS 链接 —— 粘到 自定义 → JS',
-                get: () => 'import("' + REPO_JSDELIVR + 'js/' + jsFile + '")',
+                get: () => 'import("' + REPO_GITHACK + 'js/' + jsFile + '")',
             },
             {
                 label: '复制 JS 全文',
