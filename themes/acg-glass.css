@@ -216,20 +216,22 @@ html .el-table .el-table-fixed-column--right.el-table__cell {
 
 
 /* ================= 气泡确认（el-popconfirm） =================
- * ani-rss 包了一层 Popconfirm.vue，160px 的气泡减掉 12px 内边距只剩 134px 宽。
- * 按钮被主题放大后超宽，"确定"按钮直接顶出气泡外。行内 style 的宽度只能用
- * !important 和 :has() 选择器精准击中。
- *
- * 玻璃主题继续走半透明 + 毛玻璃的风格，用现有的 --ani-rss-surface-strong
- * 和 backdrop-filter 完成主题一致性。 */
+ * EP 的 160px 宽度保持，按钮规则单独缩小。玻璃主题按钮完全是 EP 默认样式，
+ * 在气泡里需要压小尺寸。 */
 html .el-popover.el-popper:has(.el-popconfirm) {
-  width: auto !important;
-  min-width: 240px;
-  max-width: min(340px, calc(100vw - 24px));
   padding: 12px;
   background: var(--ani-rss-surface-strong) !important;
   backdrop-filter: blur(var(--ani-rss-backdrop-blur));
   -webkit-backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+}
+
+/* 气泡里的按钮收小：高度 28px，padding 左右 8px，字号 12px。
+   两颗按钮 + 8px 间距 ≈ 120px。 */
+html .el-popconfirm .el-button {
+  height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 12px !important;
+  min-width: auto !important;
 }
 
 html .el-popconfirm__main {
@@ -255,6 +257,20 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
   display: contents;
+}
+
+/* 菱形沿浮层半透明底色变化。玻璃主题浮层无边框，菱形也无边框。 */
+html .el-popper {
+  --ani-glass-popper-bg: var(--ani-rss-surface-strong);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+  --ani-glass-popper-bg: var(--ani-rss-surface-strong);
+}
+
+html .el-popper__arrow::before {
+  background-color: var(--ani-glass-popper-bg) !important;
+  border: none !important;
 }
 
 .el-popover {

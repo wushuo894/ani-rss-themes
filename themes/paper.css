@@ -281,14 +281,11 @@ html .el-overlay-dialog .el-dialog {
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 上游气泡宽 160px 内装两颗线框按钮，各 60-70px，直接顶出气泡外。
- * 本主题延续极简线框风格：方角 2px、纸白背景、细边框、无阴影。
- * 用 !important 只对装着 popconfirm 的气泡扩宽，别的气泡（提示、下拉）不动。
+ * 上游气泡宽度 160px 固定，不再扩宽。改为收小气泡里的按钮，
+ * 依然延续极简线框风格：方角 2px、纸白背景、细边框、无阴影。
+ * 二次确认的两颗按钮单独做一档更小的尺寸，合二为一不超出气泡。
  */
 html .el-popover.el-popper:has(.el-popconfirm) {
-    width: auto !important;
-    min-width: 240px;
-    max-width: min(340px, calc(100vw - 24px));
     padding: 12px;
     border: 1px solid var(--el-border-color);
     border-radius: 2px;
@@ -320,6 +317,32 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
     display: contents;
+}
+
+/* 气泡里的按钮需要按 160px 气泡的尺度大幅收小。
+   按钮本体线框风格不变，但高度、内边距、字号都往下压。
+   目标：两颗 ≤ 62px + 8px 间距 ≤ 128px。 */
+html .el-popconfirm .el-button {
+    height: 28px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* 菱形走继承变量，自动跟着不同浮层的底色变化。
+   菱形是浮层的子元素，会继承父级的 CSS 变量。 */
+html .el-popper {
+    --ani-popper-bg: var(--el-bg-color);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+    --ani-popper-bg: var(--el-bg-color);
+}
+
+html .el-popper__arrow::before {
+    background-color: var(--ani-popper-bg) !important;
+    border: 1px solid var(--el-border-color) !important;
 }
 
 /* ================= 二次确认框（el-message-box） =================

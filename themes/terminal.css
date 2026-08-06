@@ -321,13 +321,11 @@ html .list-card-actions .el-button::after {
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 上游气泡宽度 160px 行内绑定，terminal 的按钮全大写 + 方括号，两颗按钮 157px 顶出气泡。
- * 需要足够的宽度放下这两颗胖按钮 —— 定成 280px，内边距 12px 共 24px，按钮区 256px，稳妥。
+ * 气泡固定 160px。terminal 按钮全大写+方括号，在气泡内装不下装饰，
+ * 所以关掉方括号；按钮按 12px 字号 + 8px padding + 26px 高度收小到单颗 ~62px，
+ * 两颗 + 8px 间距 = 132px，装进 160−24px 内边距 = 136px 可用区。
  * 终端风格：方角、绿边、反色 hover。 */
 html .el-popover.el-popper:has(.el-popconfirm) {
-    width: auto !important;
-    min-width: 280px;
-    max-width: min(340px, calc(100vw - 24px));
     padding: 12px;
     border-radius: 0;
     border: 1px solid var(--el-border-color-dark);
@@ -361,6 +359,40 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
     display: contents;
+}
+
+/* 气泡按钮：收小。方括号装饰在 160px 固定宽度里放不下，
+   所以在这里关掉（气泡容器限制，非主题设计错误）。 */
+/* 字距也要收：终端全站是 .08em 的字距 + 全大写，在 12px 上一颗按钮还要多吃 4px。
+   连方括号一起算，实测留 8px 内边距时只剩 3.6px 余量 —— 换个字体（等宽字栈里
+   Consolas 和 Menlo 的汉字宽度差得出来）就会掉成两行。字距归零再收到 6px，
+   余量回到 11px 左右。气泡里这两颗本来就不该有终端那股「命令行提示符」的排版。 */
+html .el-popconfirm .el-button {
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    height: 26px;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0;
+}
+
+html .el-popconfirm .el-button::before,
+html .el-popconfirm .el-button::after {
+    content: none !important;
+}
+
+/* 菱形接气泡底色，终端有绿边框需要保留 */
+html .el-popper {
+    --ani-popper-bg: var(--el-bg-color);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+    --ani-popper-bg: var(--el-bg-color);
+}
+
+html .el-popper__arrow::before {
+    background-color: var(--ani-popper-bg) !important;
+    border: 1px solid var(--el-border-color-dark) !important;
 }
 
 /* ================= 二次确认框（el-message-box） =================

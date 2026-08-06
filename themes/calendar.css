@@ -524,13 +524,10 @@ html .list-card-actions .el-button.is-text.is-has-bg:hover {
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 上游气泡宽度 160px 行内绑定，按钮被主题加粗后会顶出外框。
- * 挂历风格：方角 3px、顶端红边、等宽数字。两颗 small 按钮约 130px，
- * 加内边距 12×2 共 24px，总宽 240px。 */
+ * 气泡固定 160px。按钮按 12px 字号 + 8px padding + 28px 高度收小到单颗 ~62px，
+ * 两颗 + 8px 间距 = 132px，装进 160−24px 内边距 = 136px 可用区。
+ * 挂历风格：方角 3px、顶端红边、等宽数字。 */
 html .el-popover.el-popper:has(.el-popconfirm) {
-    width: auto !important;
-    min-width: 240px;
-    max-width: min(340px, calc(100vw - 24px));
     padding: 12px;
     border-radius: 3px;
     border: 1px solid var(--el-border-color-dark);
@@ -566,6 +563,28 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
     display: contents;
+}
+
+/* 气泡按钮：收小。保留挂历特有的红上沿（border-top）。 */
+html .el-popconfirm .el-button {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    height: 28px;
+    font-size: 12px;
+}
+
+/* 菱形接气泡底色，保留边框与气泡边框呼应 */
+html .el-popper {
+    --ani-popper-bg: var(--el-card-bg-color);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+    --ani-popper-bg: var(--el-card-bg-color);
+}
+
+html .el-popper__arrow::before {
+    background-color: var(--ani-popper-bg) !important;
+    border: 1px solid var(--el-border-color-dark) !important;
 }
 
 /* ================= 二次确认框（el-message-box） =================

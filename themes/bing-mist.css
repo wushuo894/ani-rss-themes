@@ -197,12 +197,9 @@ html .el-table .el-table-fixed-column--right.el-table__cell {
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 在白雾玻璃风格下，popconfirm 气泡继续用毛玻璃 + 衬线标题的排法。
- * 容器宽度修复到 240px，按钮一行排开。 */
+ * EP 的 160px 宽度保持，按钮规则单独缩小。white-mist 的按钮有 letter-spacing，
+ * 在气泡里收掉字距。 */
 html .el-popover.el-popper:has(.el-popconfirm) {
-  width: auto !important;
-  min-width: 240px;
-  max-width: min(340px, calc(100vw - 24px));
   padding: 12px;
   background: rgba(255, 255, 255, .74) !important;
   backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
@@ -210,6 +207,16 @@ html .el-popover.el-popper:has(.el-popconfirm) {
   border: 1px solid var(--el-border-color);
   border-radius: 12px;
   box-shadow: 0 10px 30px -20px rgba(20, 40, 70, .45);
+}
+
+/* 气泡里的按钮收小：高度 28px，padding 左右 8px，字号 12px，关闭字距。
+   两颗按钮 + 8px 间距 ≈ 120px。 */
+html .el-popconfirm .el-button {
+  height: 28px !important;
+  padding: 0 8px !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+  min-width: auto !important;
 }
 
 html .el-popconfirm__main {
@@ -235,6 +242,20 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
   display: contents;
+}
+
+/* 菱形沿浮层白雾底色变化。mist 浮层有亮边框，菱形保留同色边框。 */
+html .el-popper {
+  --ani-mist-popper-bg: rgba(255, 255, 255, .72);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+  --ani-mist-popper-bg: rgba(255, 255, 255, .74);
+}
+
+html .el-popper__arrow::before {
+  background-color: var(--ani-mist-popper-bg) !important;
+  border: 1px solid var(--el-border-color) !important;
 }
 
 /* ================= 二次确认框（el-message-box） =================

@@ -361,17 +361,11 @@ html .list-card-actions .el-button {
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 「刷新」「退出」「重启」「关闭」四处点下去弹的都是它。这份主题的按钮是玻璃药丸
- * (border-radius: 999px)，底部填充较高（内边距 16px + 半径），两颗刚好超过原生 160px
- * 的气泡宽度，直接顶出右边缘。容器必须用 !important 抢占 :width 行内样式。
- *
- * 壁纸背景下底色要够实，这里拿 --el-dialog-bg-color（浅色 .82 / 深色 .84）做底，
- * 足以挡住飘花壁纸，字不会压在图上读不了。 */
+ * 气泡固定 160px。按钮按 12px 字号 + 8px padding + 28px 高度 + 14px 圆角收小到单颗 ~62px，
+ * 两颗 + 8px 间距 = 132px，装进 160−24px 内边距 = 136px 可用区。
+ * 关掉光晕效果避免在气泡内冗余。壁纸背景下底色要够实，用 --el-dialog-bg-color。 */
 html .el-popover.el-popper:has(.el-popconfirm) {
-    width: auto !important;
-    min-width: 260px;
-    max-width: min(340px, calc(100vw - 24px));
-    padding: 14px;
+    padding: 12px;
     border-radius: 14px;
     background-color: var(--el-dialog-bg-color) !important;
     border: 1px solid var(--ani-edge);
@@ -402,6 +396,33 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
     display: contents;
+}
+
+/* 气泡按钮：收小玻璃药丸。关掉光晕（::after）避免冗余阴影。 */
+html .el-popconfirm .el-button {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    height: 28px;
+    font-size: 12px;
+    border-radius: 14px !important;
+}
+
+html .el-popconfirm .el-button::after {
+    display: none !important;
+}
+
+/* 菱形接气泡底色。半透明底色，菱形也走同一透明度，避免贴纸感。 */
+html .el-popper {
+    --ani-popper-bg: var(--el-card-bg-color);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+    --ani-popper-bg: var(--el-dialog-bg-color);
+}
+
+html .el-popper__arrow::before {
+    background-color: var(--ani-popper-bg) !important;
+    border: none !important;
 }
 
 /* ================= 二次确认框（el-message-box） =================

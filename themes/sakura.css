@@ -277,15 +277,12 @@ html .el-overlay-dialog .el-dialog {
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 160px 气泡装不下本主题的药丸按钮（两颗渐变、圆角、阴影，各占空间多）。
+ * 上游气泡宽度 160px 固定，不再扩宽。改为收小气泡里的按钮。
  * 延续甜蜜圆润风：大圆角药丸、阴影浮起、圆体字。
- * 用 !important 只对 popconfirm 气泡扩宽，别的悬停提示、下拉不动。
+ * 二次确认的两颗按钮单独做一档更小的尺寸，合二为一不超出气泡。
  */
 html .el-popover.el-popper:has(.el-popconfirm) {
-    width: auto !important;
-    min-width: 250px;
-    max-width: min(340px, calc(100vw - 24px));
-    padding: 14px;
+    padding: 12px;
     border: 1px solid var(--el-border-color);
     border-radius: 18px;
     background-color: var(--el-bg-color) !important;
@@ -316,6 +313,40 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
     display: contents;
+}
+
+/* 气泡里的按钮收到 160px 气泡的尺度。sakura 的按钮是渐变药丸，
+   但在气泡里需要收小高度、内边距、字号，以及阴影也要收。
+   目标：两颗 ≤ 62px + 8px 间距 ≤ 128px。 */
+html .el-popconfirm .el-button {
+    height: 28px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 12px;
+    box-shadow: 0 2px 6px -4px var(--ani-shadow-color) !important;
+}
+
+html .el-popconfirm .el-button:hover {
+    box-shadow: 0 4px 10px -6px var(--ani-shadow-color) !important;
+    transform: translateY(-1px);
+}
+
+html .el-popconfirm .el-button:active {
+    transform: scale(.96);
+}
+
+/* 菱形走继承变量，自动跟着不同浮层的底色。 */
+html .el-popper {
+    --sakura-popper-bg: var(--el-bg-color);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+    --sakura-popper-bg: var(--el-bg-color);
+}
+
+html .el-popper__arrow::before {
+    background-color: var(--sakura-popper-bg) !important;
+    border: none !important;
 }
 
 /* ================= 二次确认框（el-message-box） =================

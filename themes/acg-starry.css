@@ -315,15 +315,11 @@ html .list-card-actions .el-button {
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 「刷新」「退出」「重启」「关闭」四处弹的气泡。starry 的按钮是细线框
- * (border: 1px solid)，紧凑型，但两颗加上间距还是超过 160px 气泡宽度。
- * 用 !important 抢占行内 :width 样式，并保持这份主题的星光风格 ——
- * 顶部星光 + 外圈暗阴影。 */
+ * 气泡固定 160px。按钮按 12px 字号 + 8px padding + 28px 高度收小到单颗 ~62px，
+ * 两颗 + 8px 间距 = 132px，装进 160−24px 内边距 = 136px 可用区。
+ * 关掉星芒悬停效果（box-shadow）避免在接缝处叠出深边。保留顶部星光线。 */
 html .el-popover.el-popper:has(.el-popconfirm) {
-    width: auto !important;
-    min-width: 240px;
-    max-width: min(340px, calc(100vw - 24px));
-    padding: 14px;
+    padding: 12px;
     border-radius: 12px;
     background-color: var(--el-dialog-bg-color) !important;
     border: 1px solid var(--el-border-color);
@@ -354,6 +350,35 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
     display: contents;
+}
+
+/* 气泡按钮：收小细线框。关掉星芒悬停效果（外圈 + 外阴影），
+   在气泡接缝处会形成多层阴影。只保留细线框的细节感。 */
+html .el-popconfirm .el-button {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    height: 28px;
+    font-size: 12px;
+    border-radius: 12px !important;
+    letter-spacing: 0 !important;
+}
+
+html .el-popconfirm .el-button:hover {
+    box-shadow: 0 0 0 1px rgba(155, 140, 255, .35) !important;
+}
+
+/* 菱形接气泡底色。深紫半透明，菱形也走同一颜色，避免贴纸感。 */
+html .el-popper {
+    --ani-popper-bg: var(--el-dialog-bg-color);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+    --ani-popper-bg: var(--el-dialog-bg-color);
+}
+
+html .el-popper__arrow::before {
+    background-color: var(--ani-popper-bg) !important;
+    border: none !important;
 }
 
 /* ================= 二次确认框（el-message-box） =================

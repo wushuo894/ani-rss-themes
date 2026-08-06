@@ -345,12 +345,9 @@ html .list-card-actions .el-button::after {
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 在夜航深色风格下，popconfirm 气泡用毛玻璃 + 冰蓝强调的设计。
- * 容器宽度修复到 240px，按钮采用 DIN 字体 + 上下边框的风格。 */
+ * EP 的 160px 宽度保持，按钮规则单独缩小。night 的按钮左边有色条装饰，
+ * 在气泡里保留色条但缩小两侧 padding 和字距。 */
 html .el-popover.el-popper:has(.el-popconfirm) {
-  width: auto !important;
-  min-width: 240px;
-  max-width: min(340px, calc(100vw - 24px));
   padding: 12px;
   background: rgba(17, 23, 35, .85) !important;
   backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
@@ -358,6 +355,17 @@ html .el-popover.el-popper:has(.el-popconfirm) {
   border: 1px solid var(--el-border-color);
   border-radius: 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 14px 36px -22px rgba(0, 0, 0, .9);
+}
+
+/* 气泡里的按钮收小：高度 28px，padding 左右 8px（覆盖原来的 padding-left: 18px）
+   左边留 10px 给色条，字号 12px，关闭字距。两颗按钮 + 8px 间距 ≈ 120px。 */
+html .el-popconfirm .el-button {
+  height: 28px !important;
+  padding: 0 8px !important;
+  padding-left: 10px !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+  min-width: auto !important;
 }
 
 html .el-popconfirm__main {
@@ -385,6 +393,20 @@ html .el-popconfirm__action {
 
 html .el-popconfirm .action > div {
   display: contents;
+}
+
+/* 菱形沿浮层冰蓝底色变化。night 浮层有细亮边框，菱形保留同色边框。 */
+html .el-popper {
+  --ani-night-popper-bg: rgba(13, 18, 28, .72);
+}
+
+html .el-popover.el-popper:has(.el-popconfirm) {
+  --ani-night-popper-bg: rgba(17, 23, 35, .85);
+}
+
+html .el-popper__arrow::before {
+  background-color: var(--ani-night-popper-bg) !important;
+  border: 1px solid var(--el-border-color) !important;
 }
 
 /* ================= 二次确认框（el-message-box） =================
