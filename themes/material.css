@@ -544,25 +544,30 @@ html :is(.el-input, .el-select, .el-input-number, .el-textarea, .el-autocomplete
     margin-block: 0;
 }
 
-/* 复选框和单选按 Element Plus 是 32px，比这套主题里 40px 的输入框矮一截，
-   一行里混着摆就差 4px。拉到同高，标签那条中线才对所有控件都成立。 */
+/* 复选框、单选、开关按 Element Plus 分别是 32 / 32 / 20px，比这套主题里 40px 的
+   输入框矮一截。一行里混着摆就差几个像素，下面那条标签中线也没法一个数管到底。
+   统统占满 40px 的行高（只给最小高度，控件本身不放大）。 */
 html .el-checkbox,
-html .el-radio {
+html .el-radio,
+html .el-switch {
     min-height: 40px;
 }
 
-/* 标签在整行里居中。Element Plus 的 `.el-form-item__label` 是
-   `height: 32px; line-height: 32px; align-items: flex-start` —— 行盒钉死在它默认控件的
-   32px 上，标签就顶在整行的最上面。这套主题把控件拉到 40px、又加了上下外边距，
-   那两个字既够不着第一个控件的中线，也不在整行的中间，悬在半空最难看。
+/* 标签和这一行的第一个控件在同一条线上。
+   Element Plus 的 `.el-form-item__label` 是 `height: 32px; line-height: 32px` ——
+   行盒钉死在它默认控件的 32px 上。这套主题把控件拉到 40px、又给了上下外边距，
+   标签就比控件高出去 12px：「GithubToken」那行的字浮在输入框上沿，
+   「缓存」那行的字掉到「清理」按钮下面去。
 
-   `.el-form-item` 本身是 flex，标签作为弹性项默认就会拉满整行高度 —— 把写死的 32px
-   放开、行高改成正常倍数，再让它自己纵向居中，两个字就落在整行的正中间。
-   单控件的行里，「整行中间」和「控件中线」本来就是同一条线，两种情况一条规则管完。 */
+   把标签的行盒撑到「控件高度 + 上下两圈外边距」，两条中线重合。
+   上面那条 min-height 把开关、复选框也垫到 40px，这个数才对所有控件都成立。
+
+   不用 `align-items: center` 让它在整行居中：内容区高的那些行（一个输入框底下再挂
+   一排按钮、文本域、一整列开关）标签会飘到整块的中间去，和谁都不挨着，更难看。 */
 html .el-form-item__label {
-    height: auto;
-    line-height: 1.5;
-    align-items: center;
+    height: calc(40px + 2 * var(--md-gap-y));
+    line-height: calc(40px + 2 * var(--md-gap-y));
+    align-items: flex-start;
 }
 
 /* 两处例外：
@@ -1431,6 +1436,17 @@ html .list-week-title {
     color: var(--md-on-secondary-container);
     background-color: var(--md-secondary-container);
     border-radius: var(--md-shape-s);
+}
+
+/* 卡片右上角第一颗图标键要和标题一条线。
+   上游那一列是 `position: absolute; top: .65em; bottom: 0`，再底部对齐 —— 加上这套主题
+   把图标键做成 36px（标题那行只有 25px），第一颗就比标题低了 10px，像挂在评分那行上。
+   改成从顶上排，起点上提 6px，两条中线对齐（实测残差 0.4px）。
+   标题是写死单行的（上游 `line-clamp: 1`），所以这个差是常数，补一个定值就够。
+   `!important`：上游是 Vue scoped 的 `.list-card-actions[data-v-]`（0-2-0），压不过。 */
+html .list-card-actions {
+    top: -6px !important;
+    justify-content: flex-start !important;
 }
 
 /* 卡片右侧那排图标按钮：M3 icon button，圆的、透明底 */
