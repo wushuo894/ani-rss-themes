@@ -316,9 +316,18 @@ html .el-button--warning {
     --btn-fg: var(--md-warning);
 }
 
-/* 危险：M3 的删除平时是透明底红字，hover 才浮出一层淡红 */
+/* 危险：M3 的 error container，淡红底深红字。
+   这里之前一律给 transparent，是把「图标删除键」的样子当成了 danger 的全部。
+   实际上 Element Plus 的 `bg` 属性（is-has-bg）就是「这颗文字按钮要一个容器」的意思，
+   上游三处都这么用：关于页的「退出」「关闭」、气泡确认的「确定」、
+   删文件夹那个 MessageBox 的「执意继续删除」（confirmButtonClass 直接写死了
+   `is-text is-has-bg el-button--danger`）。它们旁边站着的「重启」「更新」是 warning /
+   success，都有底色 —— 唯独红的那两颗光秃秃，一排按钮里就它们像没做完。
+   真正该透明的是「text 但没 bg」那一档，下面 334 行那条已经管了；
+   卡片右侧那排图标删除键由 1192 行的 .list-card-actions 覆盖（同权重、写在后面），
+   所以这条改成有底色之后，那排照旧是透明圆钮。 */
 html .el-button--danger {
-    --btn-bg: transparent;
+    --btn-bg: var(--md-error-container);
     --btn-fg: var(--md-error);
 }
 
@@ -451,12 +460,14 @@ html .el-button:has(> .el-icon):not(:has(> span:not(.md-ripple))) {
     border-radius: var(--md-shape-full);
 }
 
-/* 登录按钮：通栏 filled */
+/* 登录按钮：M3 filled button —— 整页唯一的主操作，这一颗实心是对的。
+   但之前还加了 width: 100%。上游那一行是 `.action { display:flex; justify-content:space-between }`，
+   左边「记住密码」右边「登录」，本来是并排的一行；按钮吃满宽度之后把复选框顶到了上一行，
+   自己独占一整条 152px 的紫色横杠 —— 尺寸和存在感都比该有的大一圈。
+   去掉通栏，它就回到该在的位置：右下角一颗普通尺寸的实心胶囊。 */
 html #form .el-button {
     --btn-bg: var(--md-primary);
     --btn-fg: var(--md-on-primary);
-    width: 100%;
-    justify-content: center;
 }
 
 /* ================= 输入框：M3 filled text field ================= */
@@ -686,6 +697,117 @@ html .el-popover.el-popper {
 html .el-popper__arrow::before {
     background-color: var(--md-surface-container) !important;
     border: none !important;
+}
+
+/* ================= 气泡确认（el-popconfirm） =================
+ * 「刷新」「退出」「重启」「关闭」四处点下去弹的都是它，而在此之前十八份主题
+ * 没有一份写过 .el-popconfirm 一个字 —— 因为预览页里从来没画过这个气泡。
+ *
+ * 上游不是直接用 EP 的 popconfirm，是自己包了一层 Popconfirm.vue：
+ *   <el-popover :width="160">，actions 插槽自己写成
+ *   <div class="flex action"><div>取消</div><div>确定</div></div>
+ *   两颗都是 size="small" bg text 且带 icon，确定那颗还是 type="danger"。
+ *
+ * 160px 的气泡减去 12px 内边距，内容区只剩 134px —— 而这两颗按钮**本来就塞不下**：
+ * 实测把主题全摘掉、只留 Element Plus 加 ani-rss 自己的 style.css，
+ * 一颗 80.5px，两颗 161px，超出 134px 的容器 27px。这是上游自带的账，不是主题算错的。
+ * 主题只是让它更难看：M3 的 small 是 32px 高、16px 内边距，加图标和 6px 间距，
+ * 一颗 75px，两颗 150px，同样超。超出去之后那行就散了 —— 两颗掉成上下两行、
+ * 挤在气泡左边，而气泡没有 overflow:hidden，「确定」贴着甚至压过边缘。
+ * 与其在 134px 里抠像素，不如把气泡放到真装得下的宽度。
+ *
+ * 宽度是 Vue 的 :width 绑定，落到行内 style 上，普通声明抢不过，只能 !important。
+ * 只挑「装着 popconfirm 的那种 popover」下手，别的 popover（悬停提示、下拉）不动。 */
+html .el-popover.el-popper:has(.el-popconfirm) {
+    width: auto !important;
+    min-width: 232px;
+    max-width: min(340px, calc(100vw - 24px));
+    padding: 16px;
+    border-radius: var(--md-shape-m);
+    background-color: var(--md-surface-container-high) !important;
+    box-shadow: var(--md-elev-2);
+}
+
+html .el-popconfirm__main {
+    color: var(--md-on-surface);
+    line-height: 20px;
+    letter-spacing: .25px;
+    align-items: flex-start;
+}
+
+html .el-popconfirm__icon {
+    margin-right: 8px;
+    flex: none;
+}
+
+/* 上游那层是 `.action[data-v-f8fe2b24]{justify-content:space-between}`（0-2-0），
+   下面这条 0-2-1 压得住。两颗按钮各自套了一个 <div>，gap 加在外层对按钮之间
+   不起作用 —— display: contents 把那层壳摘掉，gap 才落在按钮上。
+   `.el-popconfirm__action` 一起写着，是留给没走 actions 插槽的原生用法。 */
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+html .el-popconfirm .action > div {
+    display: contents;
+}
+
+/* ================= 二次确认框（el-message-box） =================
+ * 删整个文件夹、移动文件走的是 ElMessageBox.confirm，同样一份主题都没适配过。
+ * 它和 el-dialog 是两套类名，dialog 那边的 M3 形状一条都落不到它头上，
+ * 结果就是主题里最方最白的一个框。按 M3 dialog 抄一遍：28px 圆角、
+ * surface-container-high、elevation-3、24px 内边距。
+ * 确定那颗上游写死了 `el-button--danger is-text is-has-bg`，
+ * 按钮那边 danger 改成 error-container 之后这里跟着就有底色了。 */
+html .el-message-box {
+    --el-messagebox-border-radius: var(--md-shape-xl);
+    background-color: var(--md-surface-container-high);
+    border: none;
+    box-shadow: var(--md-elev-3);
+    padding: 24px;
+    max-width: min(420px, calc(100vw - 24px));
+}
+
+html .el-message-box__header {
+    padding: 0 0 16px;
+}
+
+html .el-message-box__title {
+    color: var(--md-on-surface);
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: 0;
+}
+
+html .el-message-box__content {
+    color: var(--md-on-surface-variant);
+    padding: 0;
+}
+
+html .el-message-box__container {
+    align-items: flex-start;
+}
+
+html .el-message-box__btns {
+    padding-top: 24px;
+    gap: 8px;
+}
+
+html .el-message-box__headerbtn {
+    top: 18px;
+    right: 18px;
+    border-radius: var(--md-shape-full);
+    transition: background-color var(--md-dur-short) var(--md-ease-standard);
+}
+
+html .el-message-box__headerbtn:hover {
+    background-color: color-mix(in srgb,
+        var(--md-on-surface) var(--md-state-hover), transparent);
 }
 
 /* 下拉项也得带上 .el-select__popper 这一层：ani-rss 的 style.css 是嵌套写的，
@@ -1219,6 +1341,12 @@ html #header {
     border: none;
     border-radius: var(--md-shape-xl);
     padding: 24px;
+    /* 上游给 #form 的是 width: 200px + border-box，24px 的内边距是往里吃的，
+       内容宽当场只剩 152px。「记住密码 + 登录」那一行本来 178px 刚好并排，
+       一被压到 152px 就断成两行，登录键独占一条 —— 看着就是那颗按钮变大了、
+       其实是卡片变窄了。换成 content-box，内边距长在 200px 外面，
+       内容宽原样是上游的 200px，那一行就并回去了。 */
+    box-sizing: content-box;
     box-shadow: var(--md-elev-2);
 }
 

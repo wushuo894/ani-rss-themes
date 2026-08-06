@@ -357,6 +357,18 @@
     /* 上游 Ani.vue 的 .form-item-flex：这几个字段是右对齐的，不是贴着标签 */
     const flexEnd = html => '<div class="flex full-width" style="justify-content:end">' + html + '</div>'
 
+    /* 气泡确认注册表：act 名 -> 标题。
+       上游 components/Popconfirm.vue 是 el-popconfirm 的一层薄壳，
+       挂在「刷新」和关于页的「退出 / 重启 / 关闭」四处。
+       预览页此前这四处一律只弹一句 toast，于是 .el-popconfirm 这个形状
+       在预览里根本不存在 —— 十八份主题没有一份写过它，就是这么漏的。 */
+    const POPCONFIRMS = {
+        refresh: '立即刷新全部订阅?',
+        'pc-exit': '你确定要退出吗?',
+        'pc-restart': '你确定重启吗?',
+        'pc-close': '你确定关闭吗?',
+    }
+
     /* 下拉菜单注册表：act 名 -> 菜单项 [{t 文案, icon, type 文字颜色, dlg 打开的弹窗, divided 上分割线}] */
     const DROPDOWNS = {
         add: [{t: '添加订阅', dlg: 'dlg-add'}, {t: '添加合集', dlg: 'dlg-collection-preview'}],
@@ -407,7 +419,11 @@
             '</div><div class="el-card__footer">' +
             '<div class="flex" style="justify-content:space-between;align-items:center;width:100%">' +
             '<div style="display:flex;flex-wrap:wrap;gap:4px">' + tagList(d.tags, 'info') + '</div>' +
-            '<div style="display:flex;gap:4px;flex:none">' + tagList([d.size], 'success') + tagList([d.state], 'primary') + '</div>' +
+            '<div style="display:flex;gap:4px;flex:none;align-items:center">' + tagList([d.size], 'success') + tagList([d.state], 'primary') +
+            /* 上游 TorrentsInfos.vue 每条种子右边有一颗删除键，点它弹的是 ElMessageBox
+               （不是 el-dialog，两者类名完全不同）。预览页此前没有这颗键，
+               于是 .el-message-box 这个形状在预览里根本不存在，主题也就没人给它写过样式。 */
+            btn('', {type: 'danger', text: true, bg: true, icon: 'del', act: 'mb-del'}) + '</div>' +
             '</div></div></div>').join(''))
 
     /* ---------- 管理（home/Manage.vue，上游是 el-table 不是卡片列表） ---------- */
@@ -940,9 +956,9 @@
         btn('使用文档', {type: 'info', text: true, bg: true, icon: 'book'}) +
         btn('TG群', {type: 'info', text: true, bg: true, icon: 'telegram'}) + '</div>' +
         '<div class="flex" style="margin-bottom:8px;align-items:center;gap:12px">' +
-        btn('退出', {type: 'danger', text: true, bg: true, icon: 'back'}) +
-        btn('重启', {type: 'warning', text: true, bg: true, icon: 'refreshRight'}) +
-        btn('关闭', {type: 'danger', text: true, bg: true, icon: 'power'}) +
+        btn('退出', {type: 'danger', text: true, bg: true, icon: 'back', act: 'pc-exit'}) +
+        btn('重启', {type: 'warning', text: true, bg: true, icon: 'refreshRight', act: 'pc-restart'}) +
+        btn('关闭', {type: 'danger', text: true, bg: true, icon: 'power', act: 'pc-close'}) +
         '<div class="el-badge">' + btn('更新', {type: 'success', text: true, bg: true, icon: 'top', act: 'dlg-update'}) +
         '<sup class="el-badge__content el-badge__content--danger is-fixed">new</sup></div>' +
         '</div></div>'
@@ -1260,7 +1276,11 @@
         if (b) {
             const act = b.dataset.act
             if (DROPDOWNS[act]) return toggleDropdown(b, DROPDOWNS[act])
-            if (act === 'refresh') return toast('已开始刷新全部订阅')
+            if (POPCONFIRMS[act]) return openPopconfirm(b, POPCONFIRMS[act])
+            /* 文案照上游那次 ElMessageBox.confirm 原样抄，含 dangerouslyUseHTMLString 那段 <strong> */
+            if (act === 'mb-del') return openMessageBox('警告',
+                '<p><strong style="color: var(--el-color-danger);">将会删除整个文件夹, 是否执意继续?<br>' +
+                '/downloads/anime/转生史莱姆日记 (2021)/Season 1</strong></p>')
             if (act === 'login') return toast('演示页面，不会真的登录')
             /* 卡片上这几处上游都会开弹窗，之前预览只弹一句 toast —— 那几个弹窗没画过。
                只有标题是真跳外链，保持一句提示。 */
@@ -1359,6 +1379,86 @@
         tipAnchor = null
         killTip()
     }, true)
+
+    /* ==================== 气泡确认（el-popconfirm） ====================
+     * 照 components/Popconfirm.vue 的真实渲染拼，一个字都别改，主题就是照这个结构写的：
+     *   <el-popover :width="160"> + 自定义 actions 插槽
+     *   <div class="flex action">  ← 组件的 scoped 样式给它 justify-content: space-between
+     *     <div><el-button size="small" bg text icon="Close">取消</el-button></div>
+     *     <div><el-button type="danger" size="small" bg text icon="Check">确定</el-button></div>
+     *   </div>
+     * 三处细节漏一个主题就白测：
+     *   1) 宽度 160 是 Vue 的 :width 绑定，落在**行内 style** 上，CSS 只能 !important 抢；
+     *   2) 两颗按钮各自套了一层没类名的 <div>，gap 加在 .action 上对按钮之间不生效；
+     *   3) 确定那颗是 type="danger" 且带 bg —— 主题里凡是把 danger 一律做成透明底的，
+     *      这颗就是光秃秃一行红字。关于页的「退出 / 关闭」栽的是同一个坑。
+     * 不走 makePopper：那个函数带 is-pure（EP 的「无内边距」类）并且会把 minWidth
+     * 顶成触发元素的宽度，两条都会把这里要验的东西盖掉。 */
+    function openPopconfirm(btnEl, title) {
+        const owner = 'pc:' + btnEl.dataset.act
+        if (popper && popper.dataset.owner === owner) return killPopper()
+        killPopper()
+        const p = document.createElement('div')
+        p.className = 'pv-popper el-popover el-popper is-light el-zoom-in-top-enter-from'
+        p.dataset.owner = owner
+        p.style.width = '160px'
+        p.innerHTML =
+            '<div class="el-popconfirm"><div class="el-popconfirm__main">' +
+            '<i class="el-icon el-popconfirm__icon" data-icon="warningFilled" style="color:var(--el-color-warning)"></i>' +
+            esc(title) + '</div>' +
+            '<div class="flex action">' +
+            '<div>' + btn('取消', {text: true, bg: true, icon: 'close'}) + '</div>' +
+            '<div>' + btn('确定', {type: 'danger', text: true, bg: true, icon: 'check'}) + '</div>' +
+            '</div></div><span class="el-popper__arrow" data-popper-arrow></span>'
+        document.body.appendChild(p)
+        fillIcons(p)
+        const r = btnEl.getBoundingClientRect()
+        p.style.left = Math.max(8, Math.min(r.left + r.width / 2 - p.offsetWidth / 2,
+            window.innerWidth - p.offsetWidth - 8)) + 'px'
+        p.style.top = (r.bottom + 10) + 'px'
+        p.querySelector('.el-popper__arrow').style.cssText =
+            'position:absolute;top:-5px;left:' + Math.round(p.offsetWidth / 2 - 5) + 'px'
+        p.querySelectorAll('.el-button').forEach((b, i) => b.addEventListener('click', () => {
+            killPopper()
+            if (i) toast('演示页面：「' + title.replace(/[?？]$/, '') + '」不会真的执行')
+        }))
+        requestAnimationFrame(() => {
+            p.classList.remove('el-zoom-in-top-enter-from')
+            p.classList.add('el-zoom-in-top-enter-active')
+        })
+        popper = p
+    }
+
+    /* ==================== 二次确认框（el-message-box） ====================
+     * 删除下载文件夹 / 移动文件走的是 ElMessageBox.confirm，不是 el-dialog。
+     * 两者类名完全不同（.el-message-box vs .el-dialog），主题给弹窗写的形状
+     * 一条都落不到它头上 —— 预览里没有它，这个缺口就一直没人发现。
+     * 参数照上游那次调用抄：dangerouslyUseHTMLString、type: 'warning'，
+     * 两颗按钮的 class 是上游用 confirmButtonClass / cancelButtonClass 写死的。 */
+    function openMessageBox(title, html) {
+        const ov = document.createElement('div')
+        ov.className = 'el-overlay is-message-box'
+        ov.style.zIndex = 2004
+        ov.innerHTML =
+            '<div class="el-overlay-message-box"><div class="el-message-box">' +
+            '<div class="el-message-box__header show-close">' +
+            '<div class="el-message-box__title">' + esc(title) + '</div>' +
+            '<button type="button" class="el-message-box__headerbtn" data-mb-close>' +
+            '<i class="el-icon el-message-box__close" data-icon="close"></i></button></div>' +
+            '<div class="el-message-box__content"><div class="el-message-box__container">' +
+            '<i class="el-icon el-message-box__status el-message-box-icon--warning" data-icon="warningFilled"></i>' +
+            '<div class="el-message-box__message">' + html + '</div></div></div>' +
+            '<div class="el-message-box__btns">' +
+            '<button type="button" class="el-button is-text is-has-bg" data-mb-close><span>取消</span></button>' +
+            '<button type="button" class="el-button is-text is-has-bg el-button--danger" data-mb-close>' +
+            '<span>执意继续删除</span></button></div>' +
+            '</div></div>'
+        document.body.appendChild(ov)
+        fillIcons(ov)
+        ov.addEventListener('click', e => {
+            if (e.target.closest('[data-mb-close]') || e.target.classList.contains('el-overlay-message-box')) ov.remove()
+        })
+    }
 
     /* 菜单项照上游写：图标 + 按语义着色的 el-text，分组之间有 divided 分割线 */
     function toggleDropdown(btnEl, items) {
