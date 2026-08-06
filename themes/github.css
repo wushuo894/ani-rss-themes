@@ -352,13 +352,25 @@ html .el-overlay-dialog .el-dialog {
     box-shadow: var(--el-box-shadow);
 }
 
-/* 弹窗标题行按 GitHub 的对话框：浅底 + 一条分隔线 */
+/* 弹窗标题行：只留一条分隔线，不铺底色。
+   原先给它铺了 --el-fill-color-light（#F6F8FA）想学 GitHub，学错了对象 ——
+   那个浅底是 Primer 的 Box header（仓库文件列表那种）在用，
+   Dialog 的 header 在 Primer 里是透明的，只有一条下边线。
+   放到 ani-rss 上错得更明显：「设置」「添加订阅」这些弹窗紧接着就是一排标签页，
+   标签栏自己带一条 2px 下划线，再叠上标题行的浅底和边线，
+   40px 之内三道横向分割，标题被框成一条突兀的灰带子。
+   底色去掉，分隔线留一条，交给标签栏自己那条去分区。 */
 html .el-dialog__header {
-    background-color: var(--el-fill-color-light);
     border-bottom: 1px solid var(--el-border-color);
-    border-radius: 12px 12px 0 0;
     margin-right: 0;
     padding: 12px 16px;
+}
+
+/* 标题行后面直接跟标签栏时，连那条边线也不要 —— 标签栏的下划线就是分割线，
+   两条挨在一起是重复。:has() 认「body 的第一个孩子是 el-tabs」。 */
+html .el-dialog__header:has(+ .el-dialog__body > .el-tabs:first-child) {
+    border-bottom: none;
+    padding-bottom: 4px;
 }
 
 /* ================= 标签：GitHub Label 药丸 ================= */
@@ -494,25 +506,92 @@ html .list-week-title {
     background: transparent;
 }
 
-/* 卡片右侧的图标按钮：保持紧凑，否则会把字幕组标签挤到按钮底下 */
-html .list-card-actions .el-button {
-    padding-left: 8px;
-    padding-right: 8px;
+/* 卡片右侧那排图标键（收藏 / 编辑 / 删除）：改成 Primer 的无框 icon button。
+   原先只收了内边距，形状还是完整的 btn —— 1px 边 + 浅底 + 底部投影，
+   三颗竖着摞在每张卡片右边，就是三个灰盒子，比它们旁边的封面和标题还抢眼。
+   GitHub 自己在列表行里放的图标操作（星标、更多、编辑）一律是无框的：
+   平时只有一个图标，hover 才浮出一层浅底。照那个来。
+   顺带把宽高钉成正方形 —— 这三颗只有图标没有文字，留着按钮的横向内边距
+   会变成扁胶囊，跟 GitHub 的方形 icon button 对不上。
+
+   选择器得把上面那几条按钮规则的类名原样带上再加一层。上游的按钮几乎都带
+   `is-text is-has-bg`，这份主题给它们上色的是 `html .el-button.is-text.is-has-bg`
+   （0-3-1），危险色那条更是 `html .el-button--danger.is-text:not(.is-disabled).is-has-bg`
+   （0-5-1）。只写 `html .list-card-actions .el-button`（0-2-1）连底色都改不动 ——
+   尺寸会生效、颜色纹丝不动，是那种「改了一半」最难查的样子。 */
+html .list-card-actions .el-button,
+html .list-card-actions .el-button.is-text.is-has-bg,
+html .list-card-actions .el-button--danger.is-text:not(.is-disabled).is-has-bg {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    padding: 0;
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: var(--el-text-color-secondary);
+}
+
+html .list-card-actions .el-button.is-text.is-has-bg:hover,
+html .list-card-actions .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--el-fill-color);
+    border-color: transparent;
+    box-shadow: none;
+}
+
+/* 删除键平时和其它两颗一样是中性灰，hover 才转成 Primer 的危险红 ——
+   GitHub 的删除也是这个节奏，不到 hover 不喊。 */
+html .list-card-actions .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
+    color: var(--el-color-danger);
 }
 
 /* ================= 气泡确认（el-popconfirm） =================
- * 上游气泡宽度 160px 行内绑定，按钮被主题加粗后会顶出外框。
- * GitHub 按钮风格 6px 圆角、1px 边，两颗 small 按钮约 140px，
- * 加内边距 12×2 共 24px，总宽 240px 稳妥。 */
+ * 上游气泡宽度 160px 写死在行内 style（Vue 的 :width 绑定），减掉 12×2 内边距
+ * 只剩 136px。Primer 按钮 6px 圆角 + 1px 边 + 底部投影，两颗 small 加起来顶出外框。
+ *
+ * 先前是 !important 抢掉那个 160px 把气泡撑到 240px。能修好，但一个二次确认气泡
+ * 长得比它要确认的那句话还宽，而且是在跟上游的绑定硬顶。
+ * 改成收按钮：气泡宽度一个字不碰，把这两颗按气泡的尺度重做一档。 */
+/* 浮层和触发按钮之间那颗小菱形：底色是 EP 单独给的
+   （.el-popper.is-light > .el-popper__arrow::before 取 --el-popper-bg-color-light，
+   也就是 --el-bg-color-overlay），主题换了浮层底色它不跟着换。
+   这份主题的 --el-bg-color-overlay 和 --el-card-bg-color 恰好同值，所以现在看着是对的
+   —— 但那是巧合，改任何一个都会错开。接成同一个变量，让它变成必然。 */
+html .el-popper {
+    --ani-popper-bg: var(--el-bg-color-overlay);
+}
+
+html .el-popper__arrow::before {
+    background-color: var(--ani-popper-bg) !important;
+    border-color: var(--el-border-color) !important;
+}
+
 html .el-popover.el-popper:has(.el-popconfirm) {
-    width: auto !important;
-    min-width: 240px;
-    max-width: min(340px, calc(100vw - 24px));
+    --ani-popper-bg: var(--el-card-bg-color);
     padding: 12px;
     border-radius: 6px;
     border: 1px solid var(--el-border-color);
-    background-color: var(--el-card-bg-color);
+    background-color: var(--ani-popper-bg);
     box-shadow: var(--el-box-shadow-lighter);
+}
+
+/* 气泡里的按钮单独一档。Primer 的 btn-sm 是 28px 高、12px 内边距，
+   但这套按钮带 1px 边框（左右各占 1px），比别的主题天生宽 2px ——
+   实测内边距收到 8px 时单颗还有 65.3px，两颗 138.7px，仍旧超出 136px 一点点，
+   照样散行。真正压下来的是把 EP 那条 `.el-icon + span { margin-left: 6px }`
+   一起收到 4px：单颗 59.3px，两颗 126.7px，余 9.3px。
+   图标和两个字之间挤 2px，肉眼看不出来；散行是看得出来的。
+   底部那道 1px 投影（--ani-btn-shadow）在 28px 的小钮上会糊成一条脏边，去掉。 */
+html .el-popconfirm .el-button {
+    height: 28px;
+    min-height: 28px;
+    padding: 0 6px;
+    font-size: 12px;
+    box-shadow: none;
+}
+
+html .el-popconfirm .el-button .el-icon + span {
+    margin-left: 4px;
 }
 
 html .el-popconfirm__main {
