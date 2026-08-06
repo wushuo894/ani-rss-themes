@@ -480,6 +480,54 @@ html #form .el-button {
     --btn-fg: var(--md-on-primary);
 }
 
+/* ================= 按钮和输入框之间的空 =================
+ *
+ * 上游那些「输入框 + 按钮」的行，是照 Element Plus 默认量出来的：32px 的描边输入框、
+ * 32px 的描边按钮，中间垫一个 4px 的 .spacer 就够看 —— 两个都是浅底细框，靠近了也分得开。
+ *
+ * M3 把这套控件整体放大又填实：输入框变成 40px 的 filled field（一整片底色），
+ * 按钮变成 40px 的实心胶囊。两块同色系的面之间只剩 3.5px，看着就是粘在一起的一坨。
+ * Mikan / AniBT / AnimeGarden / Bangumi 四个搜索框边上那颗「搜索」最明显，
+ * 「修改订阅」里 TMDB、剧集组右边那几颗圆钮，「基本设置」里贴在输入框底下的
+ * 「获取GithubToken」也是同一回事 —— 缺的不是按钮的样式，是它周围那圈空。
+ */
+
+/* 一开始想的是去改上游那几个间隔条（`.spacer` / `.spacer-4`），改完发现只管一半：
+   上游隔开控件的手法根本不止一种 —— 有 `.spacer`、有直接写死宽度的裸 div、
+   还有干脆什么都不垫的。挨个去认，认不全，漏掉的那几处照样贴脸。
+   所以把空加在按钮自己身上：它出现在哪一行、旁边是什么，都自带这一圈。 */
+html .el-button {
+    margin: 6px;
+}
+
+/* 上一条会和 Element Plus 那条 `.el-button + .el-button { margin-left: 12px }` 叠起来，
+   两颗挨着的按钮就成了 6 + 12 = 18px，一排按钮平白散开。改回 6px，
+   加上前一颗的 6px 正好还是 12px，和原来一模一样。
+   `html .el-button + .el-button` 是 0-2-1，压得住上游那条 0-2-0。 */
+html .el-button + .el-button {
+    margin-left: 6px;
+}
+
+/* 一行里最外侧的那颗不留外边距 —— 否则右对齐的按钮会比上面输入框的右边缘缩进 6px，
+   登录卡片那颗「登录」和上面两个输入框、弹窗右下角的「确定」和表单，边都对不齐了。
+   往里的那一侧照留，横排要的空就是从那儿来的。 */
+html .el-button:first-child {
+    margin-left: 0;
+}
+
+html .el-button:last-child {
+    margin-right: 0;
+}
+
+/* 两处例外：
+   卡片右侧那排图标删除键在自己的一列里竖着排，加边距会把订阅卡撑高；
+   气泡确认里的按钮档位本来就压到 28px 才塞得下，两颗之间的 8px 也是上面
+   `.el-popconfirm .action` 用 gap 排好的，再加一圈就又溢出去了。 */
+html .list-card-actions .el-button,
+html .el-popconfirm .el-button {
+    margin: 0;
+}
+
 /* ================= 输入框：M3 filled text field ================= */
 /* 顶上两角圆、底下一道线，聚焦线变粗变主色 —— M3 最好认的一个控件 */
 
