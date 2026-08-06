@@ -522,3 +522,107 @@ html .list-card-actions .el-button:hover,
 html .list-card-actions .el-button.is-text.is-has-bg:hover {
     border-top-color: var(--el-color-primary);
 }
+
+/* ================= 气泡确认（el-popconfirm） =================
+ * 上游气泡宽度 160px 行内绑定，按钮被主题加粗后会顶出外框。
+ * 挂历风格：方角 3px、顶端红边、等宽数字。两颗 small 按钮约 130px，
+ * 加内边距 12×2 共 24px，总宽 240px。 */
+html .el-popover.el-popper:has(.el-popconfirm) {
+    width: auto !important;
+    min-width: 240px;
+    max-width: min(340px, calc(100vw - 24px));
+    padding: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--el-border-color-dark);
+    border-top: 2px solid var(--el-color-primary);
+    background-color: var(--el-card-bg-color);
+    box-shadow: none;
+}
+
+html .el-popconfirm__main {
+    color: var(--el-text-color-primary);
+    line-height: 18px;
+    letter-spacing: .03em;
+    align-items: flex-start;
+    font-variant-numeric: tabular-nums;
+}
+
+html .el-popconfirm__icon {
+    margin-right: 8px;
+    color: var(--el-color-primary);
+    flex: none;
+}
+
+/* 两颗按钮各自套了一个 <div>，gap 加在外层对按钮之间不起作用 ——
+   display: contents 把那层壳摘掉，gap 才落在按钮上。 */
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+html .el-popconfirm .action > div {
+    display: contents;
+}
+
+/* ================= 二次确认框（el-message-box） =================
+ * 删文件夹、移动文件走的是 ElMessageBox.confirm。按挂历风格补齐：
+ * 方角 3px、顶端红边、楷体标题。 */
+html .el-message-box {
+    border-radius: 3px;
+    border: 1px solid var(--el-border-color-dark);
+    border-top: 5px solid var(--el-color-primary);
+    background-color: var(--el-card-bg-color);
+    padding: 12px;
+    box-shadow: none;
+    max-width: min(420px, calc(100vw - 24px));
+}
+
+html .el-message-box__header {
+    padding: 0 0 12px;
+    border-bottom: 3px double var(--ani-rule);
+    margin-right: 0;
+}
+
+html .el-message-box__title {
+    color: var(--el-color-primary);
+    font-family: var(--ani-kai);
+    font-size: 1.16em;
+    font-weight: 700;
+    letter-spacing: .06em;
+}
+
+html .el-message-box__content {
+    color: var(--el-text-color-regular);
+    padding: 12px 0 0;
+}
+
+html .el-message-box__container {
+    align-items: flex-start;
+}
+
+html .el-message-box__btns {
+    padding-top: 12px;
+    gap: 8px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+html .el-message-box__headerbtn {
+    top: 10px;
+    right: 10px;
+    border: 1px solid var(--el-border-color-dark);
+    border-radius: 3px;
+    background-color: var(--el-bg-color);
+    color: var(--el-text-color-primary);
+    transition: background-color .16s ease, color .16s ease;
+}
+
+html .el-message-box__headerbtn:hover {
+    background-color: var(--el-color-primary);
+    color: #FFFFFF;
+    border-color: var(--el-color-primary);
+}

@@ -196,6 +196,100 @@ html .el-table .el-table-fixed-column--right.el-table__cell {
     letter-spacing: .16em;
 }
 
+/* ================= 气泡确认（el-popconfirm） =================
+ * 在白雾玻璃风格下，popconfirm 气泡继续用毛玻璃 + 衬线标题的排法。
+ * 容器宽度修复到 240px，按钮一行排开。 */
+html .el-popover.el-popper:has(.el-popconfirm) {
+  width: auto !important;
+  min-width: 240px;
+  max-width: min(340px, calc(100vw - 24px));
+  padding: 12px;
+  background: rgba(255, 255, 255, .74) !important;
+  backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
+  border: 1px solid var(--el-border-color);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px -20px rgba(20, 40, 70, .45);
+}
+
+html .el-popconfirm__main {
+  color: var(--el-text-color-primary);
+  line-height: 20px;
+  align-items: flex-start;
+  font-family: Georgia, "Songti SC", "Noto Serif SC", "Source Han Serif SC", SimSun, serif;
+}
+
+html .el-popconfirm__icon {
+  margin-right: 8px;
+  flex: none;
+}
+
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+html .el-popconfirm .action > div {
+  display: contents;
+}
+
+/* ================= 二次确认框（el-message-box） =================
+ * 在白雾玻璃风格下，确认框用毛玻璃 + 极细线框。底色和边框沿用主题现有的
+ * 白雾配色，标题用衬线字体保持一致性。 */
+html .el-message-box {
+  background: rgba(255, 255, 255, .9) !important;
+  backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(140%);
+  border: 1px solid var(--el-border-color) !important;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 30px -20px rgba(20, 40, 70, .45);
+  max-width: min(420px, calc(100vw - 24px));
+}
+
+html .el-message-box__header {
+  padding: 0 0 12px;
+  border: none;
+}
+
+html .el-message-box__title {
+  color: var(--el-text-color-primary);
+  font-family: Georgia, "Songti SC", "Noto Serif SC", "Source Han Serif SC", SimSun, serif;
+  font-weight: 600;
+  letter-spacing: .03em;
+  font-size: 16px;
+}
+
+html .el-message-box__content {
+  color: var(--el-text-color-regular);
+  padding: 0;
+}
+
+html .el-message-box__container {
+  align-items: flex-start;
+}
+
+html .el-message-box__btns {
+  padding-top: 20px;
+  gap: 8px;
+}
+
+html .el-message-box__headerbtn {
+  top: 14px;
+  right: 14px;
+  border-radius: 50%;
+  color: var(--el-text-color-secondary);
+  transition: color .18s ease;
+}
+
+html .el-message-box__headerbtn:hover {
+  color: var(--el-color-primary);
+}
+
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;

@@ -276,6 +276,102 @@ html .el-overlay-dialog .el-dialog {
     box-shadow: 0 20px 50px -24px var(--ani-shadow-color);
 }
 
+/* ================= 气泡确认（el-popconfirm） =================
+ * 160px 气泡装不下本主题的药丸按钮（两颗渐变、圆角、阴影，各占空间多）。
+ * 延续甜蜜圆润风：大圆角药丸、阴影浮起、圆体字。
+ * 用 !important 只对 popconfirm 气泡扩宽，别的悬停提示、下拉不动。
+ */
+html .el-popover.el-popper:has(.el-popconfirm) {
+    width: auto !important;
+    min-width: 250px;
+    max-width: min(340px, calc(100vw - 24px));
+    padding: 14px;
+    border: 1px solid var(--el-border-color);
+    border-radius: 18px;
+    background-color: var(--el-bg-color) !important;
+    box-shadow: 0 8px 18px -10px var(--ani-shadow-color);
+}
+
+html .el-popconfirm__main {
+    color: var(--el-text-color-primary);
+    line-height: 22px;
+    font-weight: 500;
+    align-items: flex-start;
+}
+
+html .el-popconfirm__icon {
+    margin-right: 8px;
+    flex: none;
+}
+
+/* 按钮外层 <div> 摘掉，gap 才能作用在实际按钮上。本主题的按钮间距重要。 */
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+html .el-popconfirm .action > div {
+    display: contents;
+}
+
+/* ================= 二次确认框（el-message-box） =================
+ * 「删除文件夹」「移动文件」的确认框，延续甜蜜圆润风。
+ * 大圆角、阴影浮起、圆体字，和 dialog 同一套美学。
+ * 标题也用圆体、加粗、淡粉色，整体统一。
+ */
+html .el-message-box {
+    --el-messagebox-border-radius: 20px;
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color);
+    box-shadow: 0 16px 32px -16px var(--ani-shadow-color);
+    padding: 24px;
+    max-width: min(420px, calc(100vw - 24px));
+}
+
+html .el-message-box__header {
+    padding: 0 0 14px;
+}
+
+html .el-message-box__title {
+    color: var(--el-text-color-primary);
+    font-size: 1.08em;
+    font-weight: 700;
+    letter-spacing: .04em;
+}
+
+html .el-message-box__content {
+    color: var(--el-text-color-secondary);
+    padding: 0;
+}
+
+html .el-message-box__container {
+    align-items: flex-start;
+}
+
+html .el-message-box__btns {
+    padding-top: 20px;
+    gap: 8px;
+}
+
+html .el-message-box__headerbtn {
+    top: 16px;
+    right: 16px;
+    border-radius: 50%;
+    background-color: transparent;
+    border: 1px solid transparent;
+    transition: all .22s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+html .el-message-box__headerbtn:hover {
+    background-color: var(--el-fill-color-dark);
+    border-color: var(--el-border-color-dark);
+    transform: translateY(-1px);
+}
+
 .list-card-score {
     color: var(--el-color-primary) !important;
     font-weight: 700 !important;

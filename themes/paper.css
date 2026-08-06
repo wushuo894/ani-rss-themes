@@ -280,6 +280,103 @@ html .el-overlay-dialog .el-dialog {
     box-shadow: none;
 }
 
+/* ================= 气泡确认（el-popconfirm） =================
+ * 上游气泡宽 160px 内装两颗线框按钮，各 60-70px，直接顶出气泡外。
+ * 本主题延续极简线框风格：方角 2px、纸白背景、细边框、无阴影。
+ * 用 !important 只对装着 popconfirm 的气泡扩宽，别的气泡（提示、下拉）不动。
+ */
+html .el-popover.el-popper:has(.el-popconfirm) {
+    width: auto !important;
+    min-width: 240px;
+    max-width: min(340px, calc(100vw - 24px));
+    padding: 12px;
+    border: 1px solid var(--el-border-color);
+    border-radius: 2px;
+    background-color: var(--el-bg-color) !important;
+    box-shadow: none;
+}
+
+html .el-popconfirm__main {
+    color: var(--el-text-color-primary);
+    line-height: 20px;
+    align-items: flex-start;
+}
+
+html .el-popconfirm__icon {
+    margin-right: 8px;
+    flex: none;
+}
+
+/* 上游那层是 .action[data-v-f8fe2b24]{justify-content:space-between}（0-2-0），
+   下面这条 0-2-1 压得住。按钮外层套的 <div> 用 display: contents 摘掉，gap 才落实。 */
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+html .el-popconfirm .action > div {
+    display: contents;
+}
+
+/* ================= 二次确认框（el-message-box） =================
+ * 「删除文件夹」「移动文件」的确认框，之前没有适配。
+ * 和 el-dialog 是两套类名，所以 dialog 那边的样式一条都落不到这里。
+ * 按本主题的极简线框语言：方角 2px、纸白背景、细边框、无阴影。
+ * 标题用衬线体保持整体的编辑排版感。
+ */
+html .el-message-box {
+    --el-messagebox-border-radius: 2px;
+    background-color: var(--el-bg-color);
+    border: 1px solid var(--el-border-color);
+    box-shadow: none;
+    padding: 20px;
+    max-width: min(420px, calc(100vw - 24px));
+}
+
+html .el-message-box__header {
+    padding: 0 0 12px;
+}
+
+html .el-message-box__title {
+    color: var(--el-text-color-primary);
+    font-family: var(--ani-serif);
+    font-size: 1.02em;
+    font-weight: 600;
+    letter-spacing: .02em;
+}
+
+html .el-message-box__content {
+    color: var(--el-text-color-secondary);
+    padding: 0;
+}
+
+html .el-message-box__container {
+    align-items: flex-start;
+}
+
+html .el-message-box__btns {
+    padding-top: 16px;
+    gap: 8px;
+}
+
+html .el-message-box__headerbtn {
+    top: 16px;
+    right: 16px;
+    border-radius: 2px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    transition: all .18s ease;
+}
+
+html .el-message-box__headerbtn:hover {
+    background-color: var(--el-fill-color-light);
+    border-color: var(--el-border-color);
+}
+
 html .el-tag {
     background-color: transparent;
     border: 1px solid currentColor;

@@ -258,6 +258,108 @@ html .el-card:hover {
     border-color: var(--el-border-color-dark);
 }
 
+/* ================= 气泡确认（el-popconfirm） =================
+ * 160px 气泡装不下本主题的玻璃按钮（毛玻璃、内高光、字距大，整体宽度多）。
+ * 延续毛玻璃美学：毛玻璃底、内高光边、半透明白框、超大字距。
+ * 用 !important 只对 popconfirm 气泡扩宽，别的浮层保持原样。
+ */
+html .el-popover.el-popper:has(.el-popconfirm) {
+    width: auto !important;
+    min-width: 250px;
+    max-width: min(340px, calc(100vw - 24px));
+    padding: 14px;
+    border: 1px solid var(--ani-edge);
+    border-radius: 14px;
+    background-color: var(--el-fill-color-light) !important;
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%) !important;
+    box-shadow: inset 0 1px 0 var(--ani-inner-light);
+}
+
+html .el-popconfirm__main {
+    color: var(--el-text-color-primary);
+    line-height: 22px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    align-items: flex-start;
+}
+
+html .el-popconfirm__icon {
+    margin-right: 8px;
+    flex: none;
+}
+
+/* 按钮外层 <div> 摘掉，gap 才能实际作用。本主题讲究精细度。 */
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+html .el-popconfirm .action > div {
+    display: contents;
+}
+
+/* ================= 二次确认框（el-message-box） =================
+ * 「删除文件夹」「移动文件」的确认框，延续毛玻璃优雅风。
+ * 毛玻璃底、内高光、半透明白框、超大字距，和 dialog 同一套语言。
+ * 标题用超大字距拉开气口，体现主题的气质。
+ */
+html .el-message-box {
+    --el-messagebox-border-radius: 14px;
+    background-color: var(--el-dialog-bg-color);
+    border: 1px solid var(--ani-edge);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(160%);
+    box-shadow: inset 0 1px 0 var(--ani-inner-light), 0 10px 32px -18px rgba(0, 0, 0, .45);
+    padding: 24px;
+    max-width: min(420px, calc(100vw - 24px));
+}
+
+html .el-message-box__header {
+    padding: 0 0 14px;
+}
+
+html .el-message-box__title {
+    color: var(--el-text-color-primary);
+    font-size: 1.08em;
+    font-weight: 300;
+    letter-spacing: .18em;
+}
+
+html .el-message-box__content {
+    color: var(--el-text-color-secondary);
+    padding: 0;
+}
+
+html .el-message-box__container {
+    align-items: flex-start;
+}
+
+html .el-message-box__btns {
+    padding-top: 20px;
+    gap: 8px;
+}
+
+html .el-message-box__headerbtn {
+    top: 16px;
+    right: 16px;
+    border-radius: 8px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    color: var(--el-text-color-secondary);
+    transition: all .22s ease;
+}
+
+html .el-message-box__headerbtn:hover {
+    background-color: var(--el-fill-color-light);
+    border-color: var(--el-border-color-light);
+    color: var(--el-text-color-primary);
+}
+
 html .el-input__wrapper,
 html .el-select__wrapper {
     background-color: var(--el-fill-color-light);

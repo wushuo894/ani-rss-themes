@@ -343,3 +343,101 @@ html .list-card-actions .el-button {
 html .list-card-actions .el-button::after {
     display: none;
 }
+
+/* ================= 气泡确认（el-popconfirm） =================
+ * 在夜航深色风格下，popconfirm 气泡用毛玻璃 + 冰蓝强调的设计。
+ * 容器宽度修复到 240px，按钮采用 DIN 字体 + 上下边框的风格。 */
+html .el-popover.el-popper:has(.el-popconfirm) {
+  width: auto !important;
+  min-width: 240px;
+  max-width: min(340px, calc(100vw - 24px));
+  padding: 12px;
+  background: rgba(17, 23, 35, .85) !important;
+  backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
+  -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
+  border: 1px solid var(--el-border-color);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 14px 36px -22px rgba(0, 0, 0, .9);
+}
+
+html .el-popconfirm__main {
+  color: var(--el-text-color-primary);
+  line-height: 20px;
+  align-items: flex-start;
+  font-family: Bahnschrift, "DIN Alternate", "HarmonyOS Sans SC", "Noto Sans SC",
+              "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+html .el-popconfirm__icon {
+  margin-right: 8px;
+  flex: none;
+  color: var(--el-color-primary);
+}
+
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+html .el-popconfirm .action > div {
+  display: contents;
+}
+
+/* ================= 二次确认框（el-message-box） =================
+ * 在夜航深色风格下，确认框用毛玻璃 + 实心暗块 + 冰蓝强调。
+ * surface-container-high 的深底色，边框微亮。 */
+html .el-message-box {
+  background: rgba(17, 23, 35, .9) !important;
+  backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
+  -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(130%);
+  border: 1px solid var(--el-border-color) !important;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 14px 36px -22px rgba(0, 0, 0, .9);
+  max-width: min(420px, calc(100vw - 24px));
+}
+
+html .el-message-box__header {
+  padding: 0 0 12px;
+  border: none;
+}
+
+html .el-message-box__title {
+  color: var(--el-text-color-primary);
+  font-family: Bahnschrift, "DIN Alternate", "HarmonyOS Sans SC", "Noto Sans SC",
+              "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  font-size: 16px;
+}
+
+html .el-message-box__content {
+  color: var(--el-text-color-regular);
+  padding: 0;
+}
+
+html .el-message-box__container {
+  align-items: flex-start;
+}
+
+html .el-message-box__btns {
+  padding-top: 20px;
+  gap: 8px;
+}
+
+html .el-message-box__headerbtn {
+  top: 14px;
+  right: 14px;
+  border-radius: 50%;
+  color: var(--el-text-color-secondary);
+  transition: color .2s ease;
+}
+
+html .el-message-box__headerbtn:hover {
+  color: var(--el-color-primary);
+}

@@ -359,3 +359,109 @@ html .list-card-actions .el-button {
     padding-left: 8px;
     padding-right: 8px;
 }
+
+/* ================= 气泡确认（el-popconfirm） =================
+ * 「刷新」「退出」「重启」「关闭」四处点下去弹的都是它。这份主题的按钮是玻璃药丸
+ * (border-radius: 999px)，底部填充较高（内边距 16px + 半径），两颗刚好超过原生 160px
+ * 的气泡宽度，直接顶出右边缘。容器必须用 !important 抢占 :width 行内样式。
+ *
+ * 壁纸背景下底色要够实，这里拿 --el-dialog-bg-color（浅色 .82 / 深色 .84）做底，
+ * 足以挡住飘花壁纸，字不会压在图上读不了。 */
+html .el-popover.el-popper:has(.el-popconfirm) {
+    width: auto !important;
+    min-width: 260px;
+    max-width: min(340px, calc(100vw - 24px));
+    padding: 14px;
+    border-radius: 14px;
+    background-color: var(--el-dialog-bg-color) !important;
+    border: 1px solid var(--ani-edge);
+    box-shadow: var(--ani-panel-shadow);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+}
+
+html .el-popconfirm__main {
+    color: var(--el-text-color-primary);
+    line-height: 20px;
+    align-items: flex-start;
+}
+
+html .el-popconfirm__icon {
+    margin-right: 8px;
+    flex: none;
+}
+
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+html .el-popconfirm .action > div {
+    display: contents;
+}
+
+/* ================= 二次确认框（el-message-box） =================
+ * 删整个文件夹、移动文件走的是 ElMessageBox.confirm。和 el-dialog 类名不同，
+ * dialog 那边的毛玻璃形状一条都落不到它头上。这里按这份主题的玻璃药丸风格补上。 */
+html .el-message-box {
+    --el-messagebox-border-radius: 14px;
+    background-color: var(--el-dialog-bg-color);
+    border: 1px solid var(--ani-edge);
+    box-shadow: var(--ani-panel-shadow);
+    backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur)) saturate(150%);
+    padding: 20px;
+    max-width: min(420px, calc(100vw - 24px));
+}
+
+html .el-message-box__header {
+    padding: 0 0 12px;
+    margin-bottom: 8px;
+}
+
+html .el-message-box__title {
+    color: var(--el-text-color-primary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+html .el-message-box__content {
+    color: var(--el-text-color-regular);
+    padding: 0;
+}
+
+html .el-message-box__container {
+    align-items: flex-start;
+}
+
+html .el-message-box__btns {
+    padding-top: 16px;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+html .el-message-box__headerbtn {
+    top: 14px;
+    right: 14px;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: 1px solid var(--el-border-color-light);
+    color: var(--el-text-color-secondary);
+    transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+
+html .el-message-box__headerbtn:hover {
+    background-color: var(--el-fill-color-light);
+    border-color: var(--el-border-color);
+    color: var(--el-text-color-primary);
+}

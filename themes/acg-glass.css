@@ -215,6 +215,48 @@ html .el-table .el-table-fixed-column--right.el-table__cell {
 }
 
 
+/* ================= 气泡确认（el-popconfirm） =================
+ * ani-rss 包了一层 Popconfirm.vue，160px 的气泡减掉 12px 内边距只剩 134px 宽。
+ * 按钮被主题放大后超宽，"确定"按钮直接顶出气泡外。行内 style 的宽度只能用
+ * !important 和 :has() 选择器精准击中。
+ *
+ * 玻璃主题继续走半透明 + 毛玻璃的风格，用现有的 --ani-rss-surface-strong
+ * 和 backdrop-filter 完成主题一致性。 */
+html .el-popover.el-popper:has(.el-popconfirm) {
+  width: auto !important;
+  min-width: 240px;
+  max-width: min(340px, calc(100vw - 24px));
+  padding: 12px;
+  background: var(--ani-rss-surface-strong) !important;
+  backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--ani-rss-backdrop-blur));
+}
+
+html .el-popconfirm__main {
+  color: var(--el-text-color-primary);
+  line-height: 20px;
+  align-items: flex-start;
+}
+
+html .el-popconfirm__icon {
+  margin-right: 8px;
+  flex: none;
+}
+
+/* 按钮行 flex + gap，display: contents 摘掉各按钮外层的 <div> 壳 */
+html .el-popconfirm .action,
+html .el-popconfirm__action {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+html .el-popconfirm .action > div {
+  display: contents;
+}
+
 .el-popover {
   --el-bg-color-overlay: var(--ani-rss-surface-popover);
   background: var(--ani-rss-surface-popover) !important;
@@ -235,12 +277,57 @@ html .el-table .el-table-fixed-column--right.el-table__cell {
   background: var(--ani-rss-surface-strong) !important;
 }
 
-/* MessageBox / Message */
-.el-message-box {
+/* ================= 二次确认框（el-message-box） =================
+ * 删整个文件夹、移动文件走 ElMessageBox.confirm。message-box 和 dialog 是两套
+ * 类名，dialog 那边的毛玻璃规则对它不生效。这里按玻璃主题的风格补齐：
+ * surface-strong 透明度、毛玻璃、亮边框、阴影。 */
+html .el-message-box {
   background: var(--ani-rss-surface-strong) !important;
   backdrop-filter: blur(calc(var(--ani-rss-backdrop-blur) + 2px));
   -webkit-backdrop-filter: blur(calc(var(--ani-rss-backdrop-blur) + 2px));
+  border: 1px solid var(--ani-rss-edge) !important;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 30px -20px rgba(0, 0, 0, .3);
+  max-width: min(420px, calc(100vw - 24px));
 }
+
+html .el-message-box__header {
+  padding: 0 0 12px;
+  border: none;
+}
+
+html .el-message-box__title {
+  color: var(--el-text-color-primary);
+  font-weight: 500;
+}
+
+html .el-message-box__content {
+  color: var(--el-text-color-regular);
+  padding: 0;
+}
+
+html .el-message-box__container {
+  align-items: flex-start;
+}
+
+html .el-message-box__btns {
+  padding-top: 20px;
+  gap: 8px;
+}
+
+html .el-message-box__headerbtn {
+  top: 14px;
+  right: 14px;
+  border-radius: 50%;
+  transition: background-color .2s ease;
+}
+
+html .el-message-box__headerbtn:hover {
+  background-color: var(--ani-rss-control);
+}
+
+/* ================= 顶部提示条（el-message） ================= */
 
 /* 修复6：不再强刷同一个底色，改成保留类型色（成功绿/失败红）的半透明，
    见下方 color-mix 块；这里只留毛玻璃和边框 */
