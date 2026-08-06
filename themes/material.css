@@ -4,7 +4,7 @@
  * 字体：Roboto 系统字栈，数值走 Roboto Mono
  * 按钮：M3 全圆角胶囊，filled / tonal / outlined 三档，按下有涟漪
  * 输入：M3 filled text field —— 顶部圆角、底部一道线，聚焦变 2px 主色
- * 形状：M3 shape scale 4 / 8 / 12 / 16 / 28
+ * 形状：M3 shape scale 4 / 8 / 12 / 28（16 那档 M3 是给 FAB 的，这里没有 FAB）
  * 背景：两团色调渐晕缓慢漂移（Material You 从壁纸取色的那个意思）
  * 明暗跟随切换
  *
@@ -122,7 +122,9 @@ html.dark:root {
 
 /* ---------- 两套共用：形状、高度、动效、把 M3 接到 --el-* 上 ---------- */
 html:root, html.dark:root {
-    /* M3 shape scale */
+    /* M3 shape scale。整档是 none 0 / xs 4 / s 8 / m 12 / l 16 / xl 28 / full，
+       这里只留用得上的四档：l（16px）在 M3 里是 FAB 和大卡片的圆角，
+       ani-rss 没有 FAB，卡片按规范走 m（12px），所以 l 没有消费者，不占一行。 */
     --md-shape-xs: 4px;
     --md-shape-s: 8px;
     --md-shape-m: 12px;
@@ -135,19 +137,27 @@ html:root, html.dark:root {
     --md-elev-3: 0 1px 3px 0 var(--md-shadow-key), 0 4px 8px 3px var(--md-shadow-ambient);
     --md-elev-4: 0 2px 3px 0 var(--md-shadow-key), 0 6px 10px 4px var(--md-shadow-ambient);
 
-    /* M3 motion：decelerate 那条是 emphasized 的减速段，入场动画全用它 */
+    /* M3 motion：decelerate 那条是 emphasized 的减速段，入场动画全用它。
+       三档时长不是随手取的整数，是 M3 duration scale 上的原值 ——
+       short 对 short4、med 对 medium2、long 对 long2。名字留短的，
+       是因为这份主题只用得上三档，写成 --md-dur-short4 反而要人去查第几档。 */
     --md-ease-standard: cubic-bezier(.2, 0, 0, 1);
     --md-ease-decel: cubic-bezier(.05, .7, .1, 1);
-    --md-dur-short: 200ms;
-    --md-dur-med: 300ms;
-    --md-dur-long: 500ms;
+    --md-dur-short: 200ms;   /* M3 short4 */
+    --md-dur-med: 300ms;     /* M3 medium2 */
+    --md-dur-long: 500ms;    /* M3 long2 */
 
-    /* M3 state layer：hover 8%、focus/press 10%，全站统一。
+    /* M3 state layer：hover 8%、focus/press 12%，全站统一。
        写成百分号是因为它既要喂给 color-mix()（那里只收 <percentage>），
-       又要当 opacity 用（opacity 从 Level 4 起也收百分号）。 */
+       又要当 opacity 用（opacity 从 Level 4 起也收百分号）。
+
+       focus / press 原先写的是 10%，是记岔了 —— M3 的 state layer opacity 只有
+       三档：hover .08、focus .12、pressed .12（dragged .16 这套 UI 用不上）。
+       10% 比该有的淡两成，涟漪（下面那条 opacity: var(--md-state-press)）和
+       输入框聚焦底色都受影响。对着 mdui 打包出来的 --mdui-state-layer-* 核过。 */
     --md-state-hover: 8%;
-    --md-state-focus: 10%;
-    --md-state-press: 10%;
+    --md-state-focus: 12%;
+    --md-state-press: 12%;
 
     --md-font: Roboto, "Roboto Flex", "Noto Sans", -apple-system, BlinkMacSystemFont,
     "Segoe UI Variable Text", "Segoe UI", "PingFang SC", "HarmonyOS Sans SC",
@@ -694,8 +704,19 @@ html .el-popover.el-popper {
     border-radius: var(--md-shape-m);
 }
 
+/* 浮层和触发它的按钮之间那颗小菱形（el-popper__arrow）。
+   它是浮层的子元素，但底色是 EP 单独给的（.el-popper.is-light > .el-popper__arrow::before
+   取 --el-popper-bg-color-light），主题换了浮层底色它不会跟着换 ——
+   于是要么和浮层差一个色阶、要么干脆是残留的白，小小一颗贴在边上，看不见也对不齐。
+   这里改成走一个继承变量：浮层自己声明 --md-popper-bg，菱形无脑跟着读。
+   自定义属性沿 DOM 继承，菱形是浮层的孩子，永远拿到「它所属的那个浮层」的底色，
+   不用为每种浮层再写一条选择器。 */
+html .el-popper {
+    --md-popper-bg: var(--md-surface-container);
+}
+
 html .el-popper__arrow::before {
-    background-color: var(--md-surface-container) !important;
+    background-color: var(--md-popper-bg) !important;
     border: none !important;
 }
 
@@ -708,24 +729,34 @@ html .el-popper__arrow::before {
  *   <div class="flex action"><div>取消</div><div>确定</div></div>
  *   两颗都是 size="small" bg text 且带 icon，确定那颗还是 type="danger"。
  *
- * 160px 的气泡减去 12px 内边距，内容区只剩 134px —— 而这两颗按钮**本来就塞不下**：
- * 实测把主题全摘掉、只留 Element Plus 加 ani-rss 自己的 style.css，
- * 一颗 80.5px，两颗 161px，超出 134px 的容器 27px。这是上游自带的账，不是主题算错的。
- * 主题只是让它更难看：M3 的 small 是 32px 高、16px 内边距，加图标和 6px 间距，
- * 一颗 75px，两颗 150px，同样超。超出去之后那行就散了 —— 两颗掉成上下两行、
- * 挤在气泡左边，而气泡没有 overflow:hidden，「确定」贴着甚至压过边缘。
- * 与其在 134px 里抠像素，不如把气泡放到真装得下的宽度。
+ * 160px 的气泡减去 12px 内边距，内容区只剩 134px，而 M3 的 small 按钮是 32px 高、
+ * 16px 内边距，加图标和 6px 间距，一颗 77px，两颗加间距 162px —— 装不下就散行，
+ * 掉成上下两排挤在左边，气泡又没有 overflow:hidden，「确定」贴着甚至压过边缘。
  *
- * 宽度是 Vue 的 :width 绑定，落到行内 style 上，普通声明抢不过，只能 !important。
- * 只挑「装着 popconfirm 的那种 popover」下手，别的 popover（悬停提示、下拉）不动。 */
+ * 先前的做法是 !important 抢掉行内的 160px 把气泡撑到 232px。能修好，但代价是
+ * 一个二次确认气泡长得比它要确认的那句话还宽，而且是用 !important 跟上游的
+ * :width 绑定对着干 —— 上游哪天改了宽度，这条还在硬顶。
+ * 换成收按钮：气泡宽度一个字不碰，把这两颗按钮按气泡的尺度重做一档。
+ * 实测 28px 高 / 8px 内边距 / 12px 字，一颗 58.2px，两颗加 8px 间距 124.4px，
+ * 装进 136px 的内容区还余 11.6px —— 余量够，不是卡着边。
+ *
+ * 28px 低于 M3 common button 的 40px，也低于它 small 的 32px。这是有意的：
+ * M3 那套尺寸是给页面里的主操作定的，气泡里这两颗是「确认/取消」的附属操作，
+ * 上游给的本来就是 EP 的 small（24px）。按容器的尺度走，比按规范表的尺度走对。 */
 html .el-popover.el-popper:has(.el-popconfirm) {
-    width: auto !important;
-    min-width: 232px;
-    max-width: min(340px, calc(100vw - 24px));
-    padding: 16px;
+    --md-popper-bg: var(--md-surface-container-high);
+    padding: 12px;
     border-radius: var(--md-shape-m);
-    background-color: var(--md-surface-container-high) !important;
+    background-color: var(--md-popper-bg) !important;
     box-shadow: var(--md-elev-2);
+}
+
+/* 气泡里的按钮单独一档。写在 .el-popconfirm 下面（0-2-1），压得住
+   .el-button--small 那条（0-1-1），也压得住通用的 html .el-button（0-1-1）。 */
+html .el-popconfirm .el-button {
+    --btn-h: 28px;
+    --btn-px: 8px;
+    font-size: 12px;
 }
 
 html .el-popconfirm__main {
