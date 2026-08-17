@@ -442,9 +442,12 @@
         const content = $(SEL.content)
         if (!app || !content || !$(SEL.header)) return false
 
+        /* ⚠ 必须挂进 .content 内部，不能当它的兄弟。
+           CSS 那层收起来的是 .content 的子节点，.content 自己还占着一整屏高度 ——
+           挂成兄弟的话新界面会被顶到视口外面去（实测 y=908，屏高 900，整页看着全白）。 */
         if (!root || !root.isConnected) {
             root = buildShell()
-            app.appendChild(root)
+            content.appendChild(root)
             searchBound = pillBound = false
         }
         bindSearch()
