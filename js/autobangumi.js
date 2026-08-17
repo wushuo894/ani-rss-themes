@@ -466,27 +466,47 @@
 
     document.documentElement.classList.add('ab-ui')
 
-    let raf = 0
+    /* ==================== 同步循环 ====================
+     *
+     * 这里有个必须结构性解决的坑：观察器不能对「自己造成的变更」做反应。
+     * 一旦对自己的写入也回调，就是 写 DOM → 收到变更 → 再挂载 → 再写 DOM 的死循环，
+     * 渲染进程直接卡住（实测在搜索框里敲一个字，页面就没响应了）。
+     *
+     * 三道防线，缺一不可：
+     *   1. 回调里过滤掉发生在自己这棵树里的变更 —— 根本上不进入循环
+     *   2. 挂载期间先 disconnect，结束再 observe，并用 mounting 标志防重入
+     *   3. 所有 sync* 只在值真的变了才写（见上面各处）
+     */
+
+    let timer = 0
+    let mounting = false
 
     function schedule() {
-        if (raf) return
-        raf = requestAnimationFrame(() => {
-            raf = 0
-            /* 自己造的节点也会触发观察回调 —— 先断开再重连，免得递归 */
+        if (timer || mounting) return
+        timer = setTimeout(() => {
+            timer = 0
+            mounting = true
             mo.disconnect()
             try {
                 mount()
             } finally {
+                mounting = false
                 observe()
             }
-        })
+        }, 60)
     }
 
-    const mo = new MutationObserver(schedule)
+    const mo = new MutationObserver(records => {
+        for (const r of records) {
+            /* 自己那棵树里的变更一律忽略 */
+            if (root && (root === r.target || root.contains(r.target))) continue
+            return schedule()
+        }
+    })
 
     function observe() {
         /* 不观察 characterData：ani-rss 每次重绘都会改一堆文本，
-           而我们关心的只是「卡片有没有增删」，childList 足够了 */
+           而这里关心的只是「卡片有没有增删」，childList 足够了 */
         if (document.body) mo.observe(document.body, {childList: true, subtree: true})
     }
 
