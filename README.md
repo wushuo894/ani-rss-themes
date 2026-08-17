@@ -110,14 +110,12 @@ cd ani-rss-themes && python -m http.server 8080
 <details>
 <summary><b>附加：AutoBangumi 完整界面（再配一份 JS）</b></summary>
 
-`themes/autobangumi.css` 单装就已经把配色、控件、订阅卡全部换成 [AutoBangumi](https://github.com/EstrellaXD/Auto_Bangumi) 的样子 —— 包括把 ani-rss 的横向卡片改成上游那种竖版海报网格（5:7 封面、hover 抬起、浮层里放操作按钮、评分做成角标）。
+这一款分两层，两层做的事完全不同：
 
-上游的主界面还有一块 CSS 单独做不到：左侧那条导航栏。ani-rss 的功能入口全挤在顶栏一排文字按钮里，配上 `js/autobangumi.js` 就会拆成上游的布局：
-
-| 装法 | 布局 | 功能入口 | 页面标题 |
-| --- | --- | --- | --- |
-| 只填 CSS | 顶栏一条 + 列表 | 顶栏一排文字按钮 | 无 |
-| CSS + JS | 顶栏 + 左侧导航 + 内容区 | 下载器 / RSS 管理 / 日志 / 设置进侧栏，添加 / 刷新留在顶栏做图标钮 | 「订阅列表」+ 渐变横杠 |
+| 装法 | 做什么 |
+| --- | --- |
+| 只填 CSS | 换配色、控件、弹窗、登录页 —— **一条都不碰 ani-rss 的布局** |
+| CSS + JS | 直接把 AutoBangumi 的界面渲染出来：顶栏 + 侧边导航 + 海报墙 |
 
 ```css
 /* CSS 框 */
@@ -129,18 +127,22 @@ cd ani-rss-themes && python -m http.server 8080
 import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/autobangumi.js")
 ```
 
-**只做交集。** 侧栏每一项都对应 ani-rss 真实存在的一个按钮，点它就是点原按钮（原按钮只是被收起来了，事件还是 ani-rss 自己的）；认不到对应按钮的项直接不出现。上游有、ani-rss 没有的功能（番剧日历、播放器、通知中心）一个都不造 —— 摆一个点不动的入口比没有更糟。反过来，ani-rss 独有的东西（评分、更新时间）按上游的视觉语言补：评分做成上游 `.group-badge` 那种主色角标，更新时间做成标题下的一行小字。
+**不是「把 ani-rss 掰得像 AB」，是渲染 AB 本身。** 脚本照上游 webui 的 `.vue` 把 AutoBangumi 的 DOM 原样建出来 —— `.layout-container` / `.topbar` / `.topbar-brand` / `.search-trigger` / `.topbar-right` / `.sidebar` / `.page-title` / `.page-bangumi` / `.bangumi-grid` / `.card` / `.card-poster` / `.card-overlay`，类名、层级、尺寸、缓动全部取自对应 `.vue` 的 scoped 样式。ani-rss 自己的顶栏和列表整个收起来 —— 它继续跑、继续持有全部状态和事件，只是不再负责显示。
 
-**不搬 DOM。** 整个布局靠 CSS Grid 的 `grid-area` 重排，网格位置和 DOM 顺序无关 —— Vue 看到的子节点顺序一个字没变，不会 patch 到错误的位置上。脚本只往容器末尾追加自己的两个节点（侧栏、页面标题），并用 MutationObserver 跟着 Vue 重绘重新绑定代理。**零依赖、零外部请求**，图标是内联 SVG。清空 JS 框刷新就还原。
+- **卡片是镜像**：从每张 ani-rss 卡取海报、标题、标签、评分、更新时间，用上游的 `.card` 结构重画。点卡片和浮层里的圆钮 = 点原来那颗按钮（原按钮只是被收起来了，事件处理器还是 ani-rss 自己的）
+- **搜索**把输入转发给 ani-rss 的原生输入框（派发原生 `input` 事件，Vue 的 `v-model` 收得到），列表一变镜像跟着重画
+- **弹窗不接管** —— 那些是 ani-rss 的真业务，CSS 已经把它们做成上游 `ab-modal` 的样子
+- **登录页不接管** —— 上游的 `.login-card`（点阵 + 两团漂移色晕 + 毛玻璃）已经在 CSS 里 1:1 复刻过
+
+**只做交集。** 侧栏每一项都对应 ani-rss 真实存在的一个按钮，认不到就不出现；上游有而 ani-rss 没有的（番剧日历、播放器、通知中心、多语言）一个都不造 —— 摆一个点不动的入口比没有更糟。反过来，ani-rss 独有的按上游的语言补：评分做成上游 `.group-badge` 那种主色角标，更新时间做成标题下的一行等宽小字。
+
+**为什么 CSS 那层不碰布局。** 早先的版本是拿 CSS 去掰 ani-rss 的 DOM（把 `#header` 掰成 topbar、用 `display:contents` 把列表摊平、`!important` 盖掉 `#app` 的 `max-width`）。那是在赌 ani-rss 的内部结构 —— 换个版本、换个「页面设置」就散架。现在那些规则一条不剩：不装 JS 就是纯换肤，装了 JS 才有完整界面，两条路都不会把原界面掰坏。
+
+**零依赖、零外部请求**（字体除外，见下），图标是内联 SVG。清空 JS 框刷新就还原。
 
 **字体自带**：Inter Variable（latin + latin-ext 两个子集）收在仓库 `fonts/` 里，OFL-1.1 许可证同目录，CSS 里两条 `src` —— GitHub Pages 走不通自动落 githack。不依赖本机装没装 Inter，中文照旧交给 Noto Sans SC / 微软雅黑。
 
-**两处刻意的改动**（都是为了对上上游，不是疏漏）：
-
-- **通栏**：ani-rss 的「页面设置 → 最大宽度」会给 `#app` 挂一条 `max-width` 内联样式（默认 1600px），宽屏两边各空一大条；上游 `.layout-container` 是 `width:100%` 通栏，所以这里用 `!important` 盖掉了它。
-- **不分星期**：上游首页是一整片连续的海报墙，没有按星期分组（「星期几」那套在上游是独立的番剧日历页）。ani-rss 是每个星期一个网格容器，一组只有三四张卡、一行却能铺八到十列，每行都空掉一大半。这里用 `display:contents` 把星期包裹和各自的网格摊掉，所有卡片直接成为同一个网格的子项，跨星期连续密铺 —— **一个 DOM 节点都没搬**。想要回星期标题，把 CSS 里 `.list-week-title { display: none }` 那条删掉即可。
-
-色板、圆角、阴影、缓动全部取自上游 `src/style/var.scss` 的原值；组件尺寸取自各 `.vue` 的 scoped 样式；下拉框和开关这两个走 Naive UI 的控件，尺寸是在跑起来的实例上量的计算值。
+色板、圆角、阴影、缓动取自上游 `src/style/var.scss` 的原值；组件尺寸取自各 `.vue` 的 scoped 样式；下拉框和开关这两个走 Naive UI 的控件，尺寸是在跑起来的实例上量的计算值。
 </details>
 
 <details>
