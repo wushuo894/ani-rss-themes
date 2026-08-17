@@ -17,6 +17,36 @@
  * 注：--el-color-primary 被 ani-rss 用内联样式写在 <html> 上，只有 !important 能盖过
  */
 
+/* ==================== 字体：Inter Variable ====================
+ * 上游自托管 Inter，字形和 Segoe UI / 苹方差别不小，落回系统字栈就不是那个味道了。
+ * 所以把字体收进本仓库 fonts/（OFL-1.1，许可证同目录），从这里直接引。
+ * 两个 src：GitHub Pages 走不通时自动落到 githack。中文不在 unicode-range 里，
+ * 照旧交给 Noto Sans SC / 微软雅黑，不会因为这条 @font-face 变样。
+ */
+@font-face {
+    font-family: 'Inter Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("https://zzzwannasleep.github.io/ani-rss-themes/fonts/inter-latin-wght-normal.woff2") format("woff2"),
+    url("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/fonts/inter-latin-wght-normal.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Inter Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("https://zzzwannasleep.github.io/ani-rss-themes/fonts/inter-latin-ext-wght-normal.woff2") format("woff2"),
+    url("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/fonts/inter-latin-ext-wght-normal.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
 /* ==================== 浅色（Soft Ink light） ==================== */
 html:root:not(.dark) {
     --ab-primary: #6C4AB6;
@@ -201,8 +231,9 @@ html:root, html.dark:root {
     --ab-t-normal: 200ms ease-out;
     --ab-t-slow: 300ms ease-out;
 
-    --ab-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Noto Sans SC',
-    'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+    /* 'Inter Variable' 是本文件 @font-face 引进来的；'Inter' 让本机装过的优先命中 */
+    --ab-font: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont,
+    'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
     --ab-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 
     /* Element Plus 的圆角只有三档可给，对上 Soft Ink 的 4 / 8 */
@@ -215,8 +246,15 @@ html:root, html.dark:root {
     --el-box-shadow-lighter: var(--ab-shadow-sm);
     --el-box-shadow-dark: var(--ab-shadow-lg);
 
-    --el-transition-duration: .2s;
-    --el-transition-duration-fast: .15s;
+    /* ⚠ 不要改 --el-transition-duration。
+       Element 的弹窗进出动画写作 animation: modal-fade-out var(--el-transition-duration)，
+       而调用方（ani-rss 的 Vue Transition、预览页的 closeDialog）都按 Element 默认的
+       300ms 去安排「动画跑完再隐藏」。把它调短，动画会先结束、元素没有 fill-mode
+       就弹回 opacity:1，剩下那段时间弹窗又整个显出来一次才消失 —— 看着就像闪退。
+       本主题自己的过渡一律走 --ab-t-*，不动 Element 这条全局时长。 */
+
+    /* 兜底：万一别处又把时长改短，也不许弹窗在动画结束后弹回来 */
+    /* （规则本身在下面「弹窗」一节） */
 
     /* 上游按钮 md 档 34px、sm 档 28px；ani-rss 的按钮走默认档 */
     --el-component-size: 34px;
@@ -250,8 +288,13 @@ body {
     transition: background-color var(--ab-t-normal), color var(--ab-t-normal);
 }
 
-/* 上游 .layout-container：16px 内边距 + 12px 间隙，内容全部浮在底色上 */
+/* 上游 .layout-container：width:100% + 16px 内边距 + 12px 间隙，内容全部浮在底色上。
+   ani-rss 的「页面设置 → 最大宽度」会给 #app 挂一条 max-width 的内联样式（默认 1600px），
+   宽屏上两边各留一大条空白 —— 上游没有这个上限，是通栏铺满的。要还原就得盖掉它，
+   只有 !important 压得过内联样式。 */
 html #app {
+    max-width: none !important;
+    width: 100%;
     padding: 16px;
     box-sizing: border-box;
 }
@@ -271,11 +314,15 @@ html #app > .content {
 }
 
 /* ==================== 顶栏：上游 .topbar 那张浮起来的卡 ==================== */
+/* 上游 .topbar 的排布是 品牌 → 搜索（紧挨着，flex:1 上限 400）→ 右侧图标钮（margin-left:auto）。
+   ani-rss 的 #header 是 space-between，会把搜索甩到正中间、和品牌之间空出一大条。
+   改成靠左排、右侧那组自己顶到最右，就和上游一致了。 */
 html #header {
     box-sizing: border-box;
     min-height: 56px;
     padding: 8px 20px;
     align-items: center;
+    justify-content: flex-start;
     gap: 16px;
     background: var(--ab-surface);
     border: 1px solid var(--ab-border);
@@ -293,6 +340,13 @@ html #header .add-button {
 
 html #header .add-button {
     gap: 8px;
+    margin-left: auto;
+}
+
+/* 搜索区跟着品牌走，别被 space-between 甩到中间 */
+html #header .auto-flex {
+    align-items: center;
+    gap: 8px;
 }
 
 @media (max-width: 999px) {
@@ -306,54 +360,6 @@ html #header .add-button {
     html #header {
         border-radius: var(--ab-r-md);
         padding: 10px 12px;
-    }
-}
-
-/* 列表区不是卡片 —— 上游番剧网格直接铺在底色上 */
-html .list-content {
-    margin: 0 4px;
-}
-
-/* 周分组标题：借上游 .page-title 那一记 —— 22px/600 + 一道渐变横杠 */
-html .list-week-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin: 20px 0 10px 4px;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--ab-text);
-    letter-spacing: -.01em;
-}
-
-html .list-week-title::after {
-    content: "";
-    width: 120px;
-    height: 3px;
-    border-radius: 9999px;
-    background: linear-gradient(90deg, var(--ab-primary), var(--ab-primary-hover));
-    opacity: .6;
-    flex-shrink: 0;
-}
-
-@media (max-width: 639px) {
-    html .list-week-title {
-        font-size: 18px;
-    }
-
-    html .list-week-title::after {
-        width: 80px;
-    }
-}
-
-/* 上游番剧网格的间隙是 20px（桌面），ani-rss 默认 8px 太挤 */
-html .grid-container {
-    grid-gap: 12px;
-}
-
-@media (min-width: 1024px) {
-    html .grid-container {
-        grid-gap: 16px;
     }
 }
 
@@ -643,33 +649,70 @@ html .el-card__footer {
  * 「每行几列」设置 —— 上游的番剧网格就是按密度铺的，列数由容器宽度决定。
  */
 
-/* 上游番剧网格：150px 起铺，间隙 12 / 16 / 20 三档。
-   顶上留 10px 是给评分角标的 —— 它按上游 .group-badge 的做法探出卡片 8px，
-   不留这一条第一行会被滚动容器切掉半个。 */
-html .grid-container {
+/* ---------- 网格：摊平成上游那一整片连续海报墙 ----------
+ *
+ * 上游首页是一个网格装下全部番剧，不按星期分组（「星期几」那套在上游是独立的
+ * 番剧日历页）。ani-rss 是每个星期一个 .grid-container，一组只有三四张卡；
+ * 而海报卡只有 150px 宽，一行能铺八到十列 —— 结果每一行都空掉一大半，
+ * 整页看着就是没填满。
+ *
+ * 解法：给外层包裹和每个星期的网格加 display:contents，把它们从渲染树里「摊掉」，
+ * 所有卡片直接成为 .list-content 这一个网格的子项，跨星期连续密铺。
+ * 一个节点都没搬 —— DOM 原样不动，Vue 那边看到的结构一个字没变。
+ *
+ * 代价：星期分组的标题被折掉了（上游首页本来就没有）。想要回来，
+ * 把下面 .list-week-title 那条 display:none 删掉即可，网格会退回按星期分段。
+ */
+/* 上游 .bangumi-grid 原值：minmax 120/140/150 三档、gap 12/16/20、padding 12、
+   justify-items:center；卡片本身是定宽（.card{width:150px}），列宽富余时居中而不是拉伸。
+   顶上多给 10px 是给评分角标的 —— 它按上游 .group-badge 探出卡片 8px。 */
+html .list-content {
+    display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    grid-gap: 12px;
+    gap: 12px;
     align-items: start;
-    padding-top: 10px;
-    padding-right: 8px;
+    justify-items: center;
+    margin: 0;
+    padding: 22px 12px 12px;
+    box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
-    html .grid-container {
+    html .list-content {
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        grid-gap: 16px;
+        gap: 16px;
     }
 }
 
 @media (min-width: 1024px) {
-    html .grid-container {
+    html .list-content {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        grid-gap: 20px;
+        gap: 20px;
     }
 }
 
+/* 摊平两层：星期包裹 + 该星期的网格 */
+html .list-content > div,
+html .grid-container {
+    display: contents;
+}
+
+/* 空状态是 .list-content 的直接子节点，让它横跨整行 */
+html .list-content > .el-empty {
+    display: flex;
+    grid-column: 1 / -1;
+}
+
+html .list-week-title {
+    display: none;
+}
+
+/* 上游卡片是定宽 150px，列宽富余就居中，不拉伸 */
 html .grid-container > * {
     min-width: 0;
+    height: auto;
+    width: 100%;
+    max-width: 150px;
 }
 
 /* 上游的海报卡没有外框 —— 卡片本身就是海报加一行标题，不套壳 */
@@ -1048,6 +1091,16 @@ html .el-overlay {
     background-color: var(--ab-overlay);
 }
 
+/* 关闭动画停在最后一帧，别在结束瞬间弹回 opacity:1。
+   Element 原样式没写 fill-mode，只要动画时长和调用方的隐藏时机对不齐，
+   中间就会整个弹窗再显出来一次。 */
+html .dialog-fade-leave-active,
+html .dialog-fade-leave-active .el-overlay-dialog,
+html .dialog-fade-leave-active .el-overlay,
+html .el-overlay.dialog-fade-leave-active {
+    animation-fill-mode: forwards;
+}
+
 html .el-overlay-dialog .el-dialog {
     padding: 0;
     background: var(--ab-surface);
@@ -1241,7 +1294,7 @@ html .el-switch {
 }
 
 html .el-switch__core {
-    width: 40px !important;
+    width: 40px;
     min-width: 40px;
     height: 22px;
     border: none;
@@ -1274,18 +1327,22 @@ html .el-switch.is-disabled {
 }
 
 /* ==================== 勾选 / 单选 ==================== */
-html .el-checkbox__inner {
-    width: 16px;
-    height: 16px;
-    background-color: var(--ab-surface-2);
-    border: 1px solid var(--ab-border);
-    border-radius: 3px;
-    transition: background-color var(--ab-t-fast), border-color var(--ab-t-fast);
+/* ⚠ 勾选框的尺寸只能走变量，不能直接写 width/height，更不能碰 ::after 的定位。
+   Element 的对勾是 `top:50%;left:50%;transform:translate(-45%,-60%)rotate(45deg)`
+   —— 百分比锚点自动居中，方框多大它都跟着走。一旦把 left/top 改成像素，
+   居中逻辑当场失效，勾就歪出去了。改尺寸只需要下面这三个变量。 */
+html:root, html.dark:root {
+    --el-checkbox-input-width: 16px;
+    --el-checkbox-input-height: 16px;
+    --el-checkbox-border-radius: 3px;
+    --el-radio-input-width: 16px;
+    --el-radio-input-height: 16px;
 }
 
-html .el-checkbox__inner::after {
-    left: 5px;
-    top: 2px;
+html .el-checkbox__inner {
+    background-color: var(--ab-surface-2);
+    border: 1px solid var(--ab-border);
+    transition: background-color var(--ab-t-fast), border-color var(--ab-t-fast);
 }
 
 html .el-checkbox__input.is-checked .el-checkbox__inner,
@@ -1311,9 +1368,8 @@ html .el-radio__input.is-checked + .el-radio__label {
     color: var(--ab-text);
 }
 
+/* 单选同理：尺寸走上面的 --el-radio-input-*，圆点也是百分比居中的，别碰 ::after */
 html .el-radio__inner {
-    width: 16px;
-    height: 16px;
     background-color: var(--ab-surface-2);
     border: 1px solid var(--ab-border);
 }
@@ -1690,9 +1746,24 @@ html .el-text--small {
     font-size: 12px;
 }
 
+/* 空状态：上游 .empty-guide —— 垂直居中、20px/600 的主句 */
+html .el-empty {
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    padding: 24px;
+}
+
 html .el-empty__description {
-    color: var(--ab-text-secondary);
-    font-size: 13px;
+    margin-top: 0;
+    color: var(--ab-text);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+html .el-empty__image {
+    opacity: .35;
 }
 
 /* 上传拖拽区：上游 .ab-empty 的虚线盒 */
@@ -2264,18 +2335,6 @@ html.ab-ui #toolbar [data-ab-icon] .el-icon + span {
 
 html.ab-ui #toolbar [data-ab-icon] .el-icon--left {
     margin-right: 0;
-}
-
-/* 有了侧栏和页面标题之后，周分组标题降一级 —— 免得一屏里出现两条同款渐变横杠 */
-html.ab-ui .list-week-title {
-    margin: 16px 0 8px 4px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--ab-text-secondary);
-}
-
-html.ab-ui .list-week-title::after {
-    display: none;
 }
 
 /* ---------- 顶栏品牌区：上游 .topbar-brand（纯 CSS，不装 JS 也有） ---------- */
