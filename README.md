@@ -133,7 +133,12 @@ import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/autobangumi
 
 **不搬 DOM。** 整个布局靠 CSS Grid 的 `grid-area` 重排，网格位置和 DOM 顺序无关 —— Vue 看到的子节点顺序一个字没变，不会 patch 到错误的位置上。脚本只往容器末尾追加自己的两个节点（侧栏、页面标题），并用 MutationObserver 跟着 Vue 重绘重新绑定代理。**零依赖、零外部请求**，图标是内联 SVG。清空 JS 框刷新就还原。
 
-**字体**：上游自托管 Inter，主题不能带资源文件，这里给的是同一条字栈。本机装了 Inter 就是 1:1；没装落到 Segoe UI / 苹方，字形略有出入，排版数值不变。
+**字体自带**：Inter Variable（latin + latin-ext 两个子集）收在仓库 `fonts/` 里，OFL-1.1 许可证同目录，CSS 里两条 `src` —— GitHub Pages 走不通自动落 githack。不依赖本机装没装 Inter，中文照旧交给 Noto Sans SC / 微软雅黑。
+
+**两处刻意的改动**（都是为了对上上游，不是疏漏）：
+
+- **通栏**：ani-rss 的「页面设置 → 最大宽度」会给 `#app` 挂一条 `max-width` 内联样式（默认 1600px），宽屏两边各空一大条；上游 `.layout-container` 是 `width:100%` 通栏，所以这里用 `!important` 盖掉了它。
+- **不分星期**：上游首页是一整片连续的海报墙，没有按星期分组（「星期几」那套在上游是独立的番剧日历页）。ani-rss 是每个星期一个网格容器，一组只有三四张卡、一行却能铺八到十列，每行都空掉一大半。这里用 `display:contents` 把星期包裹和各自的网格摊掉，所有卡片直接成为同一个网格的子项，跨星期连续密铺 —— **一个 DOM 节点都没搬**。想要回星期标题，把 CSS 里 `.list-week-title { display: none }` 那条删掉即可。
 
 色板、圆角、阴影、缓动全部取自上游 `src/style/var.scss` 的原值；组件尺寸取自各 `.vue` 的 scoped 样式；下拉框和开关这两个走 Naive UI 的控件，尺寸是在跑起来的实例上量的计算值。
 </details>

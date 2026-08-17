@@ -1465,7 +1465,14 @@ html .el-progress.is-success .el-progress-bar__inner {
 }
 
 /* ==================== 浮层：气泡 / 下拉 / 提示 ==================== */
+/* ⚠ 必须带上 .is-light / .is-pure：Element 用 `.el-popper.is-pure{padding:0}`、
+   `.el-popper.is-light{box-shadow:var(--el-box-shadow-light)}` 这种双类选择器，
+   权重比 `html .el-popper` 高。少写这两个类，下拉菜单就是没内边距、投影也偏薄
+   —— 看上去像整个菜单没上样式。 */
 html .el-popper,
+html .el-popper.is-light,
+html .el-popper.is-pure,
+html .el-popper.is-light.is-pure,
 html .el-popover,
 html .el-dropdown__popper,
 html .el-select__popper,
@@ -1498,9 +1505,10 @@ html .el-popper.is-dark .el-popper__arrow::before {
     border-color: var(--ab-text) !important;
 }
 
-/* 菜单项：上游 .ab-menu-item —— 4px 圆角、7px 10px、hover 是 surface-2 */
+/* 菜单项：上游 .ab-menu-item —— 4px 圆角、7px 10px、hover 是 surface-2。
+   内边距放在菜单自己身上，不指望外层 popper —— .is-pure 会把 popper 的 padding 清零。 */
 html .el-dropdown-menu {
-    padding: 0;
+    padding: 4px;
     background: transparent;
     border: none;
 }
@@ -2134,14 +2142,21 @@ html.ab-ui .ab-nav-item.is-active {
     font-weight: 500;
 }
 
-html.ab-ui .ab-nav-icon {
-    display: flex;
-    flex-shrink: 0;
+/* 内联 svg 没写 width/height 属性，不给 CSS 尺寸就是 0×0（整个图标隐形）。
+   规则挂在侧栏整体上，别只覆盖导航项那一处 —— 折叠按钮里也有一个。 */
+html.ab-ui .ab-sidebar svg {
+    display: block;
     width: 20px;
     height: 20px;
+    flex-shrink: 0;
 }
 
-html.ab-ui .ab-nav-icon svg {
+html.ab-ui .ab-nav-icon,
+html.ab-ui .ab-sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
     width: 20px;
     height: 20px;
 }
