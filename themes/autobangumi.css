@@ -288,80 +288,12 @@ body {
     transition: background-color var(--ab-t-normal), color var(--ab-t-normal);
 }
 
-/* 上游 .layout-container：width:100% + 16px 内边距 + 12px 间隙，内容全部浮在底色上。
-   ani-rss 的「页面设置 → 最大宽度」会给 #app 挂一条 max-width 的内联样式（默认 1600px），
-   宽屏上两边各留一大条空白 —— 上游没有这个上限，是通栏铺满的。要还原就得盖掉它，
-   只有 !important 压得过内联样式。 */
-html #app {
-    max-width: none !important;
-    width: 100%;
-    padding: 16px;
-    box-sizing: border-box;
-}
+/* ⚠ 这一层（不装 JS 时）刻意不碰 ani-rss 的任何布局。
+   早先这里写过 #app 的 max-width、#header 的顶栏化、把列表网格摊平之类的规则，
+   全是在赌 ani-rss 的内部结构 —— 换个版本或换个「页面设置」就散架。
+   界面级的还原交给配套的 js/autobangumi.js：它按上游源码把 AutoBangumi 的
+   界面整个建出来，不改 ani-rss 一个节点。这里只负责配色和控件。 */
 
-html #app > .content {
-    gap: 12px;
-}
-
-@media (max-width: 639px) {
-    html #app {
-        padding: 12px;
-    }
-
-    html #app > .content {
-        gap: 10px;
-    }
-}
-
-/* ==================== 顶栏：上游 .topbar 那张浮起来的卡 ==================== */
-/* 上游 .topbar 的排布是 品牌 → 搜索（紧挨着，flex:1 上限 400）→ 右侧图标钮（margin-left:auto）。
-   ani-rss 的 #header 是 space-between，会把搜索甩到正中间、和品牌之间空出一大条。
-   改成靠左排、右侧那组自己顶到最右，就和上游一致了。 */
-html #header {
-    box-sizing: border-box;
-    min-height: 56px;
-    padding: 8px 20px;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 16px;
-    background: var(--ab-surface);
-    border: 1px solid var(--ab-border);
-    border-radius: var(--ab-r-lg);
-    box-shadow: var(--ab-shadow-sm);
-    transition: background-color var(--ab-t-normal),
-    border-color var(--ab-t-normal), box-shadow var(--ab-t-normal);
-}
-
-/* 顶栏自己给了内边距，里面两块的外边距要收掉，否则整条会虚胖一圈 */
-html #header .auto-flex,
-html #header .add-button {
-    margin: 0;
-}
-
-html #header .add-button {
-    gap: 8px;
-    margin-left: auto;
-}
-
-/* 搜索区跟着品牌走，别被 space-between 甩到中间 */
-html #header .auto-flex {
-    align-items: center;
-    gap: 8px;
-}
-
-@media (max-width: 999px) {
-    html #header {
-        padding: 12px;
-        gap: 10px;
-    }
-}
-
-@media (max-width: 450px) {
-    html #header {
-        border-radius: var(--ab-r-md);
-        padding: 10px 12px;
-    }
-}
 
 /* ==================== 按钮：上游 .ab-btn ==================== */
 /* 4px 圆角、34px 高、无描边、字重 500。ani-rss 主力按钮是 is-text.is-has-bg 这一形态 */
@@ -629,387 +561,6 @@ html .el-card__footer {
     padding: 10px 14px;
     border-top: 1px solid var(--ab-border);
     background: var(--ab-surface);
-}
-
-/* ==================== 订阅卡 → 上游的海报卡 ====================
- *
- * 这一段不是「换个配色」，是把 ani-rss 的横向卡（封面在左、信息在右）改造成
- * AutoBangumi 首页那种竖向海报卡。DOM 一个字没动，全靠重新排布：
- *
- *   ani-rss                          AutoBangumi
- *   ┌──────┬──────────────┐          ┌────────────┐
- *   │      │ 标题          │          │            │  ← 海报 5/7，hover 起浮层
- *   │ 封面 │ 评分 标签      │    →     │    海报     │     浮层里放操作按钮和标签
- *   │      │        [操作] │          │            │
- *   └──────┴──────────────┘          ├────────────┤
- *                                    │ 标题（两行） │
- *                                    └────────────┘
- *
- * 换来的代价：网格改成按密度铺（auto-fill minmax(150px)），不再听 ani-rss 的
- * 「每行几列」设置 —— 上游的番剧网格就是按密度铺的，列数由容器宽度决定。
- */
-
-/* ---------- 网格：摊平成上游那一整片连续海报墙 ----------
- *
- * 上游首页是一个网格装下全部番剧，不按星期分组（「星期几」那套在上游是独立的
- * 番剧日历页）。ani-rss 是每个星期一个 .grid-container，一组只有三四张卡；
- * 而海报卡只有 150px 宽，一行能铺八到十列 —— 结果每一行都空掉一大半，
- * 整页看着就是没填满。
- *
- * 解法：给外层包裹和每个星期的网格加 display:contents，把它们从渲染树里「摊掉」，
- * 所有卡片直接成为 .list-content 这一个网格的子项，跨星期连续密铺。
- * 一个节点都没搬 —— DOM 原样不动，Vue 那边看到的结构一个字没变。
- *
- * 代价：星期分组的标题被折掉了（上游首页本来就没有）。想要回来，
- * 把下面 .list-week-title 那条 display:none 删掉即可，网格会退回按星期分段。
- */
-/* 上游 .bangumi-grid 原值：minmax 120/140/150 三档、gap 12/16/20、padding 12、
-   justify-items:center；卡片本身是定宽（.card{width:150px}），列宽富余时居中而不是拉伸。
-   顶上多给 10px 是给评分角标的 —— 它按上游 .group-badge 探出卡片 8px。 */
-html .list-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 12px;
-    align-items: start;
-    justify-items: center;
-    margin: 0;
-    padding: 22px 12px 12px;
-    box-sizing: border-box;
-}
-
-@media (min-width: 640px) {
-    html .list-content {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 16px;
-    }
-}
-
-@media (min-width: 1024px) {
-    html .list-content {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        gap: 20px;
-    }
-}
-
-/* 摊平两层：星期包裹 + 该星期的网格 */
-html .list-content > div,
-html .grid-container {
-    display: contents;
-}
-
-/* 空状态是 .list-content 的直接子节点，让它横跨整行 */
-html .list-content > .el-empty {
-    display: flex;
-    grid-column: 1 / -1;
-}
-
-html .list-week-title {
-    display: none;
-}
-
-/* 上游卡片是定宽 150px，列宽富余就居中，不拉伸 */
-html .grid-container > * {
-    min-width: 0;
-    height: auto;
-    width: 100%;
-    max-width: 150px;
-}
-
-/* 上游的海报卡没有外框 —— 卡片本身就是海报加一行标题，不套壳 */
-html .grid-container .el-card,
-html .grid-container .el-card.is-never-shadow {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    overflow: visible;
-}
-
-html .grid-container .el-card:hover {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-}
-
-/* overflow:visible 是必须的：评分角标按上游的做法探出卡片 8px，
-   而 .el-card__body 默认会滚 —— 探出去的那 8px 会让每张卡底下都长出一根
-   6px 的横向滚动条（一眼看去像是给卡片加了条紫色装饰线，其实是拇指）。 */
-html .grid-container .el-card__body {
-    padding: 0;
-    background: transparent;
-    overflow: visible;
-}
-
-/* 横向 flex → 竖向堆叠 */
-html .list-card-content {
-    position: relative;
-    display: block;
-    min-width: 0;
-}
-
-/* 海报：上游 .card-poster —— 5/7、8px 圆角、shadow-md，hover 抬 2px 换 shadow-lg */
-html .list-card-image-container {
-    position: relative;
-    display: block;
-    width: 100%;
-    aspect-ratio: 5 / 7;
-    border-radius: var(--ab-r-md);
-    overflow: hidden;
-    box-shadow: var(--ab-shadow-md);
-    background: var(--ab-surface-hover);
-    transition: box-shadow var(--ab-t-fast), transform var(--ab-t-fast);
-}
-
-html .list-card-content:hover .list-card-image-container {
-    box-shadow: var(--ab-shadow-lg);
-    transform: translateY(-2px);
-}
-
-html .list-card-image {
-    width: 100%;
-    height: 100%;
-    display: block;
-    border: none;
-    border-radius: 0;
-    object-fit: cover;
-}
-
-/* 触屏没有 hover 态，抬起来了就落不回去 */
-@media (hover: none) and (pointer: coarse) {
-    html .list-card-content:hover .list-card-image-container {
-        transform: none;
-    }
-}
-
-/* 信息区：上游 .card-info —— 海报下方 8px 2px 4px */
-html .list-card-info {
-    position: static;
-    min-width: 0;
-}
-
-html .list-card-info-inner {
-    margin: 8px 2px 4px;
-    min-width: 0;
-}
-
-/* ani-rss 给标题同时挂了 .is-truncated（单行 nowrap + 省略号）和 .is-line-clamp，
-   nowrap 会把行数钳死在一行。上游的卡片标题是两行截断，所以这里要把 nowrap 解开，
-   而 .el-text.is-truncated 的权重比 html .list-card-title 高，只能上 !important */
-html .list-card-title,
-html .el-text.list-card-title.is-truncated {
-    display: -webkit-box !important;
-    white-space: normal !important;
-    width: auto;
-    max-width: 100%;
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2 !important;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    letter-spacing: 0;
-    color: var(--ab-text);
-    transition: color var(--ab-t-normal);
-}
-
-html .list-card-content:hover .list-card-title {
-    color: var(--ab-primary);
-}
-
-/* .list-card-url 平时是 ani-rss 自己藏起来的（只在「不显示评分」时才放出来），
-   这里只改样子，绝不碰它的 display —— 一改就会常驻三行 URL 把卡片撑长 */
-html .list-card-time,
-html .list-card-url {
-    margin-top: 2px;
-    font-size: 11px;
-    color: var(--ab-text-muted);
-}
-
-html .list-card-time {
-    display: block;
-}
-
-/* 评分：上游没有这一项，按它右上角那枚 .group-badge 的样子补 —— 主色药丸、20px、蹲在海报角上 */
-html .list-card-score-container {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    z-index: 10;
-    margin: 0;
-    pointer-events: none;
-}
-
-html .list-card-score {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    margin: 0;
-    border-radius: 10px;
-    background: var(--ab-primary);
-    color: #FFFFFF;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 1;
-    box-shadow: 0 2px 6px rgba(108, 74, 182, .4);
-}
-
-/* 标签：上游 .card-overlay-tags —— 压在海报底边，9px、半透明黑底白字、不带语义方块 */
-/* 定位盒和浮层一样罩住整张海报（top:0 + 5/7），标签靠 align-content 沉到底边 ——
-   不能用 bottom:6px：定位父级是整张卡（海报 + 标题），那样会掉到标题下面去 */
-html .list-card-tags,
-html .list-card-tags.gtc2,
-html .list-card-tags.gtc3 {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: auto;
-    aspect-ratio: 5 / 7;
-    z-index: 3;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: flex-end;
-    gap: 3px;
-    width: auto;
-    padding: 6px;
-    box-sizing: border-box;
-    grid-template-columns: none;
-    opacity: 0;
-    transition: opacity var(--ab-t-normal), transform var(--ab-t-fast);
-    pointer-events: none;
-}
-
-html .list-card-tags .el-tag {
-    min-height: 0;
-    padding: 1px 6px;
-    background: var(--ab-overlay);
-    border-color: rgba(255, 255, 255, .4);
-    color: #FFFFFF;
-    font-size: 9px;
-}
-
-html .list-card-tags .el-tag::before {
-    display: none;
-}
-
-html .list-card-tags .el-text,
-html .list-card-tags .list-card-subgroup {
-    color: #FFFFFF;
-    font-size: 9px;
-    max-width: 84px;
-}
-
-/* 浮层：上游 .card-overlay —— hover 才出，半透明黑 + 2px 背景模糊，操作按钮居中 */
-html .list-card-actions {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: auto;
-    aspect-ratio: 5 / 7;
-    z-index: 2;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border-radius: var(--ab-r-md);
-    background: var(--ab-overlay-light);
-    opacity: 0;
-    transition: opacity var(--ab-t-normal), transform var(--ab-t-fast);
-}
-
-/* backdrop-filter 只在 hover 时才挂上去。
-   上游一屏只有十来张卡，这里 ani-rss 一屏能铺三四十张 —— 每张常驻一层
-   backdrop-filter 就是三四十个永久合成层，滚动直接掉帧（实测连截图都会超时）。
-   隐藏态不需要模糊，看不见的东西没必要算。 */
-html .list-card-content:hover .list-card-actions,
-html .list-card-content:focus-within .list-card-actions {
-    opacity: 1;
-    transform: translateY(-2px);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
-}
-
-html .list-card-content:hover .list-card-tags,
-html .list-card-content:focus-within .list-card-tags {
-    opacity: 1;
-    transform: translateY(-2px);
-}
-
-html .list-card-content:active .list-card-actions {
-    background: var(--ab-overlay);
-}
-
-/* 浮层里的按钮：上游 .card-edit-btn —— 圆形实心主色，按下缩到 .9 */
-html .list-card-actions .el-button,
-html .list-card-actions .el-button.is-text.is-has-bg {
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--ab-primary);
-    border-color: transparent;
-    color: #FFFFFF;
-    box-shadow: var(--ab-shadow-md);
-    transition: transform var(--ab-t-fast), background-color var(--ab-t-fast);
-}
-
-html .list-card-actions .el-button:hover,
-html .list-card-actions .el-button.is-text.is-has-bg:hover {
-    background: var(--ab-primary-hover);
-    color: #FFFFFF;
-}
-
-html .list-card-actions .el-button:active {
-    transform: scale(.9);
-}
-
-html .list-card-actions .el-button--danger,
-html .list-card-actions .el-button--danger.is-text:not(.is-disabled).is-has-bg {
-    background: var(--ab-danger);
-    color: #FFFFFF;
-}
-
-html .list-card-actions .el-button--danger:hover,
-html .list-card-actions .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
-    background: var(--ab-danger);
-    filter: brightness(1.1);
-    color: #FFFFFF;
-}
-
-/* 竖排改横排之后，那两个 5px 的竖向间隔条没用了 */
-html .list-card-spacer {
-    display: none;
-}
-
-/* 触屏：上游在触屏上让浮层常驻一层底部渐变，操作按钮缩到右下角 */
-@media (hover: none) and (pointer: coarse) {
-    html .list-card-actions {
-        opacity: 1;
-        background: linear-gradient(to top, var(--ab-overlay) 0%, transparent 50%);
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        align-items: flex-end;
-        justify-content: flex-end;
-        padding: 8px;
-        gap: 6px;
-    }
-
-    html .list-card-actions .el-button,
-    html .list-card-actions .el-button.is-text.is-has-bg {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
-    }
-
-    html .list-card-tags {
-        opacity: 1;
-        bottom: 48px;
-    }
 }
 
 /* ==================== 标签：上游 .ab-tag ==================== */
@@ -1997,388 +1548,6 @@ html .footer .el-link:hover {
     color: var(--ab-primary);
 }
 
-/* ==================== 外壳：上游的 topbar + sidebar 布局 ====================
- *
- * 这一段只在装了配套的 js/autobangumi.js 时生效（脚本给 <html> 加 ab-ui）。
- * 不装 JS 的话下面一条都不会命中，主题退回「顶栏一条 + 列表」的形态，照样能用。
- *
- * 关键：不搬 ani-rss 的任何 DOM。把 .content 改成两列三行的网格，
- * 靠 grid-area 把「新加的侧栏」摆到左边、原有的列表容器摆到右下 ——
- * 网格位置和 DOM 顺序无关，Vue 那边看到的子节点顺序一个字没变。
- */
-html.ab-ui #app > .content {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-rows: auto auto minmax(0, 1fr);
-    gap: 12px;
-    height: 100%;
-    min-height: 0;
-}
-
-html.ab-ui #app > .content > #header {
-    grid-column: 1 / -1;
-    grid-row: 1;
-}
-
-html.ab-ui .ab-sidebar {
-    grid-column: 1;
-    grid-row: 2 / 4;
-}
-
-html.ab-ui .ab-page-title {
-    grid-column: 2;
-    grid-row: 2;
-}
-
-/* 剩下那个 flex:1 的列表容器 */
-html.ab-ui #app > .content > div:not(#header):not(.ab-sidebar):not(.ab-page-title) {
-    grid-column: 2;
-    grid-row: 3;
-    min-height: 0;
-}
-
-/* ---------- 侧边导航：上游 .sidebar ---------- */
-html.ab-ui .ab-sidebar {
-    display: flex;
-    flex-direction: column;
-    width: 200px;
-    overflow: hidden;
-    background: var(--ab-surface);
-    border: 1px solid var(--ab-border);
-    border-radius: var(--ab-r-lg);
-    box-shadow: var(--ab-shadow-sm);
-    transition: width var(--ab-t-normal), background-color var(--ab-t-normal),
-    border-color var(--ab-t-normal);
-}
-
-html.ab-ui .ab-sidebar--collapsed {
-    width: 64px;
-}
-
-html.ab-ui .ab-sidebar-header {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 52px;
-    padding: 0 20px;
-    border: none;
-    border-bottom: 1px solid var(--ab-border);
-    background: transparent;
-    cursor: pointer;
-    transition: background-color var(--ab-t-fast), border-color var(--ab-t-normal);
-}
-
-html.ab-ui .ab-sidebar-header:hover {
-    background: var(--ab-surface-hover);
-}
-
-html.ab-ui .ab-sidebar-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--ab-text);
-    white-space: nowrap;
-    transition: opacity var(--ab-t-fast);
-}
-
-html.ab-ui .ab-sidebar--collapsed .ab-sidebar-title {
-    opacity: 0;
-}
-
-html.ab-ui .ab-sidebar-toggle {
-    position: absolute;
-    left: 20px;
-    display: flex;
-    color: var(--ab-text-secondary);
-    transition: transform var(--ab-t-normal);
-}
-
-html.ab-ui .ab-sidebar:not(.ab-sidebar--collapsed) .ab-sidebar-toggle {
-    transform: rotate(180deg);
-}
-
-html.ab-ui .ab-sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    gap: 2px;
-    padding: 8px;
-    overflow-y: auto;
-}
-
-html.ab-ui .ab-nav-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-height: 44px;
-    padding: 10px 14px;
-    border: none;
-    border-radius: var(--ab-r-md);
-    background: transparent;
-    color: var(--ab-text-secondary);
-    font: inherit;
-    font-size: 14px;
-    text-align: left;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-    transition: color var(--ab-t-fast), background-color var(--ab-t-fast);
-}
-
-html.ab-ui .ab-nav-item:hover {
-    color: var(--ab-primary);
-    background: var(--ab-primary-light);
-}
-
-html.ab-ui .ab-nav-item:focus-visible {
-    outline: 2px solid var(--ab-primary);
-    outline-offset: -2px;
-}
-
-html.ab-ui .ab-nav-item.is-active {
-    color: var(--ab-primary);
-    background: var(--ab-primary-light);
-    font-weight: 500;
-}
-
-/* 内联 svg 没写 width/height 属性，不给 CSS 尺寸就是 0×0（整个图标隐形）。
-   规则挂在侧栏整体上，别只覆盖导航项那一处 —— 折叠按钮里也有一个。 */
-html.ab-ui .ab-sidebar svg {
-    display: block;
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-}
-
-html.ab-ui .ab-nav-icon,
-html.ab-ui .ab-sidebar-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-}
-
-html.ab-ui .ab-sidebar--collapsed .ab-nav-item {
-    justify-content: center;
-    padding: 10px;
-}
-
-html.ab-ui .ab-sidebar--collapsed .ab-nav-label {
-    display: none;
-}
-
-/* 平板：上游锁成 56px 的迷你侧栏 */
-@media (min-width: 640px) and (max-width: 1023px) {
-    html.ab-ui .ab-sidebar,
-    html.ab-ui .ab-sidebar--collapsed {
-        width: 56px;
-    }
-
-    html.ab-ui .ab-sidebar-title {
-        opacity: 0;
-    }
-
-    html.ab-ui .ab-sidebar-nav {
-        padding: 4px;
-    }
-
-    html.ab-ui .ab-nav-item {
-        justify-content: center;
-        padding: 10px;
-    }
-
-    html.ab-ui .ab-nav-label {
-        display: none;
-    }
-}
-
-/* 手机：上游换成贴底的横向导航条 */
-@media (max-width: 639px) {
-    html.ab-ui #app > .content {
-        display: flex;
-        flex-direction: column;
-        padding-bottom: 68px;
-    }
-
-    html.ab-ui .ab-sidebar,
-    html.ab-ui .ab-sidebar--collapsed {
-        position: fixed;
-        left: 12px;
-        right: 12px;
-        bottom: 12px;
-        z-index: 30;
-        flex-direction: row;
-        width: auto;
-        border-radius: var(--ab-r-lg);
-        box-shadow: var(--ab-shadow-md);
-        padding-bottom: env(safe-area-inset-bottom, 0px);
-    }
-
-    html.ab-ui .ab-sidebar-header {
-        display: none;
-    }
-
-    html.ab-ui .ab-sidebar-nav {
-        flex-direction: row;
-        padding: 0;
-        gap: 0;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-
-    html.ab-ui .ab-sidebar-nav::-webkit-scrollbar {
-        display: none;
-    }
-
-    html.ab-ui .ab-nav-item {
-        flex: 1;
-        flex-direction: column;
-        justify-content: center;
-        gap: 2px;
-        min-width: 0;
-        height: 56px;
-        min-height: 56px;
-        padding: 6px 4px;
-        color: var(--ab-text-muted);
-    }
-
-    html.ab-ui .ab-nav-item:active {
-        transform: scale(.95);
-    }
-
-    html.ab-ui .ab-nav-item.is-active {
-        background: transparent;
-    }
-
-    html.ab-ui .ab-nav-item.is-active::after {
-        content: "";
-        position: absolute;
-        top: 4px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 20px;
-        height: 3px;
-        border-radius: 9999px;
-        background: var(--ab-primary);
-    }
-
-    html.ab-ui .ab-nav-item {
-        position: relative;
-    }
-
-    html.ab-ui .ab-nav-label {
-        display: block;
-        font-size: 11px;
-        line-height: 1.2;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-}
-
-/* ---------- 页面标题：上游 .page-title ---------- */
-html.ab-ui .ab-page-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-    padding: 0 4px;
-}
-
-html.ab-ui .ab-page-title h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--ab-text);
-    transition: color var(--ab-t-normal);
-}
-
-html.ab-ui .ab-page-title::after {
-    content: "";
-    width: 120px;
-    height: 3px;
-    border-radius: 9999px;
-    background: linear-gradient(90deg, var(--ab-primary), var(--ab-primary-hover));
-    opacity: .6;
-    flex-shrink: 0;
-}
-
-@media (max-width: 639px) {
-    html.ab-ui .ab-page-title {
-        display: none;
-    }
-}
-
-/* ---------- 进了侧栏的按钮从顶栏收走；留下的两个改成图标钮 ---------- */
-/* ani-rss 给每个按钮外面包了一层带 margin 的 div，只藏 button 会留下空当，
-   所以两条都写：包了 div 的藏外层，没包的藏自己 */
-html.ab-ui #toolbar > *:has(> [data-ab-moved]),
-html.ab-ui #toolbar > [data-ab-moved] {
-    display: none;
-}
-
-html.ab-ui #toolbar [data-ab-icon] {
-    width: 32px;
-    min-width: 32px;
-    padding: 0;
-    background: transparent;
-    color: var(--ab-text-secondary);
-}
-
-html.ab-ui #toolbar [data-ab-icon]:hover {
-    background: var(--ab-surface-2);
-    color: var(--ab-text);
-}
-
-html.ab-ui #toolbar [data-ab-icon="primary"] {
-    background: var(--ab-primary);
-    color: #FFFFFF;
-}
-
-html.ab-ui #toolbar [data-ab-icon="primary"]:hover {
-    background: var(--ab-primary-hover);
-    color: #FFFFFF;
-}
-
-html.ab-ui #toolbar [data-ab-icon] span:not(:has(.el-icon)),
-html.ab-ui #toolbar [data-ab-icon] .el-icon + span {
-    display: none;
-}
-
-html.ab-ui #toolbar [data-ab-icon] .el-icon--left {
-    margin-right: 0;
-}
-
-/* ---------- 顶栏品牌区：上游 .topbar-brand（纯 CSS，不装 JS 也有） ---------- */
-html #header::before {
-    content: "ani-rss";
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    align-self: center;
-    padding-left: 32px;
-    background-image: var(--ab-logo);
-    background-repeat: no-repeat;
-    background-position: left center;
-    background-size: 24px 24px;
-    font-size: 20px;
-    font-weight: 600;
-    letter-spacing: -.02em;
-    color: var(--ab-text);
-    white-space: nowrap;
-}
-
-@media (max-width: 639px) {
-    html #header::before {
-        content: "";
-        padding-left: 24px;
-        background-size: 20px 20px;
-    }
-}
-
 /* ==================== 滚动条：6px，拇指是半透明主色 ==================== */
 ::-webkit-scrollbar {
     width: 6px;
@@ -2422,4 +1591,834 @@ html .el-scrollbar__thumb:hover {
         animation-iteration-count: 1 !important;
         transition-duration: .01ms !important;
     }
+}
+
+/* ==========================================================================
+ * 界面层：AutoBangumi 的界面本体
+ *
+ * 只在装了配套的 js/autobangumi.js 时生效（脚本给 <html> 加 ab-ui）。
+ * 下面这些类名不是 ani-rss 的，是脚本照上游 webui 的 .vue 建出来的那棵树：
+ * .layout-container / .topbar / .sidebar / .page-title / .bangumi-grid / .card…
+ * 尺寸、间距、圆角、阴影、缓动一律取自上游对应 .vue 的 scoped 样式。
+ *
+ * ani-rss 自己的顶栏和列表在这一层里整个收起来 —— 它继续跑、继续持有全部状态
+ * 和事件，只是不再负责显示。弹窗不接管，那些是 ani-rss 的真业务。
+ * ========================================================================== */
+
+/* ---------- 收起 ani-rss 自己的那一套 ---------- */
+html.ab-ui #app > .content > *:not(.layout-container) {
+    display: none !important;
+}
+
+html.ab-ui #app {
+    max-width: none !important;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+html.ab-ui #app > .content {
+    display: block;
+    height: 100%;
+}
+
+/* 登录页不接管：上游的登录卡已经在前面 1:1 复刻过了 */
+html.ab-ui #app > .content:has(#login-page) > * {
+    display: revert !important;
+}
+
+html.ab-ui #app > .content:has(#login-page) > .layout-container {
+    display: none !important;
+}
+
+/* ---------- 布局壳：上游 pages/index.vue ---------- */
+html.ab-ui .layout-container {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    padding: 16px;
+    padding-left: calc(16px + env(safe-area-inset-left, 0px));
+    padding-right: calc(16px + env(safe-area-inset-right, 0px));
+    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    background: var(--ab-bg);
+    transition: background-color var(--ab-t-normal);
+}
+
+@media (max-width: 639px) {
+    html.ab-ui .layout-container {
+        padding: 12px;
+        gap: 10px;
+    }
+}
+
+html.ab-ui .layout-main {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 68px;
+}
+
+@media (min-width: 640px) {
+    html.ab-ui .layout-main {
+        flex-direction: row;
+        padding-bottom: 0;
+    }
+}
+
+html.ab-ui .layout-content {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    gap: 12px;
+}
+
+/* ---------- 顶栏：上游 layout/ab-topbar.vue ---------- */
+html.ab-ui .topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    flex-shrink: 0;
+    padding: 0 8px;
+    box-sizing: border-box;
+    background: var(--ab-surface);
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-md);
+    box-shadow: var(--ab-shadow-sm);
+    transition: background-color var(--ab-t-normal),
+    border-color var(--ab-t-normal), box-shadow var(--ab-t-normal);
+}
+
+@media (min-width: 640px) {
+    html.ab-ui .topbar {
+        gap: 12px;
+        padding: 0 12px;
+    }
+}
+
+@media (min-width: 1024px) {
+    html.ab-ui .topbar {
+        height: 56px;
+        gap: 16px;
+        padding: 0 20px;
+        border-radius: var(--ab-r-lg);
+    }
+}
+
+html.ab-ui .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+    html.ab-ui .topbar-brand {
+        gap: 10px;
+    }
+}
+
+html.ab-ui .topbar-logo {
+    display: flex;
+    color: var(--ab-primary);
+}
+
+html.ab-ui .topbar-logo svg {
+    width: 20px;
+    height: 20px;
+}
+
+@media (min-width: 1024px) {
+    html.ab-ui .topbar-logo svg {
+        width: 24px;
+        height: 24px;
+    }
+}
+
+/* 上游的字标是一张 SVG 图；这里用同样字号字重的文字顶上 */
+html.ab-ui .topbar-wordmark {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--ab-text);
+    white-space: nowrap;
+}
+
+@media (min-width: 1024px) {
+    html.ab-ui .topbar-wordmark {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 639px) {
+    html.ab-ui .topbar-wordmark {
+        display: none;
+    }
+}
+
+html.ab-ui .topbar-search {
+    flex: 1;
+    min-width: 0;
+    max-width: 400px;
+}
+
+html.ab-ui .topbar-right {
+    flex-shrink: 0;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* ---------- 搜索：上游 basic/ab-search.vue 的 .search-trigger ---------- */
+html.ab-ui .search-trigger {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 6px 0 12px;
+    gap: 10px;
+    min-width: 0;
+    box-sizing: border-box;
+    border-radius: var(--ab-r-md);
+    background: var(--ab-surface-hover);
+    border: 1px solid var(--ab-border);
+    transition: border-color var(--ab-t-fast),
+    background-color var(--ab-t-normal), box-shadow var(--ab-t-fast);
+}
+
+html.ab-ui .search-trigger:hover {
+    border-color: var(--ab-primary);
+    background: var(--ab-surface);
+}
+
+html.ab-ui .search-trigger:focus-within {
+    border-color: var(--ab-primary);
+    background: var(--ab-surface);
+    box-shadow: 0 0 0 2px var(--ab-primary-alpha);
+}
+
+html.ab-ui .search-icon {
+    display: flex;
+    flex-shrink: 0;
+    color: var(--ab-text-muted);
+    transition: color var(--ab-t-fast);
+}
+
+html.ab-ui .search-trigger:hover .search-icon,
+html.ab-ui .search-trigger:focus-within .search-icon {
+    color: var(--ab-primary);
+}
+
+html.ab-ui input.search-placeholder {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ab-text);
+    padding: 0;
+}
+
+html.ab-ui input.search-placeholder::placeholder {
+    color: var(--ab-text-muted);
+}
+
+html.ab-ui .search-provider {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border: none;
+    border-radius: var(--ab-r-sm);
+    background: var(--ab-primary);
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color var(--ab-t-fast);
+}
+
+html.ab-ui .search-provider:hover {
+    background: var(--ab-primary-hover);
+}
+
+/* ---------- 图标钮：上游 basic/ab-icon-button.vue ---------- */
+html.ab-ui .ab-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: none;
+    border-radius: var(--ab-r-sm);
+    background: transparent;
+    color: var(--ab-text-secondary);
+    cursor: pointer;
+    transition: background-color var(--ab-t-fast), color var(--ab-t-fast);
+}
+
+html.ab-ui .ab-icon-btn--md {
+    width: 32px;
+    height: 32px;
+}
+
+html.ab-ui .ab-icon-btn:hover {
+    background: var(--ab-surface-2);
+    color: var(--ab-text);
+}
+
+html.ab-ui .ab-icon-btn:focus-visible {
+    outline: 2px solid var(--ab-primary);
+    outline-offset: 2px;
+}
+
+html.ab-ui .ab-icon-btn--solid {
+    background: var(--ab-primary);
+    color: #FFFFFF;
+}
+
+html.ab-ui .ab-icon-btn--solid:hover {
+    background: var(--ab-primary-hover);
+    color: #FFFFFF;
+}
+
+/* ---------- 侧栏：上游 layout/ab-sidebar.vue ---------- */
+html.ab-ui .sidebar {
+    background: var(--ab-surface);
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-lg);
+    box-shadow: var(--ab-shadow-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: width var(--ab-t-normal), background-color var(--ab-t-normal),
+    border-color var(--ab-t-normal);
+}
+
+html.ab-ui .sidebar--expanded {
+    width: 200px;
+}
+
+html.ab-ui .sidebar--collapsed {
+    width: 64px;
+}
+
+html.ab-ui .sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+html.ab-ui .sidebar-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 52px;
+    padding: 0 20px;
+    box-sizing: border-box;
+    cursor: pointer;
+    border: none;
+    border-bottom: 1px solid var(--ab-border);
+    background: transparent;
+    transition: border-color var(--ab-t-normal), background-color var(--ab-t-fast);
+}
+
+html.ab-ui .sidebar-header:hover {
+    background: var(--ab-surface-hover);
+}
+
+html.ab-ui .sidebar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ab-text);
+    white-space: nowrap;
+}
+
+html.ab-ui .sidebar--collapsed .sidebar-title {
+    display: none;
+}
+
+html.ab-ui .sidebar-toggle-icon {
+    position: absolute;
+    left: 20px;
+    display: flex;
+    color: var(--ab-text-secondary);
+    transition: transform var(--ab-t-normal);
+}
+
+html.ab-ui .sidebar--expanded .sidebar-toggle-icon {
+    transform: rotate(180deg);
+}
+
+html.ab-ui .sidebar--collapsed .sidebar-toggle-icon {
+    left: 50%;
+    margin-left: -10px;
+}
+
+html.ab-ui .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 2px;
+    flex: 1;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+html.ab-ui .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: var(--ab-r-md);
+    background: transparent;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--ab-text-secondary);
+    text-align: left;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--ab-t-fast), background-color var(--ab-t-fast);
+}
+
+html.ab-ui .sidebar-item:hover {
+    color: var(--ab-primary);
+    background: var(--ab-primary-light);
+}
+
+html.ab-ui .sidebar-item:focus-visible {
+    outline: 2px solid var(--ab-primary);
+    outline-offset: -2px;
+}
+
+html.ab-ui .sidebar-item--active {
+    color: var(--ab-primary);
+    background: var(--ab-primary-light);
+    font-weight: 500;
+}
+
+html.ab-ui .sidebar svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+html.ab-ui .sidebar-item-label {
+    font-size: 14px;
+}
+
+html.ab-ui .sidebar--collapsed .sidebar-item {
+    justify-content: center;
+    padding: 10px;
+}
+
+html.ab-ui .sidebar--collapsed .sidebar-item-label {
+    display: none;
+}
+
+/* 平板：上游锁成 56px 的迷你侧栏 */
+@media (min-width: 640px) and (max-width: 1023px) {
+    html.ab-ui .sidebar,
+    html.ab-ui .sidebar--expanded,
+    html.ab-ui .sidebar--collapsed {
+        width: 56px;
+    }
+
+    html.ab-ui .sidebar-header {
+        display: none;
+    }
+
+    html.ab-ui .sidebar-nav {
+        padding: 4px;
+    }
+
+    html.ab-ui .sidebar-item {
+        justify-content: center;
+        padding: 10px;
+    }
+
+    html.ab-ui .sidebar-item-label {
+        display: none;
+    }
+}
+
+/* 手机：上游 layout/ab-mobile-nav.vue —— 贴底的横向导航条 */
+@media (max-width: 639px) {
+    html.ab-ui .sidebar,
+    html.ab-ui .sidebar--expanded,
+    html.ab-ui .sidebar--collapsed {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        z-index: 30;
+        width: auto;
+        box-shadow: var(--ab-shadow-md);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html.ab-ui .sidebar-inner {
+        flex-direction: row;
+    }
+
+    html.ab-ui .sidebar-header {
+        display: none;
+    }
+
+    html.ab-ui .sidebar-nav {
+        flex-direction: row;
+        padding: 0;
+        gap: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    html.ab-ui .sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    html.ab-ui .sidebar-item {
+        position: relative;
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        min-width: 0;
+        height: 56px;
+        min-height: 56px;
+        padding: 6px 4px;
+        color: var(--ab-text-muted);
+    }
+
+    html.ab-ui .sidebar-item:active {
+        transform: scale(.95);
+    }
+
+    html.ab-ui .sidebar-item--active {
+        background: transparent;
+    }
+
+    html.ab-ui .sidebar-item--active::after {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 3px;
+        border-radius: 9999px;
+        background: var(--ab-primary);
+    }
+
+    html.ab-ui .sidebar-item-label {
+        display: block;
+        font-size: 11px;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* ---------- 页面标题：上游 basic/ab-page-title.vue ---------- */
+html.ab-ui .page-title {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+    html.ab-ui .page-title {
+        display: flex;
+    }
+}
+
+html.ab-ui .page-title-text {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ab-text);
+    transition: color var(--ab-t-normal);
+}
+
+html.ab-ui .page-title-accent {
+    width: 120px;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--ab-primary), var(--ab-primary-hover));
+    opacity: .6;
+    flex-shrink: 0;
+}
+
+/* ---------- 番剧网格：上游 pages/index/bangumi.vue ---------- */
+html.ab-ui .page-bangumi {
+    overflow: auto;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+html.ab-ui .bangumi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+    padding: 12px;
+    padding-top: 20px;
+    justify-items: center;
+    box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+    html.ab-ui .bangumi-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 16px;
+    }
+}
+
+@media (min-width: 1024px) {
+    html.ab-ui .bangumi-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 20px;
+    }
+}
+
+/* ---------- 海报卡：上游 components/ab-bangumi-card.vue ---------- */
+html.ab-ui .card {
+    position: relative;
+    width: 150px;
+    max-width: 100%;
+    cursor: pointer;
+    user-select: none;
+}
+
+html.ab-ui .card:focus-visible {
+    outline: 2px solid var(--ab-primary);
+    outline-offset: 4px;
+    border-radius: var(--ab-r-md);
+}
+
+html.ab-ui .card-poster {
+    position: relative;
+    aspect-ratio: 5 / 7;
+    border-radius: var(--ab-r-md);
+    overflow: hidden;
+    box-shadow: var(--ab-shadow-md);
+    background: var(--ab-surface-hover);
+    transition: box-shadow var(--ab-t-fast), transform var(--ab-t-fast);
+}
+
+html.ab-ui .card:hover .card-poster,
+html.ab-ui .card:focus-visible .card-poster {
+    box-shadow: var(--ab-shadow-lg);
+    transform: translateY(-2px);
+}
+
+@media (hover: none) and (pointer: coarse) {
+    html.ab-ui .card:hover .card-poster {
+        transform: none;
+    }
+}
+
+html.ab-ui .card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+html.ab-ui .card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ab-text-muted);
+}
+
+html.ab-ui .card-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    background: var(--ab-overlay-light);
+    transition: opacity var(--ab-t-normal);
+}
+
+html.ab-ui .card:hover .card-overlay,
+html.ab-ui .card:focus-within .card-overlay {
+    opacity: 1;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+html.ab-ui .card:active .card-overlay {
+    background: var(--ab-overlay);
+}
+
+html.ab-ui .card-overlay-tags {
+    position: absolute;
+    bottom: 6px;
+    left: 6px;
+    right: 6px;
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+    pointer-events: none;
+}
+
+html.ab-ui .card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+html.ab-ui .card-edit-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ab-primary);
+    color: #FFFFFF;
+    cursor: pointer;
+    box-shadow: var(--ab-shadow-md);
+    transition: transform var(--ab-t-fast), background-color var(--ab-t-fast);
+}
+
+html.ab-ui .card-edit-btn:hover {
+    background: var(--ab-primary-hover);
+}
+
+html.ab-ui .card-edit-btn:active {
+    transform: scale(.9);
+}
+
+html.ab-ui .card-edit-btn--danger {
+    background: var(--ab-danger);
+}
+
+html.ab-ui .card-edit-btn--danger:hover {
+    background: var(--ab-danger);
+    filter: brightness(1.1);
+}
+
+html.ab-ui .card-info {
+    padding: 8px 2px 4px;
+}
+
+html.ab-ui .card-title {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--ab-text);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    transition: color var(--ab-t-normal);
+}
+
+html.ab-ui .card:hover .card-title {
+    color: var(--ab-primary);
+}
+
+html.ab-ui .card-time {
+    margin-top: 2px;
+    font-family: var(--ab-mono);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ab-text-muted);
+}
+
+/* ani-rss 独有的评分：按上游 .group-badge 的样子蹲在海报角上。
+   挂在 .card 上而不是 .card-poster 上 —— 海报要裁掉溢出，挂里面会被切掉半个。 */
+html.ab-ui .group-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    box-sizing: border-box;
+    border-radius: 10px;
+    background: var(--ab-primary);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(124, 77, 255, .4);
+}
+
+/* ---------- 浮层上的信息 chip：上游 .card-overlay-tags 里的 ab-tag ---------- */
+html.ab-ui .ab-tag {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 1px 6px;
+    border: 1px solid rgba(255, 255, 255, .4);
+    border-radius: 4px;
+    background: var(--ab-overlay);
+    color: #FFFFFF;
+    font-size: 9px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+html.ab-ui .ab-tag-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ---------- 空状态：上游 .empty-guide ---------- */
+html.ab-ui .bangumi-empty {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    padding: 24px;
+    text-align: center;
+}
+
+html.ab-ui .empty-guide-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ab-text);
+    margin-bottom: 6px;
+}
+
+html.ab-ui .empty-guide-subtitle {
+    font-size: 14px;
+    color: var(--ab-text-secondary);
 }
