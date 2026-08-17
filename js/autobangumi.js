@@ -296,7 +296,11 @@
         const sels = $$(SEL.selects)
         const s = sels[sels.length - 1]
         const v = s && txt(s.querySelector('.el-select__selected-item'))
-        pill.textContent = v || '筛选'
+        const next = v || '筛选'
+        /* ⚠ 只在真的变了才写。textContent 即使赋同样的值也会换掉文本节点，
+           那是一次 childList 变更 —— 观察器收到又触发一次挂载，挂载又写一次，
+           死循环，渲染进程直接卡住。 */
+        if (pill.textContent !== next) pill.textContent = next
     }
 
     /* ==================== 卡片：按上游 .card 的结构重画 ==================== */
@@ -481,7 +485,9 @@
     const mo = new MutationObserver(schedule)
 
     function observe() {
-        if (document.body) mo.observe(document.body, {childList: true, subtree: true, characterData: true})
+        /* 不观察 characterData：ani-rss 每次重绘都会改一堆文本，
+           而我们关心的只是「卡片有没有增删」，childList 足够了 */
+        if (document.body) mo.observe(document.body, {childList: true, subtree: true})
     }
 
     function start() {
