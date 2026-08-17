@@ -372,13 +372,14 @@
         overlay.appendChild(acts)
         poster.appendChild(overlay)
 
-        /* ani-rss 独有的评分：按上游 .group-badge 的样子蹲在海报角上 */
-        if (d.score) {
-            const badge = el('div', 'group-badge', '<span class="badge-count">' + d.score + '</span>')
-            poster.appendChild(badge)
-        }
-
         card.appendChild(poster)
+
+        /* ani-rss 独有的评分：按上游 .group-badge 的样子蹲在海报角上。
+           ⚠ 必须挂在 .card 上 —— .card-poster 是 overflow:hidden 的（要裁圆角和封面），
+           挂进去角标探出的那 8px 会被整齐切掉。 */
+        if (d.score) {
+            card.appendChild(el('div', 'group-badge', '<span class="badge-count">' + d.score + '</span>'))
+        }
 
         const info = el('div', 'card-info')
         info.appendChild(el('div', 'card-title', ''))
