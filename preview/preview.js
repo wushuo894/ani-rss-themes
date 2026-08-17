@@ -1785,6 +1785,7 @@
         ['calendar.css', '挂历 · Calendar', 'auto'],
         ['material.css', '质感设计 · Material 3', 'auto'],
         ['material-motion.css', '质感设计 · Material 3（动效增强）', 'auto', 'material-motion.js'],
+        ['autobangumi.css', 'AutoBangumi · Soft Ink', 'auto', 'autobangumi.js'],
         ['acg-wallpaper.css', '二次元 · 随机壁纸', 'auto'],
         ['acg-starry.css', '二次元 · 星空夜', 'dark'],
         ['acg-peach.css', '二次元 · 蜜桃樱', 'light'],

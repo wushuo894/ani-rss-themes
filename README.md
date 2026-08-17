@@ -1,6 +1,6 @@
 # ani-rss-themes
 
-给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的 16 款自定义 CSS 主题。每款换的是字体、按钮、背景，不只是配色。
+给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的 17 款自定义 CSS 主题。每款换的是字体、按钮、背景，不只是配色。
 
 纯 CSS，不动 ani-rss 本体，不用重新编译前端。随时可撤。
 
@@ -35,6 +35,7 @@ ani-rss 里：**设置 → 基础设置 → 页面设置 → 自定义 → CSS**
 | `github.css` | 代码仓库 | Primer 字栈，贡献热力图格子 | 跟随 |
 | `calendar.css` | 挂历 | 楷体 + DIN 数字，月历方格 | 跟随 |
 | `material.css` | 质感设计 M3 | Roboto，全圆角胶囊，按下起涟漪 | 跟随 |
+| `autobangumi.css` | AutoBangumi | Inter 字栈，填充式控件，海报网格 + 侧边导航 | 跟随 |
 | `acg-wallpaper.css` | 二次元 · 随机壁纸 | 玻璃药丸，hover 光晕 | 跟随 |
 | `acg-starry.css` | 二次元 · 星空夜 | 细线框，星芒外发光 | 深色 |
 | `acg-peach.css` | 二次元 · 蜜桃樱 | 圆体，蜜桃渐变 | 浅色 |
@@ -104,6 +105,37 @@ cd ani-rss-themes && python -m http.server 8080
 ```
 
 所有内容为演示数据，页面不连接任何 ani-rss 实例。目录构成与许可证见 [preview/NOTICE.md](preview/NOTICE.md)。
+</details>
+
+<details>
+<summary><b>附加：AutoBangumi 完整界面（再配一份 JS）</b></summary>
+
+`themes/autobangumi.css` 单装就已经把配色、控件、订阅卡全部换成 [AutoBangumi](https://github.com/EstrellaXD/Auto_Bangumi) 的样子 —— 包括把 ani-rss 的横向卡片改成上游那种竖版海报网格（5:7 封面、hover 抬起、浮层里放操作按钮、评分做成角标）。
+
+上游的主界面还有一块 CSS 单独做不到：左侧那条导航栏。ani-rss 的功能入口全挤在顶栏一排文字按钮里，配上 `js/autobangumi.js` 就会拆成上游的布局：
+
+| 装法 | 布局 | 功能入口 | 页面标题 |
+| --- | --- | --- | --- |
+| 只填 CSS | 顶栏一条 + 列表 | 顶栏一排文字按钮 | 无 |
+| CSS + JS | 顶栏 + 左侧导航 + 内容区 | 下载器 / RSS 管理 / 日志 / 设置进侧栏，添加 / 刷新留在顶栏做图标钮 | 「订阅列表」+ 渐变横杠 |
+
+```css
+/* CSS 框 */
+@import url("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/themes/autobangumi.css");
+```
+
+```js
+/* JS 框 */
+import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/autobangumi.js")
+```
+
+**只做交集。** 侧栏每一项都对应 ani-rss 真实存在的一个按钮，点它就是点原按钮（原按钮只是被收起来了，事件还是 ani-rss 自己的）；认不到对应按钮的项直接不出现。上游有、ani-rss 没有的功能（番剧日历、播放器、通知中心）一个都不造 —— 摆一个点不动的入口比没有更糟。反过来，ani-rss 独有的东西（评分、更新时间）按上游的视觉语言补：评分做成上游 `.group-badge` 那种主色角标，更新时间做成标题下的一行小字。
+
+**不搬 DOM。** 整个布局靠 CSS Grid 的 `grid-area` 重排，网格位置和 DOM 顺序无关 —— Vue 看到的子节点顺序一个字没变，不会 patch 到错误的位置上。脚本只往容器末尾追加自己的两个节点（侧栏、页面标题），并用 MutationObserver 跟着 Vue 重绘重新绑定代理。**零依赖、零外部请求**，图标是内联 SVG。清空 JS 框刷新就还原。
+
+**字体**：上游自托管 Inter，主题不能带资源文件，这里给的是同一条字栈。本机装了 Inter 就是 1:1；没装落到 Segoe UI / 苹方，字形略有出入，排版数值不变。
+
+色板、圆角、阴影、缓动全部取自上游 `src/style/var.scss` 的原值；组件尺寸取自各 `.vue` 的 scoped 样式；下拉框和开关这两个走 Naive UI 的控件，尺寸是在跑起来的实例上量的计算值。
 </details>
 
 <details>

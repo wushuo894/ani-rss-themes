@@ -1,0 +1,2351 @@
+/**
+ * AutoBangumi · Soft Ink
+ *
+ * 复刻 AutoBangumi WebUI 的设计系统（上游自己管这套叫 Soft Ink）。
+ * 色板 / 圆角 / 阴影 / 缓动全部取自上游 src/style/var.scss 的原值，没有自己调；
+ * 组件尺寸取自各 .vue 的 scoped 样式，Naive UI 那几个（下拉、开关）取自实例上量的计算值。
+ *
+ * 这套语言的三条主线：
+ *   1. 页面是底色，其余一切都是「浮在上面的卡片」—— surface 填充 + 1px 描边 + 极浅投影
+ *   2. 输入类控件是填充式：平时无边框，只有一块 surface-2 底色；边框和描边只在聚焦时出现
+ *   3. 圆角只有 4 / 8 / 12 / 16 四档 —— 控件 4，卡片和弹窗 8，外层容器 12，登录卡 16
+ *
+ * 字体：上游自托管 Inter，主题不能带资源，这里给同一条字栈。
+ *       本机装了 Inter 就是 1:1；没装落到 Segoe UI / 苹方，字形略有出入，排版数值不变。
+ * 明暗跟随切换。
+ *
+ * 注：--el-color-primary 被 ani-rss 用内联样式写在 <html> 上，只有 !important 能盖过
+ */
+
+/* ==================== 浅色（Soft Ink light） ==================== */
+html:root:not(.dark) {
+    --ab-primary: #6C4AB6;
+    --ab-primary-hover: #563A92;
+    --ab-primary-light: #E8DEF8;
+    --ab-primary-alpha: rgba(108, 74, 182, .2);
+    --ab-accent: #F97316;
+    --ab-success: #22C55E;
+    --ab-danger: #EF4444;
+    --ab-warning: #F59E0B;
+
+    --ab-bg: #FAFAFA;
+    --ab-surface: #FFFFFF;
+    --ab-surface-hover: #F5F5F5;
+    --ab-surface-2: #F1F4F8;
+
+    --ab-text: #1E293B;
+    --ab-text-secondary: #64748B;
+    --ab-text-muted: #94A3B8;
+
+    --ab-border: #E2E8F0;
+    --ab-border-hover: #CBD5E1;
+
+    --ab-shadow-sm: 0 1px 2px rgba(0, 0, 0, .05);
+    --ab-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, .1), 0 2px 4px -2px rgba(0, 0, 0, .1);
+    --ab-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, .1), 0 4px 6px -4px rgba(0, 0, 0, .1);
+
+    --ab-overlay: rgba(0, 0, 0, .5);
+    --ab-overlay-light: rgba(0, 0, 0, .3);
+
+    /* 开关未开启时的轨道色：naive-ui 深浅两套不同，这里各写一份 */
+    --ab-rail-off: rgba(0, 0, 0, .14);
+    /* 登录卡的内高光 */
+    --ab-card-inset: rgba(255, 255, 255, .05);
+
+    /* 顶栏品牌图标。上游那张 logo 是站点资产，主题不能带文件，
+       这里用 ani-rss 自己的 RSS 弧线画一枚同尺寸的，颜色跟主色走 */
+    --ab-logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='6' cy='18' r='2.2' fill='%236C4AB6'/%3E%3Cpath d='M4 11.5a8.5 8.5 0 0 1 8.5 8.5' stroke='%236C4AB6' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M4 5a15 15 0 0 1 15 15' stroke='%236C4AB6' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+
+    /* ---- Element Plus 映射 ---- */
+    --el-color-primary: #6C4AB6 !important;
+    --el-color-primary-light-3: #9880CC;
+    --el-color-primary-light-5: #B6A4DA;
+    --el-color-primary-light-7: #D2C9E9;
+    --el-color-primary-light-8: #E1DBF0;
+    --el-color-primary-light-9: #E8DEF8;
+    --el-color-primary-dark-2: #563A92;
+
+    --el-color-success: #22C55E;
+    --el-color-success-light-9: #E8F9EF;
+    --el-color-warning: #F59E0B;
+    --el-color-warning-light-9: #FEF9ED;
+    --el-color-danger: #EF4444;
+    --el-color-danger-light-9: #FDECEC;
+    --el-color-error: #EF4444;
+    --el-color-error-light-9: #FDECEC;
+    --el-color-info: #64748B;
+    --el-color-info-light-9: #F1F4F8;
+
+    --el-bg-color: #FFFFFF;
+    --el-bg-color-page: #FAFAFA;
+    --el-bg-color-overlay: #FFFFFF;
+    --el-card-bg-color: #FFFFFF;
+    --el-dialog-bg-color: #FFFFFF;
+    --el-mask-color: rgba(0, 0, 0, .5);
+
+    --el-text-color-primary: #1E293B;
+    --el-text-color-regular: #1E293B;
+    --el-text-color-secondary: #64748B;
+    --el-text-color-placeholder: #94A3B8;
+    --el-text-color-disabled: #94A3B8;
+
+    --el-border-color: #E2E8F0;
+    --el-border-color-light: #E2E8F0;
+    --el-border-color-lighter: #E2E8F0;
+    --el-border-color-extra-light: #F1F4F8;
+    --el-border-color-dark: #CBD5E1;
+    --el-border-color-darker: #CBD5E1;
+
+    --el-fill-color: #F1F4F8;
+    --el-fill-color-light: #F5F5F5;
+    --el-fill-color-lighter: #FAFAFA;
+    --el-fill-color-extra-light: #FAFAFA;
+    --el-fill-color-dark: #E2E8F0;
+    --el-fill-color-darker: #CBD5E1;
+    --el-fill-color-blank: #FFFFFF;
+}
+
+/* ==================== 深色（Soft Ink dark） ==================== */
+html.dark:root {
+    --ab-primary: #8B6CC7;
+    --ab-primary-hover: #A78BDB;
+    --ab-primary-light: #2D2250;
+    --ab-primary-alpha: rgba(139, 108, 199, .28);
+    --ab-accent: #FB923C;
+    --ab-success: #4ADE80;
+    --ab-danger: #F87171;
+    --ab-warning: #FBBF24;
+
+    --ab-bg: #0F172A;
+    --ab-surface: #1E293B;
+    --ab-surface-hover: #334155;
+    --ab-surface-2: #26334A;
+
+    --ab-text: #F1F5F9;
+    --ab-text-secondary: #94A3B8;
+    --ab-text-muted: #64748B;
+
+    --ab-border: #334155;
+    --ab-border-hover: #475569;
+
+    --ab-shadow-sm: 0 1px 2px rgba(0, 0, 0, .2);
+    --ab-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, .3), 0 2px 4px -2px rgba(0, 0, 0, .2);
+    --ab-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, .4), 0 4px 6px -4px rgba(0, 0, 0, .3);
+
+    --ab-overlay: rgba(0, 0, 0, .7);
+    --ab-overlay-light: rgba(0, 0, 0, .5);
+
+    --ab-rail-off: rgba(255, 255, 255, .2);
+    --ab-card-inset: rgba(255, 255, 255, .05);
+
+    --ab-logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='6' cy='18' r='2.2' fill='%238B6CC7'/%3E%3Cpath d='M4 11.5a8.5 8.5 0 0 1 8.5 8.5' stroke='%238B6CC7' stroke-width='2.2' stroke-linecap='round'/%3E%3Cpath d='M4 5a15 15 0 0 1 15 15' stroke='%238B6CC7' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E");
+
+    /* ---- Element Plus 映射 ---- */
+    --el-color-primary: #8B6CC7 !important;
+    --el-color-primary-light-3: #675291;
+    --el-color-primary-light-5: #4F406E;
+    --el-color-primary-light-7: #382E4A;
+    --el-color-primary-light-8: #2C2638;
+    --el-color-primary-light-9: #2D2250;
+    --el-color-primary-dark-2: #A78BDB;
+
+    --el-color-success: #4ADE80;
+    --el-color-success-light-9: #17301F;
+    --el-color-warning: #FBBF24;
+    --el-color-warning-light-9: #322414;
+    --el-color-danger: #F87171;
+    --el-color-danger-light-9: #341C1C;
+    --el-color-error: #F87171;
+    --el-color-error-light-9: #341C1C;
+    --el-color-info: #94A3B8;
+    --el-color-info-light-9: #26334A;
+
+    --el-bg-color: #1E293B;
+    --el-bg-color-page: #0F172A;
+    --el-bg-color-overlay: #1E293B;
+    --el-card-bg-color: #1E293B;
+    --el-dialog-bg-color: #1E293B;
+    --el-mask-color: rgba(0, 0, 0, .7);
+
+    --el-text-color-primary: #F1F5F9;
+    --el-text-color-regular: #F1F5F9;
+    --el-text-color-secondary: #94A3B8;
+    --el-text-color-placeholder: #64748B;
+    --el-text-color-disabled: #64748B;
+
+    --el-border-color: #334155;
+    --el-border-color-light: #334155;
+    --el-border-color-lighter: #334155;
+    --el-border-color-extra-light: #26334A;
+    --el-border-color-dark: #475569;
+    --el-border-color-darker: #475569;
+
+    --el-fill-color: #26334A;
+    --el-fill-color-light: #334155;
+    --el-fill-color-lighter: #1E293B;
+    --el-fill-color-extra-light: #1E293B;
+    --el-fill-color-dark: #334155;
+    --el-fill-color-darker: #475569;
+    --el-fill-color-blank: #1E293B;
+}
+
+/* ==================== 共用：圆角 / 阴影 / 缓动 / 字体 ==================== */
+html:root, html.dark:root {
+    /* Soft Ink 的形状档位：4 控件 / 8 卡片弹窗 / 12 外层容器 / 16 登录卡 */
+    --ab-r-sm: 4px;
+    --ab-r-md: 8px;
+    --ab-r-lg: 12px;
+    --ab-r-xl: 16px;
+
+    --ab-t-fast: 150ms ease-out;
+    --ab-t-normal: 200ms ease-out;
+    --ab-t-slow: 300ms ease-out;
+
+    --ab-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Noto Sans SC',
+    'Microsoft YaHei', 'PingFang SC', system-ui, sans-serif;
+    --ab-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* Element Plus 的圆角只有三档可给，对上 Soft Ink 的 4 / 8 */
+    --el-border-radius-small: 4px;
+    --el-border-radius-base: 8px;
+    --el-border-radius-round: 9999px;
+
+    --el-box-shadow: var(--ab-shadow-lg);
+    --el-box-shadow-light: var(--ab-shadow-sm);
+    --el-box-shadow-lighter: var(--ab-shadow-sm);
+    --el-box-shadow-dark: var(--ab-shadow-lg);
+
+    --el-transition-duration: .2s;
+    --el-transition-duration-fast: .15s;
+
+    /* 上游按钮 md 档 34px、sm 档 28px；ani-rss 的按钮走默认档 */
+    --el-component-size: 34px;
+    --el-component-size-small: 28px;
+    --el-component-size-large: 40px;
+}
+
+html * {
+    font-family: var(--ab-font);
+}
+
+/* Soft Ink 的规矩：凡是「数据」都走等宽 + 表格数字 —— 集数、评分、时间戳、订阅源 */
+html .list-card-score,
+html .list-card-url,
+html .list-card-time,
+html .el-progress__text,
+html .el-input-number .el-input__inner,
+html .el-descriptions__content,
+html .logs-dialog,
+html code, html kbd, html pre, html samp {
+    font-family: var(--ab-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ==================== 页面底 ==================== */
+body {
+    background-color: var(--ab-bg);
+    color: var(--ab-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color var(--ab-t-normal), color var(--ab-t-normal);
+}
+
+/* 上游 .layout-container：16px 内边距 + 12px 间隙，内容全部浮在底色上 */
+html #app {
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+html #app > .content {
+    gap: 12px;
+}
+
+@media (max-width: 639px) {
+    html #app {
+        padding: 12px;
+    }
+
+    html #app > .content {
+        gap: 10px;
+    }
+}
+
+/* ==================== 顶栏：上游 .topbar 那张浮起来的卡 ==================== */
+html #header {
+    box-sizing: border-box;
+    min-height: 56px;
+    padding: 8px 20px;
+    align-items: center;
+    gap: 16px;
+    background: var(--ab-surface);
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-lg);
+    box-shadow: var(--ab-shadow-sm);
+    transition: background-color var(--ab-t-normal),
+    border-color var(--ab-t-normal), box-shadow var(--ab-t-normal);
+}
+
+/* 顶栏自己给了内边距，里面两块的外边距要收掉，否则整条会虚胖一圈 */
+html #header .auto-flex,
+html #header .add-button {
+    margin: 0;
+}
+
+html #header .add-button {
+    gap: 8px;
+}
+
+@media (max-width: 999px) {
+    html #header {
+        padding: 12px;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 450px) {
+    html #header {
+        border-radius: var(--ab-r-md);
+        padding: 10px 12px;
+    }
+}
+
+/* 列表区不是卡片 —— 上游番剧网格直接铺在底色上 */
+html .list-content {
+    margin: 0 4px;
+}
+
+/* 周分组标题：借上游 .page-title 那一记 —— 22px/600 + 一道渐变横杠 */
+html .list-week-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 10px 4px;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ab-text);
+    letter-spacing: -.01em;
+}
+
+html .list-week-title::after {
+    content: "";
+    width: 120px;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--ab-primary), var(--ab-primary-hover));
+    opacity: .6;
+    flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+    html .list-week-title {
+        font-size: 18px;
+    }
+
+    html .list-week-title::after {
+        width: 80px;
+    }
+}
+
+/* 上游番剧网格的间隙是 20px（桌面），ani-rss 默认 8px 太挤 */
+html .grid-container {
+    grid-gap: 12px;
+}
+
+@media (min-width: 1024px) {
+    html .grid-container {
+        grid-gap: 16px;
+    }
+}
+
+/* ==================== 按钮：上游 .ab-btn ==================== */
+/* 4px 圆角、34px 高、无描边、字重 500。ani-rss 主力按钮是 is-text.is-has-bg 这一形态 */
+html .el-button,
+html .el-button.is-text,
+html .el-button.is-text.is-has-bg {
+    height: 34px;
+    padding: 0 14px;
+    gap: 7px;
+    background-color: var(--ab-surface-2);
+    border: 1px solid transparent;
+    border-radius: var(--ab-r-sm);
+    color: var(--ab-text);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    box-shadow: none;
+    transition: background-color var(--ab-t-fast),
+    border-color var(--ab-t-fast), color var(--ab-t-fast);
+}
+
+html .el-button:hover,
+html .el-button.is-text:hover,
+html .el-button.is-text.is-has-bg:hover {
+    background-color: var(--ab-surface-hover);
+    border-color: transparent;
+    color: var(--ab-text);
+}
+
+html .el-button:focus-visible {
+    outline: 2px solid var(--ab-primary);
+    outline-offset: 2px;
+}
+
+html .el-button.is-disabled,
+html .el-button.is-disabled:hover {
+    opacity: .45;
+    background-color: var(--ab-surface-2);
+    color: var(--ab-text);
+}
+
+html .el-button--small,
+html .el-button--small.is-text.is-has-bg {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 13px;
+}
+
+html .el-button--large,
+html .el-button--large.is-text.is-has-bg {
+    height: 40px;
+    padding: 0 18px;
+    font-size: 14px;
+}
+
+/* 主色：唯一的实心按钮 */
+html .el-button--primary,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg,
+html .el-button--success,
+html .el-button--success.is-text:not(.is-disabled).is-has-bg {
+    background-color: var(--ab-primary);
+    border-color: transparent;
+    color: #FFFFFF;
+}
+
+html .el-button--primary:hover,
+html .el-button--primary.is-text:not(.is-disabled).is-has-bg:hover,
+html .el-button--success:hover,
+html .el-button--success.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--ab-primary-hover);
+    border-color: transparent;
+    color: #FFFFFF;
+}
+
+/* 危险：平时只是灰底红字，hover 才整块转红 —— 上游 .ab-btn--danger 就是这么写的 */
+html .el-button--danger,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg {
+    background-color: var(--ab-surface-2);
+    border-color: transparent;
+    color: var(--ab-danger);
+}
+
+html .el-button--danger:hover,
+html .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--ab-danger);
+    border-color: transparent;
+    color: #FFFFFF;
+}
+
+html .el-button--danger:focus-visible {
+    outline-color: var(--ab-danger);
+}
+
+html .el-button--warning,
+html .el-button--warning.is-text:not(.is-disabled).is-has-bg {
+    background-color: var(--ab-surface-2);
+    border-color: transparent;
+    color: var(--ab-warning);
+}
+
+html .el-button--warning:hover,
+html .el-button--warning.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--ab-warning);
+    border-color: transparent;
+    color: #FFFFFF;
+}
+
+html .el-button--info,
+html .el-button--info.is-text:not(.is-disabled).is-has-bg {
+    background-color: transparent;
+    border-color: transparent;
+    color: var(--ab-text);
+}
+
+html .el-button--info:hover,
+html .el-button--info.is-text:not(.is-disabled).is-has-bg:hover {
+    background-color: var(--ab-surface-2);
+    color: var(--ab-text);
+}
+
+/* 图标按钮：上游 .ab-icon-btn —— 32×32，平时全透明，hover 才出 surface-2 */
+html .el-button.is-circle {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 9999px;
+    background-color: transparent;
+    color: var(--ab-text-secondary);
+}
+
+html .el-button.is-circle:hover {
+    background-color: var(--ab-surface-2);
+    color: var(--ab-text);
+}
+
+html .el-button + .el-button {
+    margin-left: 8px;
+}
+
+/* ==================== 输入类控件：填充式，聚焦才有边 ==================== */
+html .el-input__wrapper,
+html .el-select__wrapper,
+html .el-textarea__inner,
+html .el-input-tag {
+    min-height: 34px;
+    background-color: var(--ab-surface-2);
+    border: none;
+    border-radius: var(--ab-r-sm);
+    box-shadow: 0 0 0 1px transparent inset;
+    transition: background-color var(--ab-t-fast), box-shadow var(--ab-t-fast);
+}
+
+html .el-input__wrapper:hover,
+html .el-select__wrapper:hover,
+html .el-textarea__inner:hover,
+html .el-input-tag:hover {
+    background-color: var(--ab-surface-2);
+    box-shadow: 0 0 0 1px transparent inset;
+}
+
+/* 聚焦：1px 主色边 + 2px 同色半透明描边。整套系统就这一个聚焦手势 */
+html .el-input__wrapper.is-focus,
+html .el-select__wrapper.is-focused,
+html .el-select__wrapper.is-hovering.is-focused,
+html .el-textarea__inner:focus,
+html .el-input-tag.is-focused {
+    background-color: var(--ab-surface);
+    box-shadow: 0 0 0 1px var(--ab-primary) inset,
+    0 0 0 2px var(--ab-primary-alpha);
+}
+
+html .el-input__inner,
+html .el-textarea__inner,
+html .el-select__placeholder {
+    font-size: 13px;
+    color: var(--ab-text);
+}
+
+html .el-input__inner::placeholder,
+html .el-textarea__inner::placeholder {
+    color: var(--ab-text-secondary);
+    opacity: .85;
+}
+
+html .el-select__placeholder.is-transparent {
+    color: var(--ab-text-secondary);
+    opacity: .85;
+}
+
+html .el-input__prefix,
+html .el-input__suffix,
+html .el-select__suffix {
+    color: var(--ab-text-muted);
+}
+
+html .el-textarea__inner {
+    padding: 8px 11px;
+    line-height: 1.6;
+}
+
+html .el-input.is-disabled .el-input__wrapper,
+html .el-select.is-disabled .el-select__wrapper {
+    opacity: .55;
+    background-color: var(--ab-surface-2);
+    box-shadow: none;
+}
+
+/* 数字输入的加减：上游没有这个控件，按同一套填充语言配 */
+html .el-input-number__decrease,
+html .el-input-number__increase {
+    background-color: var(--ab-surface-2);
+    border-color: transparent;
+    color: var(--ab-text-secondary);
+    border-radius: var(--ab-r-sm);
+}
+
+html .el-input-number__decrease:hover,
+html .el-input-number__increase:hover {
+    background-color: var(--ab-surface-hover);
+    color: var(--ab-primary);
+}
+
+/* ==================== 卡片：上游 .container-card ==================== */
+html .el-card,
+html .el-card.is-never-shadow {
+    background-color: var(--ab-surface);
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-md);
+    box-shadow: none;
+    overflow: hidden;
+    transition: border-color var(--ab-t-normal),
+    background-color var(--ab-t-normal), box-shadow var(--ab-t-fast);
+}
+
+/* 上游只有海报会「浮起来」，卡片本身 hover 只是描边转深 */
+html .el-card:hover {
+    border-color: var(--ab-border-hover);
+    box-shadow: var(--ab-shadow-sm);
+}
+
+html .el-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 34px;
+    padding: 0 14px;
+    background: transparent;
+    border-bottom: 1px solid var(--ab-border);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ab-text);
+}
+
+html .el-card__body {
+    padding: 12px 14px;
+    background: var(--ab-surface);
+    font-size: 14px;
+    color: var(--ab-text);
+}
+
+html .el-card__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--ab-border);
+    background: var(--ab-surface);
+}
+
+/* ==================== 订阅卡 → 上游的海报卡 ====================
+ *
+ * 这一段不是「换个配色」，是把 ani-rss 的横向卡（封面在左、信息在右）改造成
+ * AutoBangumi 首页那种竖向海报卡。DOM 一个字没动，全靠重新排布：
+ *
+ *   ani-rss                          AutoBangumi
+ *   ┌──────┬──────────────┐          ┌────────────┐
+ *   │      │ 标题          │          │            │  ← 海报 5/7，hover 起浮层
+ *   │ 封面 │ 评分 标签      │    →     │    海报     │     浮层里放操作按钮和标签
+ *   │      │        [操作] │          │            │
+ *   └──────┴──────────────┘          ├────────────┤
+ *                                    │ 标题（两行） │
+ *                                    └────────────┘
+ *
+ * 换来的代价：网格改成按密度铺（auto-fill minmax(150px)），不再听 ani-rss 的
+ * 「每行几列」设置 —— 上游的番剧网格就是按密度铺的，列数由容器宽度决定。
+ */
+
+/* 上游番剧网格：150px 起铺，间隙 12 / 16 / 20 三档。
+   顶上留 10px 是给评分角标的 —— 它按上游 .group-badge 的做法探出卡片 8px，
+   不留这一条第一行会被滚动容器切掉半个。 */
+html .grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-gap: 12px;
+    align-items: start;
+    padding-top: 10px;
+    padding-right: 8px;
+}
+
+@media (min-width: 640px) {
+    html .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        grid-gap: 16px;
+    }
+}
+
+@media (min-width: 1024px) {
+    html .grid-container {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-gap: 20px;
+    }
+}
+
+html .grid-container > * {
+    min-width: 0;
+}
+
+/* 上游的海报卡没有外框 —— 卡片本身就是海报加一行标题，不套壳 */
+html .grid-container .el-card,
+html .grid-container .el-card.is-never-shadow {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+}
+
+html .grid-container .el-card:hover {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+/* overflow:visible 是必须的：评分角标按上游的做法探出卡片 8px，
+   而 .el-card__body 默认会滚 —— 探出去的那 8px 会让每张卡底下都长出一根
+   6px 的横向滚动条（一眼看去像是给卡片加了条紫色装饰线，其实是拇指）。 */
+html .grid-container .el-card__body {
+    padding: 0;
+    background: transparent;
+    overflow: visible;
+}
+
+/* 横向 flex → 竖向堆叠 */
+html .list-card-content {
+    position: relative;
+    display: block;
+    min-width: 0;
+}
+
+/* 海报：上游 .card-poster —— 5/7、8px 圆角、shadow-md，hover 抬 2px 换 shadow-lg */
+html .list-card-image-container {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 5 / 7;
+    border-radius: var(--ab-r-md);
+    overflow: hidden;
+    box-shadow: var(--ab-shadow-md);
+    background: var(--ab-surface-hover);
+    transition: box-shadow var(--ab-t-fast), transform var(--ab-t-fast);
+}
+
+html .list-card-content:hover .list-card-image-container {
+    box-shadow: var(--ab-shadow-lg);
+    transform: translateY(-2px);
+}
+
+html .list-card-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    border: none;
+    border-radius: 0;
+    object-fit: cover;
+}
+
+/* 触屏没有 hover 态，抬起来了就落不回去 */
+@media (hover: none) and (pointer: coarse) {
+    html .list-card-content:hover .list-card-image-container {
+        transform: none;
+    }
+}
+
+/* 信息区：上游 .card-info —— 海报下方 8px 2px 4px */
+html .list-card-info {
+    position: static;
+    min-width: 0;
+}
+
+html .list-card-info-inner {
+    margin: 8px 2px 4px;
+    min-width: 0;
+}
+
+/* ani-rss 给标题同时挂了 .is-truncated（单行 nowrap + 省略号）和 .is-line-clamp，
+   nowrap 会把行数钳死在一行。上游的卡片标题是两行截断，所以这里要把 nowrap 解开，
+   而 .el-text.is-truncated 的权重比 html .list-card-title 高，只能上 !important */
+html .list-card-title,
+html .el-text.list-card-title.is-truncated {
+    display: -webkit-box !important;
+    white-space: normal !important;
+    width: auto;
+    max-width: 100%;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2 !important;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0;
+    color: var(--ab-text);
+    transition: color var(--ab-t-normal);
+}
+
+html .list-card-content:hover .list-card-title {
+    color: var(--ab-primary);
+}
+
+/* .list-card-url 平时是 ani-rss 自己藏起来的（只在「不显示评分」时才放出来），
+   这里只改样子，绝不碰它的 display —— 一改就会常驻三行 URL 把卡片撑长 */
+html .list-card-time,
+html .list-card-url {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--ab-text-muted);
+}
+
+html .list-card-time {
+    display: block;
+}
+
+/* 评分：上游没有这一项，按它右上角那枚 .group-badge 的样子补 —— 主色药丸、20px、蹲在海报角上 */
+html .list-card-score-container {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    z-index: 10;
+    margin: 0;
+    pointer-events: none;
+}
+
+html .list-card-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    margin: 0;
+    border-radius: 10px;
+    background: var(--ab-primary);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: 0 2px 6px rgba(108, 74, 182, .4);
+}
+
+/* 标签：上游 .card-overlay-tags —— 压在海报底边，9px、半透明黑底白字、不带语义方块 */
+/* 定位盒和浮层一样罩住整张海报（top:0 + 5/7），标签靠 align-content 沉到底边 ——
+   不能用 bottom:6px：定位父级是整张卡（海报 + 标题），那样会掉到标题下面去 */
+html .list-card-tags,
+html .list-card-tags.gtc2,
+html .list-card-tags.gtc3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    aspect-ratio: 5 / 7;
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-end;
+    gap: 3px;
+    width: auto;
+    padding: 6px;
+    box-sizing: border-box;
+    grid-template-columns: none;
+    opacity: 0;
+    transition: opacity var(--ab-t-normal), transform var(--ab-t-fast);
+    pointer-events: none;
+}
+
+html .list-card-tags .el-tag {
+    min-height: 0;
+    padding: 1px 6px;
+    background: var(--ab-overlay);
+    border-color: rgba(255, 255, 255, .4);
+    color: #FFFFFF;
+    font-size: 9px;
+}
+
+html .list-card-tags .el-tag::before {
+    display: none;
+}
+
+html .list-card-tags .el-text,
+html .list-card-tags .list-card-subgroup {
+    color: #FFFFFF;
+    font-size: 9px;
+    max-width: 84px;
+}
+
+/* 浮层：上游 .card-overlay —— hover 才出，半透明黑 + 2px 背景模糊，操作按钮居中 */
+html .list-card-actions {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    aspect-ratio: 5 / 7;
+    z-index: 2;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--ab-r-md);
+    background: var(--ab-overlay-light);
+    opacity: 0;
+    transition: opacity var(--ab-t-normal), transform var(--ab-t-fast);
+}
+
+/* backdrop-filter 只在 hover 时才挂上去。
+   上游一屏只有十来张卡，这里 ani-rss 一屏能铺三四十张 —— 每张常驻一层
+   backdrop-filter 就是三四十个永久合成层，滚动直接掉帧（实测连截图都会超时）。
+   隐藏态不需要模糊，看不见的东西没必要算。 */
+html .list-card-content:hover .list-card-actions,
+html .list-card-content:focus-within .list-card-actions {
+    opacity: 1;
+    transform: translateY(-2px);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+html .list-card-content:hover .list-card-tags,
+html .list-card-content:focus-within .list-card-tags {
+    opacity: 1;
+    transform: translateY(-2px);
+}
+
+html .list-card-content:active .list-card-actions {
+    background: var(--ab-overlay);
+}
+
+/* 浮层里的按钮：上游 .card-edit-btn —— 圆形实心主色，按下缩到 .9 */
+html .list-card-actions .el-button,
+html .list-card-actions .el-button.is-text.is-has-bg {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--ab-primary);
+    border-color: transparent;
+    color: #FFFFFF;
+    box-shadow: var(--ab-shadow-md);
+    transition: transform var(--ab-t-fast), background-color var(--ab-t-fast);
+}
+
+html .list-card-actions .el-button:hover,
+html .list-card-actions .el-button.is-text.is-has-bg:hover {
+    background: var(--ab-primary-hover);
+    color: #FFFFFF;
+}
+
+html .list-card-actions .el-button:active {
+    transform: scale(.9);
+}
+
+html .list-card-actions .el-button--danger,
+html .list-card-actions .el-button--danger.is-text:not(.is-disabled).is-has-bg {
+    background: var(--ab-danger);
+    color: #FFFFFF;
+}
+
+html .list-card-actions .el-button--danger:hover,
+html .list-card-actions .el-button--danger.is-text:not(.is-disabled).is-has-bg:hover {
+    background: var(--ab-danger);
+    filter: brightness(1.1);
+    color: #FFFFFF;
+}
+
+/* 竖排改横排之后，那两个 5px 的竖向间隔条没用了 */
+html .list-card-spacer {
+    display: none;
+}
+
+/* 触屏：上游在触屏上让浮层常驻一层底部渐变，操作按钮缩到右下角 */
+@media (hover: none) and (pointer: coarse) {
+    html .list-card-actions {
+        opacity: 1;
+        background: linear-gradient(to top, var(--ab-overlay) 0%, transparent 50%);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        align-items: flex-end;
+        justify-content: flex-end;
+        padding: 8px;
+        gap: 6px;
+    }
+
+    html .list-card-actions .el-button,
+    html .list-card-actions .el-button.is-text.is-has-bg {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+    }
+
+    html .list-card-tags {
+        opacity: 1;
+        bottom: 48px;
+    }
+}
+
+/* ==================== 标签：上游 .ab-tag ==================== */
+/* 透明底 + 1px 描边 + 一枚 7×7 语义色方块。这是 Soft Ink 最好认的一件东西 */
+html .el-tag,
+html .el-tag--light,
+html .el-tag--plain {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: auto;
+    min-height: 20px;
+    padding: 2px 8px;
+    background-color: transparent;
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-sm);
+    color: var(--ab-text);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: border-color var(--ab-t-fast), color var(--ab-t-fast);
+}
+
+html .el-tag::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    background: var(--ab-text-muted);
+}
+
+html .el-tag--primary::before {
+    background: var(--ab-primary);
+}
+
+html .el-tag--success::before {
+    background: var(--ab-success);
+}
+
+html .el-tag--warning::before {
+    background: var(--ab-warning);
+}
+
+html .el-tag--danger::before,
+html .el-tag--error::before {
+    background: var(--ab-danger);
+}
+
+html .el-tag--info {
+    color: var(--ab-text-secondary);
+}
+
+html .el-tag--info::before {
+    background: var(--ab-text-muted);
+}
+
+html .el-tag__content {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+html .el-tag .el-tag__close {
+    color: var(--ab-text-muted);
+    background: transparent;
+    border-radius: 2px;
+    transition: color var(--ab-t-fast);
+}
+
+html .el-tag .el-tag__close:hover {
+    color: var(--ab-text);
+    background: transparent;
+}
+
+/* ==================== 弹窗：上游 .ab-modal ==================== */
+html .el-overlay {
+    background-color: var(--ab-overlay);
+}
+
+html .el-overlay-dialog .el-dialog {
+    padding: 0;
+    background: var(--ab-surface);
+    border: none;
+    border-radius: var(--ab-r-md);
+    box-shadow: var(--ab-shadow-lg);
+    overflow: hidden;
+}
+
+html .el-dialog__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--ab-border);
+}
+
+html .el-dialog__title {
+    font-size: 15px;
+    font-weight: 650;
+    line-height: 1.4;
+    letter-spacing: 0;
+    color: var(--ab-text);
+}
+
+html .el-dialog__headerbtn {
+    top: 0;
+    right: 6px;
+    width: 44px;
+    height: 44px;
+}
+
+html .el-dialog__headerbtn .el-dialog__close {
+    color: var(--ab-text-secondary);
+    transition: color var(--ab-t-fast);
+}
+
+html .el-dialog__headerbtn:hover .el-dialog__close {
+    color: var(--ab-text);
+}
+
+html .el-dialog__body {
+    padding: 16px 18px;
+    font-size: 14px;
+    color: var(--ab-text);
+}
+
+html .el-dialog__footer,
+html .el-dialog__body > .action {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 18px;
+    margin-top: 0;
+    border-top: 1px solid var(--ab-border);
+}
+
+/* 设置弹窗的确定/取消在 body 里，上面这条会给它加一条重复的分割线，收掉左右内边距即可 */
+html .el-dialog__body > .action {
+    padding: 12px 0 0;
+}
+
+/* ==================== 折叠面板：上游 .fold-panel ==================== */
+html .el-collapse {
+    border: none;
+    --el-collapse-header-height: 34px;
+}
+
+html .el-collapse-item {
+    margin-bottom: 12px;
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-md);
+    overflow: hidden;
+    transition: border-color var(--ab-t-normal);
+}
+
+html .el-collapse-item__header {
+    height: 34px;
+    padding: 0 14px;
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    color: var(--ab-text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0;
+    transition: color var(--ab-t-normal), border-color var(--ab-t-normal);
+}
+
+html .el-collapse-item__header:hover {
+    color: var(--ab-text);
+}
+
+html .el-collapse-item__header.is-active {
+    border-bottom-color: var(--ab-border);
+    color: var(--ab-text);
+}
+
+html .el-collapse-item__arrow {
+    color: var(--ab-text-secondary);
+    transition: transform var(--ab-t-normal);
+}
+
+html .el-collapse-item__wrap {
+    background: var(--ab-surface);
+    border-bottom: none;
+}
+
+html .el-collapse-item__content {
+    padding: 12px 14px;
+    background: var(--ab-surface);
+    font-size: 14px;
+    color: var(--ab-text);
+}
+
+/* ==================== 标签页：上游 .ab-segmented ==================== */
+html .el-tabs__header {
+    margin-bottom: 12px;
+}
+
+html .el-tabs__nav-wrap::after {
+    height: 1px;
+    background-color: var(--ab-border);
+}
+
+html .el-tabs__item {
+    height: auto;
+    padding: 6px 2px;
+    margin-right: 16px;
+    color: var(--ab-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0;
+    transition: color var(--ab-t-fast);
+}
+
+html .el-tabs__item:hover {
+    color: var(--ab-text);
+}
+
+html .el-tabs__item.is-active {
+    color: var(--ab-text);
+    font-weight: 600;
+}
+
+html .el-tabs__active-bar {
+    height: 2px;
+    background-color: var(--ab-primary);
+}
+
+/* 竖排标签页（添加/修改订阅）：上游侧边导航 .sidebar-item 的样子 */
+html .el-tabs--left .el-tabs__nav-wrap::after,
+html .el-tabs--right .el-tabs__nav-wrap::after {
+    width: 1px;
+    height: auto;
+}
+
+html .el-tabs--left .el-tabs__item,
+html .el-tabs--right .el-tabs__item {
+    justify-content: flex-start;
+    height: auto;
+    min-height: 40px;
+    padding: 10px 14px;
+    margin: 0 0 2px;
+    border-radius: var(--ab-r-md);
+    font-size: 14px;
+}
+
+html .el-tabs--left .el-tabs__item:hover,
+html .el-tabs--right .el-tabs__item:hover {
+    color: var(--ab-primary);
+    background: var(--ab-primary-light);
+}
+
+html .el-tabs--left .el-tabs__item.is-active,
+html .el-tabs--right .el-tabs__item.is-active {
+    color: var(--ab-primary);
+    background: var(--ab-primary-light);
+    font-weight: 500;
+}
+
+html .el-tabs--left .el-tabs__active-bar,
+html .el-tabs--right .el-tabs__active-bar {
+    display: none;
+}
+
+/* ==================== 开关：实例上量的 naive-ui 尺寸 ==================== */
+html .el-switch {
+    height: 22px;
+}
+
+html .el-switch__core {
+    width: 40px !important;
+    min-width: 40px;
+    height: 22px;
+    border: none;
+    border-radius: 11px;
+    background-color: var(--ab-rail-off);
+    transition: background-color var(--ab-t-normal);
+}
+
+html .el-switch__core .el-switch__action {
+    width: 18px;
+    height: 18px;
+    left: 2px;
+    background-color: #FFFFFF;
+    border-radius: 9px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .4);
+    color: transparent;
+    transition: left var(--ab-t-normal);
+}
+
+html .el-switch.is-checked .el-switch__core {
+    background-color: var(--ab-primary);
+}
+
+html .el-switch.is-checked .el-switch__core .el-switch__action {
+    left: calc(100% - 20px);
+}
+
+html .el-switch.is-disabled {
+    opacity: .45;
+}
+
+/* ==================== 勾选 / 单选 ==================== */
+html .el-checkbox__inner {
+    width: 16px;
+    height: 16px;
+    background-color: var(--ab-surface-2);
+    border: 1px solid var(--ab-border);
+    border-radius: 3px;
+    transition: background-color var(--ab-t-fast), border-color var(--ab-t-fast);
+}
+
+html .el-checkbox__inner::after {
+    left: 5px;
+    top: 2px;
+}
+
+html .el-checkbox__input.is-checked .el-checkbox__inner,
+html .el-checkbox__input.is-indeterminate .el-checkbox__inner {
+    background-color: var(--ab-primary);
+    border-color: var(--ab-primary);
+}
+
+html .el-checkbox__input.is-focus .el-checkbox__inner,
+html .el-checkbox__input .el-checkbox__original:focus-visible + .el-checkbox__inner {
+    border-color: var(--ab-primary);
+    box-shadow: 0 0 0 2px var(--ab-primary-alpha);
+}
+
+html .el-checkbox__label,
+html .el-radio__label {
+    font-size: 13px;
+    color: var(--ab-text);
+}
+
+html .el-checkbox__input.is-checked + .el-checkbox__label,
+html .el-radio__input.is-checked + .el-radio__label {
+    color: var(--ab-text);
+}
+
+html .el-radio__inner {
+    width: 16px;
+    height: 16px;
+    background-color: var(--ab-surface-2);
+    border: 1px solid var(--ab-border);
+}
+
+html .el-radio__input.is-checked .el-radio__inner {
+    background-color: var(--ab-primary);
+    border-color: var(--ab-primary);
+}
+
+/* 按钮式单选组：走上游 segmented 的选中语言 */
+html .el-radio-button__inner {
+    height: 34px;
+    padding: 0 14px;
+    background: var(--ab-surface-2);
+    border: 1px solid transparent;
+    color: var(--ab-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: none;
+}
+
+html .el-radio-button:first-child .el-radio-button__inner {
+    border-radius: var(--ab-r-sm) 0 0 var(--ab-r-sm);
+}
+
+html .el-radio-button:last-child .el-radio-button__inner {
+    border-radius: 0 var(--ab-r-sm) var(--ab-r-sm) 0;
+}
+
+html .el-radio-button__original-radio:checked + .el-radio-button__inner {
+    background: var(--ab-primary);
+    border-color: transparent;
+    color: #FFFFFF;
+    box-shadow: none;
+}
+
+/* ==================== 表格 ==================== */
+html .el-table {
+    background-color: transparent;
+    color: var(--ab-text);
+    font-size: 13px;
+    --el-table-border-color: var(--ab-border);
+    --el-table-header-bg-color: transparent;
+    --el-table-row-hover-bg-color: var(--ab-surface-hover);
+    --el-table-bg-color: transparent;
+    --el-table-tr-bg-color: transparent;
+}
+
+html .el-table th.el-table__cell {
+    background-color: transparent;
+    border-bottom: 1px solid var(--ab-border);
+    color: var(--ab-text-secondary);
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+html .el-table td.el-table__cell {
+    border-bottom: 1px solid var(--ab-border);
+}
+
+html .el-table tr:hover > td.el-table__cell {
+    background-color: var(--ab-surface-hover);
+}
+
+html .el-table__row--striped td.el-table__cell {
+    background-color: var(--ab-surface-2);
+}
+
+/* ==================== 进度条：上游 .ab-progress ==================== */
+html .el-progress-bar__outer {
+    height: 5px !important;
+    background-color: var(--ab-surface-2);
+    border-radius: 9999px;
+}
+
+html .el-progress-bar__inner {
+    background-color: var(--ab-primary);
+    border-radius: 9999px;
+    transition: width var(--ab-t-normal);
+}
+
+html .el-progress__text {
+    font-size: 11.5px !important;
+    color: var(--ab-text-secondary);
+}
+
+html .el-progress.is-exception .el-progress-bar__inner {
+    background-color: var(--ab-danger);
+}
+
+html .el-progress.is-success .el-progress-bar__inner {
+    background-color: var(--ab-success);
+}
+
+/* ==================== 浮层：气泡 / 下拉 / 提示 ==================== */
+html .el-popper,
+html .el-popover,
+html .el-dropdown__popper,
+html .el-select__popper,
+html .el-picker__popper {
+    padding: 4px;
+    background: var(--ab-surface) !important;
+    border: 1px solid var(--ab-border) !important;
+    border-radius: var(--ab-r-md);
+    box-shadow: var(--ab-shadow-md);
+    color: var(--ab-text);
+    font-size: 13px;
+}
+
+html .el-popper__arrow::before {
+    background: var(--ab-surface) !important;
+    border-color: var(--ab-border) !important;
+}
+
+/* 纯文字 tooltip：上游是深底白字的小胶囊 */
+html .el-popper.is-dark {
+    padding: 6px 10px;
+    background: var(--ab-text) !important;
+    border-color: var(--ab-text) !important;
+    color: var(--ab-bg);
+    font-size: 12px;
+}
+
+html .el-popper.is-dark .el-popper__arrow::before {
+    background: var(--ab-text) !important;
+    border-color: var(--ab-text) !important;
+}
+
+/* 菜单项：上游 .ab-menu-item —— 4px 圆角、7px 10px、hover 是 surface-2 */
+html .el-dropdown-menu {
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+html .el-dropdown-menu__item,
+html .el-select-dropdown__item {
+    height: auto;
+    min-height: 32px;
+    line-height: 1.4;
+    padding: 7px 10px;
+    margin: 0;
+    border-radius: var(--ab-r-sm);
+    color: var(--ab-text);
+    font-size: 13px;
+    transition: background-color var(--ab-t-fast), color var(--ab-t-fast);
+}
+
+html .el-dropdown-menu__item:not(.is-disabled):hover,
+html .el-dropdown-menu__item:focus,
+html .el-select-dropdown__item.is-hovering,
+html .el-select-dropdown__item:hover {
+    background-color: var(--ab-surface-2);
+    color: var(--ab-text);
+}
+
+html .el-select-dropdown__item.is-selected,
+html .el-select-dropdown__item.selected {
+    background-color: var(--ab-primary-light);
+    color: var(--ab-primary);
+    font-weight: 600;
+}
+
+html .el-dropdown-menu__item--divided {
+    border-top: 1px solid var(--ab-border);
+    margin-top: 4px;
+    padding-top: 7px;
+}
+
+html .el-select-dropdown__list {
+    padding: 0;
+}
+
+/* 二次确认气泡 */
+html .el-popconfirm__main {
+    padding: 6px 6px 10px;
+    font-size: 13px;
+    color: var(--ab-text);
+    align-items: flex-start;
+}
+
+html .el-popconfirm__icon {
+    color: var(--ab-warning) !important;
+    margin-right: 8px;
+}
+
+html .el-popconfirm__action {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 0 6px 4px;
+}
+
+html .el-popconfirm .action > div {
+    display: flex;
+    gap: 8px;
+}
+
+html .el-popconfirm .el-button {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 13px;
+}
+
+/* ==================== 消息 / 消息框 ==================== */
+html .el-message {
+    padding: 10px 13px;
+    background: var(--ab-surface);
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-md);
+    box-shadow: var(--ab-shadow-md);
+    color: var(--ab-text);
+    font-size: 13px;
+}
+
+html .el-message__content {
+    color: var(--ab-text);
+}
+
+html .el-message--success .el-message__icon {
+    color: var(--ab-success);
+}
+
+html .el-message--warning .el-message__icon {
+    color: var(--ab-warning);
+}
+
+html .el-message--error .el-message__icon {
+    color: var(--ab-danger);
+}
+
+html .el-message--info .el-message__icon {
+    color: var(--ab-primary);
+}
+
+html .el-message-box {
+    padding: 0;
+    background: var(--ab-surface);
+    border: none;
+    border-radius: var(--ab-r-md);
+    box-shadow: var(--ab-shadow-lg);
+    overflow: hidden;
+}
+
+html .el-message-box__header {
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--ab-border);
+}
+
+html .el-message-box__title {
+    font-size: 15px;
+    font-weight: 650;
+    color: var(--ab-text);
+}
+
+html .el-message-box__content {
+    padding: 16px 18px;
+    font-size: 14px;
+    color: var(--ab-text);
+}
+
+html .el-message-box__container {
+    align-items: flex-start;
+    gap: 10px;
+}
+
+html .el-message-box__status {
+    position: static;
+    transform: none;
+    font-size: 18px !important;
+}
+
+html .el-message-box__btns {
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--ab-border);
+}
+
+html .el-message-box__headerbtn {
+    top: 8px;
+    right: 10px;
+}
+
+html .el-message-box__headerbtn .el-message-box__close {
+    color: var(--ab-text-secondary);
+}
+
+html .el-message-box__headerbtn:hover .el-message-box__close {
+    color: var(--ab-text);
+}
+
+/* ==================== 提示条：上游 .ab-alert ==================== */
+html .el-alert {
+    padding: 10px 13px;
+    gap: 10px;
+    background-color: transparent !important;
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-md);
+    color: var(--ab-text);
+    font-size: 13px;
+}
+
+html .el-alert__title {
+    font-size: 13px;
+    font-weight: 650;
+}
+
+html .el-alert--success .el-alert__title,
+html .el-alert--success .el-alert__icon {
+    color: var(--ab-success);
+}
+
+html .el-alert--warning .el-alert__title,
+html .el-alert--warning .el-alert__icon {
+    color: var(--ab-warning);
+}
+
+html .el-alert--error .el-alert__title,
+html .el-alert--error .el-alert__icon {
+    color: var(--ab-danger);
+}
+
+html .el-alert--info .el-alert__title,
+html .el-alert--info .el-alert__icon {
+    color: var(--ab-primary);
+}
+
+/* ==================== 角标 / 链接 / 文字 / 空态 ==================== */
+html .el-badge__content {
+    min-width: 17px;
+    height: 17px;
+    padding: 0 5px;
+    background-color: var(--ab-danger);
+    border: none;
+    border-radius: 9999px;
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 17px;
+    font-variant-numeric: tabular-nums;
+}
+
+html .el-badge__content--primary {
+    background-color: var(--ab-primary);
+}
+
+html .el-link {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ab-text-secondary);
+    transition: color var(--ab-t-fast);
+}
+
+html .el-link:hover,
+html .el-link--primary {
+    color: var(--ab-primary);
+}
+
+html .el-link.el-link--default::after,
+html .el-link::after {
+    border-bottom: none;
+}
+
+html .el-text {
+    color: var(--ab-text);
+}
+
+html .el-text--info {
+    color: var(--ab-text-secondary);
+}
+
+html .el-text--small {
+    font-size: 12px;
+}
+
+html .el-empty__description {
+    color: var(--ab-text-secondary);
+    font-size: 13px;
+}
+
+/* 上传拖拽区：上游 .ab-empty 的虚线盒 */
+html .el-upload-dragger {
+    padding: 18px;
+    background-color: transparent;
+    border: 1px dashed var(--ab-border-hover);
+    border-radius: var(--ab-r-md);
+    transition: border-color var(--ab-t-fast), background-color var(--ab-t-fast);
+}
+
+html .el-upload-dragger:hover {
+    border-color: var(--ab-primary);
+    background-color: var(--ab-primary-light);
+}
+
+html .el-upload__tip {
+    color: var(--ab-text-muted);
+    font-size: 12px;
+}
+
+/* ==================== 表单 / 描述列表 / 评分 ==================== */
+html .el-form-item__label {
+    font-size: 14px;
+    color: var(--ab-text);
+    font-weight: 400;
+}
+
+html .el-descriptions__label {
+    color: var(--ab-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+html .el-descriptions__content {
+    color: var(--ab-text);
+    font-size: 13px;
+}
+
+html .el-descriptions__cell {
+    border-color: var(--ab-border) !important;
+}
+
+html .el-rate__icon {
+    color: var(--ab-border-hover);
+}
+
+html .el-rate__text {
+    color: var(--ab-text-secondary);
+    font-size: 12px;
+    font-family: var(--ab-mono);
+}
+
+/* 取色器 / 日期选择：只对齐容器质感，内部保持 Element 原结构 */
+html .el-color-picker__trigger {
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-sm);
+}
+
+html .el-date-picker__header-label,
+html .el-date-table-cell__text {
+    color: var(--ab-text);
+}
+
+html .el-date-table td.current:not(.disabled) .el-date-table-cell__text {
+    background-color: var(--ab-primary);
+    color: #FFFFFF;
+}
+
+/* ==================== 登录页：上游 .login-card ==================== */
+/* 深色底 + 一层 32px 点阵 + 两团缓慢漂移的模糊色晕，卡片是 80% 透明度的毛玻璃 */
+html #login-page {
+    position: relative;
+    isolation: isolate;
+}
+
+html #login-page::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background-image: radial-gradient(var(--ab-border) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: .5;
+    pointer-events: none;
+}
+
+/* 两团色晕：主色在右上（600px / .15），accent 在左下（500px / .1）。
+   上游是两个独立元素各自 filter:blur(100px) 漂移，这里只有 ::before / ::after 两个坑位，
+   ::before 已经给了点阵 —— 所以两团合并进 ::after 的两层背景，靠错开 background-position
+   让它们各漂各的，视觉上和两个元素分开动是一回事。
+   （不能挂到 #form 上：毛玻璃卡片有 backdrop-filter，自成层叠上下文，z-index:-1 会被它自己的底吃掉） */
+html #login-page::after {
+    content: "";
+    position: absolute;
+    inset: -200px;
+    z-index: -1;
+    background-image:
+        radial-gradient(circle 300px at calc(100% - 100px) 200px,
+        color-mix(in srgb, var(--ab-primary) 15%, transparent) 0%, transparent 70%),
+        radial-gradient(circle 250px at 200px calc(100% - 150px),
+        color-mix(in srgb, var(--ab-accent) 10%, transparent) 0%, transparent 70%);
+    background-repeat: no-repeat;
+    filter: blur(60px);
+    animation: ab-float 20s ease-in-out infinite;
+    will-change: background-position;
+    pointer-events: none;
+}
+
+@keyframes ab-float {
+    0%, 100% {
+        background-position: 0 0, 0 0;
+    }
+    33% {
+        background-position: 30px -30px, -20px 20px;
+    }
+    66% {
+        background-position: -20px 20px, 30px -30px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html #login-page::after {
+        animation: none;
+    }
+}
+
+html #login-page #form {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 32px;
+    background: color-mix(in srgb, var(--ab-surface) 80%, transparent);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-xl);
+    box-shadow: var(--ab-shadow-lg), 0 0 0 1px var(--ab-card-inset) inset;
+}
+
+@media (max-width: 480px) {
+    html #login-page #form {
+        width: calc(100% - 32px);
+        padding: 32px 24px;
+    }
+}
+
+/* 上游的标题是 24px/600 + -.02em，副标题 14px muted */
+html #login-page .title-h2 {
+    margin: 16px 0 32px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--ab-text);
+}
+
+html #login-page #form svg {
+    color: var(--ab-primary);
+    width: 72px;
+    height: 72px;
+}
+
+/* 登录表单的输入框是 44px 高、有 1px 常驻描边 —— 和应用内的填充式控件不是一套 */
+html #login-page .el-input__wrapper {
+    height: 44px;
+    padding: 0 14px;
+    background: var(--ab-surface);
+    box-shadow: 0 0 0 1px var(--ab-border) inset;
+}
+
+html #login-page .el-input__wrapper:hover {
+    box-shadow: 0 0 0 1px var(--ab-border-hover) inset;
+}
+
+html #login-page .el-input__wrapper.is-focus {
+    box-shadow: 0 0 0 1px var(--ab-primary) inset,
+    0 0 0 3px color-mix(in srgb, var(--ab-primary) 15%, transparent);
+}
+
+html #login-page .el-input__inner {
+    font-size: 14px;
+}
+
+html #login-page .el-form-item {
+    margin-bottom: 20px;
+}
+
+/* 登录按钮：通栏 44px 实心主色 */
+html #login-page .action .el-button,
+html #login-page #form .el-button {
+    flex: 1;
+    min-width: 100%;
+    height: 44px;
+    justify-content: center;
+    background: var(--ab-primary);
+    border-color: transparent;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+html #login-page .action .el-button:hover,
+html #login-page #form .el-button:hover {
+    background: var(--ab-primary-hover);
+    color: #FFFFFF;
+}
+
+html #login-page .action {
+    gap: 12px;
+}
+
+html #login-page .action .el-checkbox {
+    order: -1;
+}
+
+html .footer .el-link {
+    font-size: 13px;
+    color: var(--ab-text-muted);
+}
+
+html .footer .el-link:hover {
+    color: var(--ab-primary);
+}
+
+/* ==================== 外壳：上游的 topbar + sidebar 布局 ====================
+ *
+ * 这一段只在装了配套的 js/autobangumi.js 时生效（脚本给 <html> 加 ab-ui）。
+ * 不装 JS 的话下面一条都不会命中，主题退回「顶栏一条 + 列表」的形态，照样能用。
+ *
+ * 关键：不搬 ani-rss 的任何 DOM。把 .content 改成两列三行的网格，
+ * 靠 grid-area 把「新加的侧栏」摆到左边、原有的列表容器摆到右下 ——
+ * 网格位置和 DOM 顺序无关，Vue 那边看到的子节点顺序一个字没变。
+ */
+html.ab-ui #app > .content {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 12px;
+    height: 100%;
+    min-height: 0;
+}
+
+html.ab-ui #app > .content > #header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+}
+
+html.ab-ui .ab-sidebar {
+    grid-column: 1;
+    grid-row: 2 / 4;
+}
+
+html.ab-ui .ab-page-title {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+/* 剩下那个 flex:1 的列表容器 */
+html.ab-ui #app > .content > div:not(#header):not(.ab-sidebar):not(.ab-page-title) {
+    grid-column: 2;
+    grid-row: 3;
+    min-height: 0;
+}
+
+/* ---------- 侧边导航：上游 .sidebar ---------- */
+html.ab-ui .ab-sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    overflow: hidden;
+    background: var(--ab-surface);
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-r-lg);
+    box-shadow: var(--ab-shadow-sm);
+    transition: width var(--ab-t-normal), background-color var(--ab-t-normal),
+    border-color var(--ab-t-normal);
+}
+
+html.ab-ui .ab-sidebar--collapsed {
+    width: 64px;
+}
+
+html.ab-ui .ab-sidebar-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 52px;
+    padding: 0 20px;
+    border: none;
+    border-bottom: 1px solid var(--ab-border);
+    background: transparent;
+    cursor: pointer;
+    transition: background-color var(--ab-t-fast), border-color var(--ab-t-normal);
+}
+
+html.ab-ui .ab-sidebar-header:hover {
+    background: var(--ab-surface-hover);
+}
+
+html.ab-ui .ab-sidebar-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ab-text);
+    white-space: nowrap;
+    transition: opacity var(--ab-t-fast);
+}
+
+html.ab-ui .ab-sidebar--collapsed .ab-sidebar-title {
+    opacity: 0;
+}
+
+html.ab-ui .ab-sidebar-toggle {
+    position: absolute;
+    left: 20px;
+    display: flex;
+    color: var(--ab-text-secondary);
+    transition: transform var(--ab-t-normal);
+}
+
+html.ab-ui .ab-sidebar:not(.ab-sidebar--collapsed) .ab-sidebar-toggle {
+    transform: rotate(180deg);
+}
+
+html.ab-ui .ab-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 2px;
+    padding: 8px;
+    overflow-y: auto;
+}
+
+html.ab-ui .ab-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: var(--ab-r-md);
+    background: transparent;
+    color: var(--ab-text-secondary);
+    font: inherit;
+    font-size: 14px;
+    text-align: left;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--ab-t-fast), background-color var(--ab-t-fast);
+}
+
+html.ab-ui .ab-nav-item:hover {
+    color: var(--ab-primary);
+    background: var(--ab-primary-light);
+}
+
+html.ab-ui .ab-nav-item:focus-visible {
+    outline: 2px solid var(--ab-primary);
+    outline-offset: -2px;
+}
+
+html.ab-ui .ab-nav-item.is-active {
+    color: var(--ab-primary);
+    background: var(--ab-primary-light);
+    font-weight: 500;
+}
+
+html.ab-ui .ab-nav-icon {
+    display: flex;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+html.ab-ui .ab-nav-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+html.ab-ui .ab-sidebar--collapsed .ab-nav-item {
+    justify-content: center;
+    padding: 10px;
+}
+
+html.ab-ui .ab-sidebar--collapsed .ab-nav-label {
+    display: none;
+}
+
+/* 平板：上游锁成 56px 的迷你侧栏 */
+@media (min-width: 640px) and (max-width: 1023px) {
+    html.ab-ui .ab-sidebar,
+    html.ab-ui .ab-sidebar--collapsed {
+        width: 56px;
+    }
+
+    html.ab-ui .ab-sidebar-title {
+        opacity: 0;
+    }
+
+    html.ab-ui .ab-sidebar-nav {
+        padding: 4px;
+    }
+
+    html.ab-ui .ab-nav-item {
+        justify-content: center;
+        padding: 10px;
+    }
+
+    html.ab-ui .ab-nav-label {
+        display: none;
+    }
+}
+
+/* 手机：上游换成贴底的横向导航条 */
+@media (max-width: 639px) {
+    html.ab-ui #app > .content {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 68px;
+    }
+
+    html.ab-ui .ab-sidebar,
+    html.ab-ui .ab-sidebar--collapsed {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        z-index: 30;
+        flex-direction: row;
+        width: auto;
+        border-radius: var(--ab-r-lg);
+        box-shadow: var(--ab-shadow-md);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html.ab-ui .ab-sidebar-header {
+        display: none;
+    }
+
+    html.ab-ui .ab-sidebar-nav {
+        flex-direction: row;
+        padding: 0;
+        gap: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    html.ab-ui .ab-sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    html.ab-ui .ab-nav-item {
+        flex: 1;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        min-width: 0;
+        height: 56px;
+        min-height: 56px;
+        padding: 6px 4px;
+        color: var(--ab-text-muted);
+    }
+
+    html.ab-ui .ab-nav-item:active {
+        transform: scale(.95);
+    }
+
+    html.ab-ui .ab-nav-item.is-active {
+        background: transparent;
+    }
+
+    html.ab-ui .ab-nav-item.is-active::after {
+        content: "";
+        position: absolute;
+        top: 4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 20px;
+        height: 3px;
+        border-radius: 9999px;
+        background: var(--ab-primary);
+    }
+
+    html.ab-ui .ab-nav-item {
+        position: relative;
+    }
+
+    html.ab-ui .ab-nav-label {
+        display: block;
+        font-size: 11px;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+/* ---------- 页面标题：上游 .page-title ---------- */
+html.ab-ui .ab-page-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    padding: 0 4px;
+}
+
+html.ab-ui .ab-page-title h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ab-text);
+    transition: color var(--ab-t-normal);
+}
+
+html.ab-ui .ab-page-title::after {
+    content: "";
+    width: 120px;
+    height: 3px;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, var(--ab-primary), var(--ab-primary-hover));
+    opacity: .6;
+    flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+    html.ab-ui .ab-page-title {
+        display: none;
+    }
+}
+
+/* ---------- 进了侧栏的按钮从顶栏收走；留下的两个改成图标钮 ---------- */
+/* ani-rss 给每个按钮外面包了一层带 margin 的 div，只藏 button 会留下空当，
+   所以两条都写：包了 div 的藏外层，没包的藏自己 */
+html.ab-ui #toolbar > *:has(> [data-ab-moved]),
+html.ab-ui #toolbar > [data-ab-moved] {
+    display: none;
+}
+
+html.ab-ui #toolbar [data-ab-icon] {
+    width: 32px;
+    min-width: 32px;
+    padding: 0;
+    background: transparent;
+    color: var(--ab-text-secondary);
+}
+
+html.ab-ui #toolbar [data-ab-icon]:hover {
+    background: var(--ab-surface-2);
+    color: var(--ab-text);
+}
+
+html.ab-ui #toolbar [data-ab-icon="primary"] {
+    background: var(--ab-primary);
+    color: #FFFFFF;
+}
+
+html.ab-ui #toolbar [data-ab-icon="primary"]:hover {
+    background: var(--ab-primary-hover);
+    color: #FFFFFF;
+}
+
+html.ab-ui #toolbar [data-ab-icon] span:not(:has(.el-icon)),
+html.ab-ui #toolbar [data-ab-icon] .el-icon + span {
+    display: none;
+}
+
+html.ab-ui #toolbar [data-ab-icon] .el-icon--left {
+    margin-right: 0;
+}
+
+/* 有了侧栏和页面标题之后，周分组标题降一级 —— 免得一屏里出现两条同款渐变横杠 */
+html.ab-ui .list-week-title {
+    margin: 16px 0 8px 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ab-text-secondary);
+}
+
+html.ab-ui .list-week-title::after {
+    display: none;
+}
+
+/* ---------- 顶栏品牌区：上游 .topbar-brand（纯 CSS，不装 JS 也有） ---------- */
+html #header::before {
+    content: "ani-rss";
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    align-self: center;
+    padding-left: 32px;
+    background-image: var(--ab-logo);
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 24px 24px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    color: var(--ab-text);
+    white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+    html #header::before {
+        content: "";
+        padding-left: 24px;
+        background-size: 20px 20px;
+    }
+}
+
+/* ==================== 滚动条：6px，拇指是半透明主色 ==================== */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--ab-primary) 30%, transparent);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--ab-primary) 60%, transparent);
+}
+
+::-webkit-scrollbar-button,
+::-webkit-scrollbar-corner {
+    display: none;
+}
+
+html .el-scrollbar__thumb {
+    background-color: color-mix(in srgb, var(--ab-primary) 30%, transparent);
+    opacity: 1;
+    border-radius: 3px;
+}
+
+html .el-scrollbar__thumb:hover {
+    background-color: color-mix(in srgb, var(--ab-primary) 60%, transparent);
+}
+
+/* ==================== 减弱动效 ==================== */
+@media (prefers-reduced-motion: reduce) {
+    html *,
+    html *::before,
+    html *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}

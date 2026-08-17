@@ -1,9 +1,17 @@
 # js/ 目录说明
 
-这里只有一个文件：`genshin-login.js`，ani-rss 登录页的三维背景。和 `themes/` 里的
-纯 CSS 主题不同，它需要填在**自定义 JS**里，不是自定义 CSS。
+这里放的是主题的伴生脚本。和 `themes/` 里的纯 CSS 主题不同，它们要填在
+**自定义 JS** 里，不是自定义 CSS。
 
-## 来源
+| 文件 | 配套主题 | 管什么 | 许可 |
+| --- | --- | --- | --- |
+| `material-motion.js` | `themes/material.css` | 指针落点涟漪、顶栏升起、卡片入场、从取色器现算 M3 配色 | MIT，原创 |
+| `autobangumi.js` | `themes/autobangumi.css` | 把顶栏那排按钮拆成 AutoBangumi 的左侧导航，补页面标题 | MIT，原创 |
+| `genshin-login.js` | `themes/genshin-login.css` | 登录页背后那片三维天空 | MIT，移植，见下 |
+
+前两个零依赖、零外部请求，清空 JS 框刷新就还原。下面整篇讲的是 `genshin-login.js`。
+
+## genshin-login.js 的来源
 
 复刻自 [alphardex/genshin-replica](https://github.com/alphardex/genshin-replica)（MIT），
 那个项目本身又是 [gamemcu/www-genshin](https://github.com/gamemcu/www-genshin) 的复刻。
