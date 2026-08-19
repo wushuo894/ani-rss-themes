@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "@mdi/font": "^7.4.47",
-    "artplayer": "^5.4.0",
-    "artplayer-plugin-multiple-subtitles": "^1.2.0",
     "pinia": "^3.0.0",
     "vue": "^3.5.0",
     "vue-router": "^4.5.0",

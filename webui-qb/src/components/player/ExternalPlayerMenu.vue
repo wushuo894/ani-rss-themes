@@ -4,13 +4,16 @@ import {computed} from 'vue'
 /**
  * 交给本机播放器打开。
  *
- * 浏览器只认 mp4/webm 这类容器，而番剧绝大多数是 mkv —— 网页播放器（含 ArtPlayer）
- * 底下都是原生 <video>，谁都变不出 mkv 解复用能力。所以真正的出路是把地址甩给本机播放器。
+ * 网页播放走 webplayer（本地拆容器 → fMP4 → MSE），mkv 与 ASS 特效字幕都能放，
+ * 所以这里不再是唯一出路，而是三种情况下的备选：
+ *   1. 没部署 webplayer（webui/player/ 不存在）
+ *   2. 想用本机播放器的硬件解码 —— 大码率 4K 在浏览器里解会吃力
+ *   3. 手机上想丢给已经装好的播放器接着看
  *
- * 这些 scheme 与上游 ani-rss 保持一致，用户装了哪个就点哪个；没装的点了不会有反应。
+ * 这些 scheme 与上游 ani-rss 保持一致，装了哪个就点哪个；没装的点了不会有反应。
  * 地址里带着 ?s=<令牌>，本机播放器凭它取流。
  */
-const props = defineProps<{src: string; name?: string}>()
+const props = defineProps<{src: string; name?: string; iconOnly?: boolean}>()
 
 const enc = (s: string) => encodeURIComponent(s)
 
@@ -37,13 +40,20 @@ function open(url: string) {
 <template>
   <v-menu>
     <template #activator="{props: menuProps}">
-      <v-btn v-bind="menuProps" prepend-icon="mdi-open-in-app" size="small" variant="tonal">
-        用本机播放器打开
+      <v-btn
+          v-bind="menuProps"
+          :icon="iconOnly ? 'mdi-open-in-app' : undefined"
+          :prepend-icon="iconOnly ? undefined : 'mdi-open-in-app'"
+          :variant="iconOnly ? 'text' : 'tonal'"
+          size="small"
+          title="用本机播放器打开"
+      >
+        <template v-if="!iconOnly">用本机播放器打开</template>
       </v-btn>
     </template>
 
     <v-list density="compact">
-      <v-list-subheader>浏览器放不了 mkv 时用这个</v-list-subheader>
+      <v-list-subheader>用装在本机的播放器接着看</v-list-subheader>
       <v-list-item
           v-for="p in players"
           :key="p.label"

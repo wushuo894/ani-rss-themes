@@ -82,17 +82,58 @@ npm run typecheck
 
 ### 播放
 
-用 ArtPlayer（与上游同款），按需加载 —— 只有真点开某一集才拉那 42KB(gzip)，不压在首屏。
-进度、音量、倍速、画中画、网页全屏、字幕切换都在。
+在线播放用 [webplayer](https://github.com/zzzwannasleep/webplayer)（LinWeb）。
 
-字幕两路都接了：视频旁边的外挂字幕文件走 `api/file`；mkv 内封字幕走 `getSubtitles`
-（后端把它转成 VTT 文本回来，前端包成 blob 挂上去，卸载时逐个 revoke）。
+它不是又一个 `<video>` 皮肤：容器在浏览器本地被拆开、重新封装成 fragmented MP4 交给 MSE，
+编码码流原封不动，零转码。所以 **mkv 能放**，ASS 特效字幕由 jassub（libass 的 wasm 移植）
+完整渲染，PGS 图形字幕走 libpgs，HDR / Dolby Vision 也在。
 
-**容器支持是浏览器的事，不是播放器的事。** ArtPlayer 底下就是原生 `<video>`，
-它和任何网页播放器一样变不出 mkv 解复用能力 —— 而番剧绝大多数是 mkv。
-所以播放条旁边有「用本机播放器打开」：PotPlayer / VLC / IINA / MPV / Infuse / 弹弹Play /
-AnimacX / SenPlayer，走各自的 URL scheme，地址里带着令牌。上游 ani-rss 也是这么解的。
-遇到非 mp4/webm 的文件，界面上会直接说明并指向这个入口，而不是让人对着黑屏猜。
+它是独立的静态站，不打进本 WebUI 的产物（那要连 wasm 一起 vendor，还会丢掉它自己的播放界面），
+而是并排放在 `webui/player/` 下，由本界面的 `#/play` 路由整屏 iframe 引入。
+两边同源，所以 webplayer README 里对 Emby 场景强调的混合内容与 CORS 两道墙，在这里天然不存在。
+
+#### 一起打包
+
+```bash
+# 1. 构建 webplayer
+git clone https://github.com/zzzwannasleep/webplayer && cd webplayer
+npm install && npm run build          # -> dist/
+
+# 2. 回到本仓库，构建并组装
+cd ../ani-rss-themes
+npm --prefix webui-vt run build
+node webui-shared/tools/pack.mjs vt --player ../webplayer/dist
+```
+
+产物在 `dist-webui/vt/`，把里面的内容复制到 `{configDir}/webui/` 即可。
+不给 `--player` 也能装，只是点播放时会提示怎么补上。
+
+**体积**：webplayer 的 dist 约 40 MB，其中 `vendor/ffmpeg-core.wasm` 就占 31 MB
+（音频转码用），`jassub-worker*.wasm` 各 2 MB（ASS 渲染），`anime4k.js` 3.4 MB。
+本界面自己只有 1.8 MB。放进配置目录前心里有个数。
+
+#### ⚠️ 先跑一下 Range 探针
+
+webplayer 靠**按字节范围精确取流**来拆容器，服务端在范围长度上差一个字节就会崩，
+而且崩在解复用阶段 —— 连接正常、总长也读得到，看起来像播放器的锅。
+
+```bash
+node webui-shared/tools/range-probe.mjs "http://<ani-rss>/api/file?filename=<base64>&s=<token>"
+```
+
+**当前上游 `FileController.doFile()` 没通过这个检查**：
+
+```java
+long length = end - start;        // 现在 —— 每个分段响应都少一字节
+long length = end - start + 1;    // 应该（RFC 7233 的 Range 是闭区间）
+```
+
+已用 webplayer 自己的 `HttpSource` 对着复刻该算术的服务器实测：`open()` 正常、总长正确，
+但每次 `read(offset, n)` 只回 `n-1` 字节。顺带 `hasRange` 是无条件置 true 的，
+不带 Range 的普通 GET 也会返回 206（这条只是不合规范，不影响播放）。
+
+在上游修掉之前，在线播放大概率不可用 —— 用「用本机播放器打开」把地址交给
+PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响。
 
 ### 已知没做的
 
@@ -138,9 +179,10 @@ webui-shared/          两套共用，不含 UI 组件
 ├── api.ts             66 个端点的具名封装
 ├── types.ts           从 Java 实体生成
 ├── format.ts          体积/时间/集数格式化
+├── player.ts          webplayer 接入：地址拼装与部署探测
 ├── vite-mdi-woff2.ts  构建期插件：图标字体只留 woff2（省 3.2MB）
 ├── themes/            主题系统 + 17 款主题 + 自检
-└── tools/             从上游 Java 源码生成类型与接口清单（带自校验）
+└── tools/             类型/接口生成器、产物组装、Range 探针
 webui-vt/              VueTorrent 风
 webui-qb/              qb-web 风
 ```

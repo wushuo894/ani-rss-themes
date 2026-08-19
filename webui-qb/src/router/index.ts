@@ -27,6 +27,13 @@ const router = createRouter({
             meta: {public: true},
         },
         {
+            // 播放页整屏铺开，不套 MainLayout —— webplayer 自带完整界面，
+            // 外面再包一层抽屉和顶栏只会挤掉它的空间
+            path: '/play',
+            name: 'play',
+            component: () => import('@/views/PlayerView.vue'),
+        },
+        {
             path: '/',
             component: () => import('@/layouts/MainLayout.vue'),
             children: [

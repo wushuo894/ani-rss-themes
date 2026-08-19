@@ -17,7 +17,7 @@
 | `webui-qb/` | [qb-web](https://github.com/CzBiX/qb-web) | 打开就是紧凑表格，信息密度高 |
 
 Vue 3 + Vuetify 3，一套响应式代码同时适配手机和 PC。后端 66 个接口全部接上，
-上游 64 个 `.vue` 的功能面对齐，含 ArtPlayer 播放与本机播放器接力。**上面那 17 款主题也一并迁过去了**，在设置里直接选。
+上游 64 个 `.vue` 的功能面对齐。在线播放接的是 [webplayer](https://github.com/zzzwannasleep/webplayer) —— mkv 与 ASS 特效字幕都能放。**上面那 17 款主题也一并迁过去了**，在设置里直接选。
 
 装法、约束与已知取舍见 **[WEBUI.md](WEBUI.md)**。
 
