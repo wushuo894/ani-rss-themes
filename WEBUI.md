@@ -80,23 +80,35 @@ npm run typecheck
 - 设置 8 个标签页 / 基本设置 9 个折叠面板 / 通知 10 种类型，共 121 个配置字段
 - 备份导入导出、缓存清理、检查更新、重启与停止服务
 
+### 播放
+
+用 ArtPlayer（与上游同款），按需加载 —— 只有真点开某一集才拉那 42KB(gzip)，不压在首屏。
+进度、音量、倍速、画中画、网页全屏、字幕切换都在。
+
+字幕两路都接了：视频旁边的外挂字幕文件走 `api/file`；mkv 内封字幕走 `getSubtitles`
+（后端把它转成 VTT 文本回来，前端包成 blob 挂上去，卸载时逐个 revoke）。
+
+**容器支持是浏览器的事，不是播放器的事。** ArtPlayer 底下就是原生 `<video>`，
+它和任何网页播放器一样变不出 mkv 解复用能力 —— 而番剧绝大多数是 mkv。
+所以播放条旁边有「用本机播放器打开」：PotPlayer / VLC / IINA / MPV / Infuse / 弹弹Play /
+AnimacX / SenPlayer，走各自的 URL scheme，地址里带着令牌。上游 ani-rss 也是这么解的。
+遇到非 mp4/webm 的文件，界面上会直接说明并指向这个入口，而不是让人对着黑屏猜。
+
 ### 已知没做的
 
-- **视频播放用浏览器原生 `<video>`**，没引 ArtPlayer。mp4 能直接看，mkv 多数浏览器解不了；
-  内封字幕接口（`getSubtitles`）已封装但播放器侧没接上。要完整播放能力得再引播放器库。
 - **没有在真实 ani-rss 实例上跑过。** 类型检查、构建、主题自检都过了，接口签名逐个对着后端源码核过，
   但端到端联调没做 —— 手上没有可连的实例。
 
 ## 类型是生成的，不是手抄的
 
-`webui-shared/types.ts`（77 个 interface / 11 个枚举）由 `scratchpad/gen-types.mjs`
+`webui-shared/types.ts`（77 个 interface / 11 个枚举）由 `webui-shared/tools/gen-types.mjs`
 从上游 Java 实体直接抽取，带字段数自校验：生成结果和源码里的 `private` 字段数对不上就直接失败。
 
 这么做是因为 `Config` 有 121 个字段、`Ani` 55 个、`NotificationConfig` 52 个 —— 手抄必错。
 实际开发中这套自校验揪出过 4 个静默丢字段的解析 bug（注解里的嵌套括号会吞掉整个字段、
 类注释会吞掉每个类的第一个字段等），全都不报错、只是少东西。
 
-上游改了字段就重跑一次生成器，diff 即本次接口变更。
+上游改了字段就重跑一次生成器，diff 即本次接口变更。用法见 [`webui-shared/tools/README.md`](webui-shared/tools/README.md)。
 
 ## 主题
 
@@ -127,7 +139,8 @@ webui-shared/          两套共用，不含 UI 组件
 ├── types.ts           从 Java 实体生成
 ├── format.ts          体积/时间/集数格式化
 ├── vite-mdi-woff2.ts  构建期插件：图标字体只留 woff2（省 3.2MB）
-└── themes/            主题系统 + 17 款主题 + 自检
+├── themes/            主题系统 + 17 款主题 + 自检
+└── tools/             从上游 Java 源码生成类型与接口清单（带自校验）
 webui-vt/              VueTorrent 风
 webui-qb/              qb-web 风
 ```
