@@ -1,25 +1,38 @@
 # ani-rss-themes
 
-给 [ani-rss](https://github.com/wushuo894/ani-rss) 用的 17 款自定义 CSS 主题。每款换的是字体、按钮、背景，不只是配色。
+给 [ani-rss](https://github.com/wushuo894/ani-rss) 换外观的两套东西，仓库也就分成两半：
 
-纯 CSS，不动 ani-rss 本体，不用重新编译前端。随时可撤。
+| 目录 | 是什么 | 换掉的是 |
+| --- | --- | --- |
+| `legacy/` | 17 款自定义 CSS 主题（+ 3 个 JS 附加件） | 自带界面的**皮** —— 字体、按钮、背景 |
+| `webui/` | 5 款完整的替代 WebUI（Vue 3 + Vuetify 3） | 自带界面**本身** —— 换页面结构、换交互 |
 
-**👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/)**（可点、可操作，看到什么样装上就什么样）
+两条路互不相干，各用各的。
 
-## 另外：两套完整的替代 WebUI
+**👉 [CSS 主题在线预览](https://zzzwannasleep.github.io/ani-rss-themes/)** ·
+**[WebUI 在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)**（五款都能点开试）
+
+## 五款替代 WebUI
 
 上游 `test` 分支加了「备用 webui」——把文件放进 `{configDir}/webui/` 就能整个替换掉自带界面。
-仓库里现在有两套做好的：
 
-| | 参照 | 长什么样 |
+| id | 名字 | 长什么样 |
 | --- | --- | --- |
-| `webui-vt/` | [VueTorrent](https://github.com/VueTorrent/VueTorrent) | 总览页 + 海报网格，密度舒适 |
-| `webui-qb/` | [qb-web](https://github.com/CzBiX/qb-web) | 打开就是紧凑表格，信息密度高 |
+| `acg` | 二次元 | 壁纸打底的海报墙，外壳半透明浮在图上，窄屏走底部导航 |
+| `liquid-glass` | 液态玻璃 | 导航是一枚悬浮的玻璃胶囊，内容是一张张横躺的大圆角卡 |
+| `vue` | Vue 文档 | 文档站的路子：左侧分组导航 + 居中正文，靠细线分栏不靠阴影 |
+| `github` | GitHub | Primer 的路子：深色顶栏 + 一排 tab，内容是一张带边框的清单 |
+| `material` | Material Design 3 | 宽屏导航栏杆 + 窄屏底部导航，扩展 FAB 常驻右下 |
 
-Vue 3 + Vuetify 3，一套响应式代码同时适配手机和 PC。后端 66 个接口全部接上，
-上游 64 个 `.vue` 的功能面对齐。在线播放接的是 [webplayer](https://github.com/zzzwannasleep/webplayer) —— mkv 与 ASS 特效字幕都能放。**主题挑了 5 款迁过去**（二次元 / 液态玻璃 / Vue 文档 / GitHub / Material Design 3），在设置里直接选。
+**不是五套配色，是五种界面。** 导航形态、订阅页的呈现方式、控件密度都不一样 ——
+但底下是同一份状态层、接口层和弹窗，一处修好五款同时好。
 
-**一行装好**（脚本会问你 webui 目录在哪、装哪一套，播放器默认一起装）：
+一套响应式代码同时适配手机和 PC（不是另做的手机版）。后端 66 个接口全部接上，
+上游 64 个 `.vue` 的功能面对齐。在线播放接的是
+[webplayer](https://github.com/zzzwannasleep/webplayer) —— mkv、ASS 特效字幕、HDR 都能放，
+**每个包里都自带**，不用单独装。
+
+**一行装好**（脚本会问你 webui 目录在哪、装哪一款）：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.sh | bash
@@ -29,8 +42,6 @@ Windows：`irm https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/ma
 
 也可以去 [Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 下压缩包手动解压。
 装法、约束与已知取舍见 **[WEBUI.md](WEBUI.md)**。
-
-与本仓库原有的 CSS 主题是两条路：主题是给自带界面换肤，WebUI 是把界面整个换掉，各用各的。
 
 
 ## 安装
@@ -44,8 +55,11 @@ ani-rss 里：**设置 → 基础设置 → 页面设置 → 自定义 → CSS**
 把 `paper.css` 换成下表任意文件名。Pages 不通就走备用源 githack：
 
 ```css
-@import url("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/themes/paper.css");
+@import url("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/legacy/themes/paper.css");
 ```
+
+> 主题文件在仓库里已经挪进 `legacy/`，但 **Pages 地址没变** —— 发布时仍然铺在站点根的
+> `themes/` 下，之前贴过 Pages 链接的不用改。直连仓库的 githack / jsDelivr 链接需要加上 `legacy/`。
 
 保存刷新即可。**一次只放一个主题**，混着放会打架。不想依赖外部站点，就把 `.css` 全文复制粘进去。
 
@@ -151,7 +165,7 @@ cd ani-rss-themes && python -m http.server 8080
 
 ```js
 /* JS 框 */
-import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/autobangumi.js")
+import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/legacy/js/autobangumi.js")
 ```
 
 **不是「把 ani-rss 掰得像 AB」，是渲染 AB 本身。** 脚本照上游 webui 的 `.vue` 把 AutoBangumi 的 DOM 原样建出来 —— `.layout-container` / `.topbar` / `.topbar-brand` / `.search-trigger` / `.topbar-right` / `.sidebar` / `.page-title` / `.page-bangumi` / `.bangumi-grid` / `.card` / `.card-poster` / `.card-overlay`，类名、层级、尺寸、缓动全部取自对应 `.vue` 的 scoped 样式。ani-rss 自己的顶栏和列表整个收起来 —— 它继续跑、继续持有全部状态和事件，只是不再负责显示。
@@ -189,7 +203,7 @@ import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/autobangumi
 
 ```js
 /* JS 框 */
-import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/material-motion.js")
+import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/legacy/js/material-motion.js")
 ```
 
 **动态取色**：ani-rss 的取色器把 `--el-color-primary` 以内联样式写在 `<html>` 上，主题用 `!important` 盖住后它就失效了。这份 JS 把它读回来当种子，按 M3 四条色调轨现算 26 个配色变量铺回去 —— 取色器又生效了，而且改的是整套配色不只强调色。换算用 OKLCh 近似 HCT（两者都是感知均匀空间，观感差别肉眼基本看不出，但 HCT 要带一整套 CAM16 实现，不值当）。拿 baseline 的 `#6750A4` 跑回去得到 `#634CA0` / `#1C1B21`，和官方 `#6750A4` / `#1D1B20` 基本重合。
@@ -214,7 +228,7 @@ import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/material-mo
 ```
 
 ```js
-import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/js/genshin-login.js")
+import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/legacy/js/genshin-login.js")
 ```
 
 - **只管登录页**，列表页一行不碰 —— 可以和上面任意主题叠着用。也因此不跟随明暗，启动器那个弹窗本来就只有白色。

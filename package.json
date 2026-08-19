@@ -1,15 +1,12 @@
 {
-  "name": "ani-rss-themes-workspace",
+  "name": "ani-rss-themes",
   "private": true,
   "type": "module",
-  "description": "仅用于安放 webui-shared 的运行时依赖。webui-shared 不是 npm 包，被两个 app 用路径别名引入，因此它自己的依赖必须放在仓库根，才能被 node 解析链找到。",
-  "dependencies": {
-    "js-md5": "^0.8.3"
-  },
+  "description": "仓库分两半：legacy/ 是给 ani-rss 自带界面换肤的 CSS+JS，webui/ 是替代整个界面的 Vue 应用。这里只放几个转手的脚本，依赖装在 webui/。",
   "scripts": {
-    "build:vt": "npm --prefix webui-vt run build",
-    "build:qb": "npm --prefix webui-qb run build",
-    "build:webui": "npm run build:vt && npm run build:qb",
-    "test:themes": "node --experimental-strip-types webui-shared/themes/apply.test.ts"
+    "dev": "npm --prefix webui run dev",
+    "build": "npm --prefix webui run build:all",
+    "build:demo": "npm --prefix webui run build:all -- --demo",
+    "test:themes": "npm --prefix webui run test:themes"
   }
 }

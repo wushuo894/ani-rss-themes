@@ -1,20 +1,26 @@
 # ani-rss 替代 WebUI
 
-给 [ani-rss](https://github.com/wushuo894/ani-rss) 做的两套完整前端，整个替换掉自带界面 —— 不是换肤。
+给 [ani-rss](https://github.com/wushuo894/ani-rss) 做的五套完整前端，整个替换掉自带界面 —— 不是换肤。
 
 上游在 `test` 分支（2026-08-19，commit `a79d482`）加了「备用 webui」：把文件放进 `{configDir}/webui/`，
-后端就优先从那里取静态资源。这两套就是给那个目录用的。
+后端就优先从那里取静态资源。这五套就是给那个目录用的。
 
-| | webui-vt | webui-qb |
-| --- | --- | --- |
-| 参照 | [VueTorrent](https://github.com/VueTorrent/VueTorrent) | [qb-web](https://github.com/CzBiX/qb-web) |
-| 首页 | 总览（指标卡 + 最近更新 + 下载中 + 疑似停更） | 直接是订阅列表，打开就干活 |
-| 订阅主视图 | 海报网格，可切列表 | 紧凑表格，自带多选 |
-| 密度 | 舒适 | 紧凑 |
-| 导航 | 左侧抽屉，桌面端可收成图标条 | 顶栏通栏 + 抽屉（lg 以上常驻） |
-| 配色 | Element Plus 蓝，过渡不突兀 | Vuetify 经典蓝，表格衬底更冷 |
+**👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)** —— 五款都能点开试，数据是内置的假数据。
 
-两套共用同一套接口层、状态层和弹窗，差别只在布局语言和密度。
+| id | 首页 | 订阅主视图 | 导航形态 | 密度 |
+| --- | --- | --- | --- | --- |
+| `acg` 二次元 | 总览 | 海报墙 + 星期快捷条 | 宽屏图标栏 / 窄屏底部导航，半透明浮在壁纸上 | 舒适 |
+| `liquid-glass` 液态玻璃 | 总览 | 横躺大卡，宽屏两列 | 悬浮玻璃胶囊（不占布局） | 舒适 |
+| `vue` Vue 文档 | 总览 | 细线分隔的行清单 | 左侧**分组**侧栏 + 居中正文 | 适中 |
+| `github` GitHub | 直接是订阅清单 | 带边框的清单，行内状态点 | 顶栏 + 一排 tab，无侧栏 | 紧凑 |
+| `material` Material 3 | 总览 | M3 卡片网格，可切表格 | 导航栏杆 / 底部导航 + 扩展 FAB | 舒适 |
+
+**不是五套配色。** 导航形态、订阅页的呈现方式、控件密度都不一样；
+但底下是同一份接口层、状态层、弹窗和设置页 —— 一处修好五款同时好。
+
+实现上是**一套源码 + 五个预设**：`webui/src/presets/<id>/` 各出一个外壳（`Shell.vue`）、
+一个订阅页（`SubsView.vue`）和一份控件默认值（`defaults.ts`），构建时用 `VITE_PRESET` 选一款。
+复制五份源码那种「五款」，改一个 bug 要改五次。
 
 ## 安装
 
@@ -32,42 +38,43 @@ Windows PowerShell：
 irm https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.ps1 | iex
 ```
 
-脚本会问三件事：webui 目录在哪、装哪一套、要不要播放器，然后自己下载解压。
+脚本会问两件事：webui 目录在哪、装哪一款（序号或 id 都行），然后自己下载解压。
+**在线播放器包含在每个包里**，不用单独选。
 填配置目录也行 —— 认出 `config.v2.json` 后会自动补上 `webui/`。
-已有内容会先备份成 `webui.bak.<时间戳>`；**只升级界面时已装的播放器会原样保留**，
-不会让你为了换个皮肤重下一遍。
+已有内容会先备份成 `webui.bak.<时间戳>`。
 
 非交互（脚本自动化用）：
 
 ```bash
-curl -fsSL .../install.sh | bash -s -- --dir /vol1/docker/ani-rss/config/webui --ui vt --player -y
+curl -fsSL .../install.sh | bash -s -- --dir /vol1/docker/ani-rss/config/webui --ui vue -y
 ```
 
 ```powershell
-$env:ANIRSS_WEBUI_DIR='D:ani-rssconfigwebui'; $env:ANIRSS_UI='vt'; $env:ANIRSS_PLAYER='yes'
+$env:ANIRSS_WEBUI_DIR='D:\ani-rss\config\webui'; $env:ANIRSS_UI='vue'
 irm .../install.ps1 | iex
 ```
 
 ### 手动装
 
-[Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 里三个包：
+[Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 里五个包，一款一个，**挑一个**解压到 `webui/`：
 
-| 压缩包 | 下载 | 解压后 | 解压到 |
-|---|---|---|---|
-| `ani-rss-webui-vt.zip` | 0.7 MB | 1.8 MB | `webui/` |
-| `ani-rss-webui-qb.zip` | 0.7 MB | 1.8 MB | `webui/` |
-| `ani-rss-webplayer.zip` | 13 MB | 40 MB | `webui/`（包内自带 `player/` 一层，默认装）|
+| 压缩包 | 下载 | 解压后 |
+|---|---|---|
+| `ani-rss-webui-acg.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-liquid-glass.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-vue.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-github.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-material.zip` | ~14 MB | ~42 MB |
 
-两套界面**选一套**，webplayer 那个包解压到同一个 `webui/` 下。
-
-在线播放本来就是 ani-rss 的功能，我们只是换掉了它自带的播放器，所以脚本默认装 webplayer；
-真不想要就 `--no-player`（Windows 设 `$env:ANIRSS_PLAYER='no'`），但在线播放会跟着没了。
+界面本体只有 1.6 MB，其余全是播放器的 wasm。**每个包都自带播放器** ——
+在线播放本来就是 ani-rss 的功能，我们只是把它自带的播放器换成支持 ASS 特效字幕和 HDR 的那个；
+拆成两个包只会让人少装一个，然后以为坏了。
 
 ```
 {configDir}/webui/
 ├── index.html
 ├── assets/
-└── player/          # 默认装；--no-player 时才没有
+└── player/
     └── play.html
 ```
 
@@ -81,21 +88,25 @@ irm .../install.ps1 | iex
 ### 自己构建
 
 ```bash
-npm ci                                    # 根依赖（webui-shared 用的 js-md5）
-npm ci --prefix webui-vt && npm run build --prefix webui-vt
-node webui-shared/tools/pack.mjs vt --player ../webplayer/dist
+npm ci --prefix webui
+npm run build:all --prefix webui -- --only vue     # 不带 --only 就是五款全建
+node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 ```
 
-产物在 `dist-webui/vt/`。打 `webui-v*` 标签会由 GitHub Actions 自动构建并发布上面那三个包。
+单款产物在 `webui/dist/<id>/`，组装结果在 `dist-webui/<id>/`。
+打 `webui-v*` 标签会由 GitHub Actions 自动构建并发布上面那五个包。
 
 ## 开发
 
 ```bash
-npm run dev        # 默认把 /api 代理到 http://127.0.0.1:7789
+cd webui
+VITE_PRESET=github VITE_API_TARGET=http://<你的 ani-rss> npm run dev
 npm run typecheck
+npm run build:all -- --demo    # 五款演示构建（假数据，Pages 预览用的就是它）
 ```
 
-改后端地址就编辑 `vite.config.ts` 里的 `server.proxy`。
+`VITE_PRESET` 不给默认是 `vue`。**后端地址走环境变量，不写进仓库**（也可以放进不进版本控制的
+`webui/.env.local`）—— 地址、端口这类东西一旦硬编码进去，之后就没人会去清了。
 
 ## 几个绕不开的约束
 
@@ -143,11 +154,10 @@ npm run typecheck
 
 #### 装它
 
-用上面的一行脚本，或从 Releases 下 `ani-rss-webplayer.zip` 解压到 `webui/`。
-自己构建见 `webui-shared/tools/pack.mjs` 的 `--player` 参数。
+不用单独装 —— 五个发布包里都带着。自己构建见 `webui/shared/tools/pack.mjs` 的 `--player` 参数。
 
-**体积**：下载 13 MB，解压后 40 MB —— 其中 `vendor/ffmpeg-core.wasm` 独占 31 MB（音频转码用），
-`jassub-worker*.wasm` 各 2 MB（ASS 渲染），`anime4k.js` 3.4 MB。本界面自己只有 1.8 MB。
+**体积**：播放器下载 13 MB、解压后 40 MB —— 其中 `vendor/ffmpeg-core.wasm` 独占 31 MB（音频转码用），
+`jassub-worker*.wasm` 各 2 MB（ASS 渲染），`anime4k.js` 3.4 MB。界面本体只有 1.6 MB。
 
 #### ⚠️ 先跑一下 Range 探针
 
@@ -155,7 +165,7 @@ webplayer 靠**按字节范围精确取流**来拆容器，服务端在范围长
 而且崩在解复用阶段 —— 连接正常、总长也读得到，看起来像播放器的锅。
 
 ```bash
-node webui-shared/tools/range-probe.mjs "http://<ani-rss>/api/file?filename=<base64>&s=<token>"
+node webui/shared/tools/range-probe.mjs "http://<ani-rss>/api/file?filename=<base64>&s=<token>"
 ```
 
 **当前上游 `FileController.doFile()` 没通过这个检查**：
@@ -179,14 +189,14 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 
 ## 类型是生成的，不是手抄的
 
-`webui-shared/types.ts`（77 个 interface / 11 个枚举）由 `webui-shared/tools/gen-types.mjs`
+`webui/shared/types.ts`（77 个 interface / 11 个枚举）由 `webui/shared/tools/gen-types.mjs`
 从上游 Java 实体直接抽取，带字段数自校验：生成结果和源码里的 `private` 字段数对不上就直接失败。
 
 这么做是因为 `Config` 有 121 个字段、`Ani` 55 个、`NotificationConfig` 52 个 —— 手抄必错。
 实际开发中这套自校验揪出过 4 个静默丢字段的解析 bug（注解里的嵌套括号会吞掉整个字段、
 类注释会吞掉每个类的第一个字段等），全都不报错、只是少东西。
 
-上游改了字段就重跑一次生成器，diff 即本次接口变更。用法见 [`webui-shared/tools/README.md`](webui-shared/tools/README.md)。
+上游改了字段就重跑一次生成器，diff 即本次接口变更。用法见 [`webui/shared/tools/README.md`](webui/shared/tools/README.md)。
 
 ## 主题
 
@@ -200,11 +210,11 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 | `github` | GitHub | Primer 配色与字栈，贡献热力图格子 |
 | `material` | Material Design 3 | Roboto，全圆角胶囊 |
 
-原来那些 `.css` 主题文件一个没动，给 ani-rss 自带界面换肤照用。
+原来那些 `.css` 主题文件一个没动，只是挪进了 `legacy/`，给 ani-rss 自带界面换肤照用。
 
 迁移带过来的是设计决策本身（字体栈、主色、圆角尺度、背景与装饰），不是原来的选择器 —— 类名体系已换成 Vuetify。
 每款从 12~60KB 缩到几十行：原来要逐个覆盖 Element Plus 的上百个组件，现在 DOM 是自己的，
-变量到组件的接线统一由 `webui-shared/themes/base.css` 完成。
+变量到组件的接线统一由 `webui/shared/themes/base.css` 完成。
 
 **这一层的意义不只是省代码。** 原来的主题是贴在 ani-rss 自己的 DOM 上的，
 换个版本、换个「页面设置」就可能散架；现在主题只依赖 Vuetify 的公开类名和一组自有变量，不再赌别人的内部结构。
@@ -213,27 +223,53 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 
 三个 JS 附加件没有迁：
 
-- `js/autobangumi.js` —— 它的作用是把 AutoBangumi 的界面渲染到 ani-rss 上。现在 DOM 本来就是我们的，
+- `legacy/js/autobangumi.js` —— 它的作用是把 AutoBangumi 的界面渲染到 ani-rss 上。现在 DOM 本来就是我们的，
   这个需求消失了，AutoBangumi 变成一款普通主题。
-- `js/material-motion.js` —— 涟漪 Vuetify 自带；动态取色（种子色现算 M3 全套配色）没迁。
-- `js/genshin-login.js` —— 登录页的 three.js 场景，独立且体量大，没迁。
+- `legacy/js/material-motion.js` —— 涟漪 Vuetify 自带；动态取色（种子色现算 M3 全套配色）没迁。
+- `legacy/js/genshin-login.js` —— 登录页的 three.js 场景，独立且体量大，没迁。
 
 ## 目录
 
 ```
-webui-shared/          两套共用，不含 UI 组件
-├── http.ts            传输层：Result 拆包、令牌、子路径自适应
-├── api.ts             66 个端点的具名封装
-├── types.ts           从 Java 实体生成
-├── format.ts          体积/时间/集数格式化
-├── player.ts          webplayer 接入：地址拼装与部署探测
-├── vite-mdi-woff2.ts  构建期插件：图标字体只留 woff2（省 3.2MB）
-├── themes/            主题系统 + 5 款主题 + 自检
-└── tools/             类型/接口生成器、产物组装、Range 探针
-webui-vt/              VueTorrent 风
-webui-qb/              qb-web 风
+webui/
+├── shared/                五款共用，不含 UI 组件
+│   ├── http.ts            传输层：Result 拆包、令牌、子路径自适应
+│   ├── api.ts             66 个端点的具名封装
+│   ├── types.ts           从 Java 实体生成
+│   ├── format.ts          体积/时间/集数格式化
+│   ├── player.ts          webplayer 接入：地址拼装与部署探测
+│   ├── vite-mdi-woff2.ts  构建期插件：图标字体只留 woff2（省 3.2MB）
+│   ├── themes/            主题系统 + 5 款主题 + 自检
+│   └── tools/             类型/接口生成器、产物组装、Range 探针
+├── src/
+│   ├── presets/<id>/      五款各自的外壳、订阅页、控件默认值
+│   ├── components/        弹窗、设置项、卡片 —— 五款共用
+│   ├── views/             总览/下载器/日志/设置/登录/播放 —— 五款共用
+│   ├── stores/            订阅、下载、日志、配置、偏好
+│   ├── composables/       外壳逻辑、订阅页逻辑、主题管理
+│   └── demo/              演示模式：拦掉请求用假数据顶上（只进预览构建）
+├── preview-index.html     Pages 上的五款选择页
+└── tools/build-all.mjs    一口气构建五款
+
+legacy/                    旧的 CSS + JS 主题，给 ani-rss 自带界面换肤
+├── themes/*.css           17 款
+├── js/*.js                3 个附加件
+├── preview/ + index.html  预览站（Pages 的根就是它）
+└── fonts/
 ```
+
+## 预览站是怎么发布的
+
+`.github/workflows/pages.yml` 把 `legacy/` 铺回站点根、五款演示构建放进 `/webui/<id>/`。
+
+之所以改成用 Actions 发布而不是「从分支根目录发布」：仓库拆成两半之后，
+线上必须保留 `/themes/xxx.css` 这个地址 —— 用户 `@import` 的就是它，换地址等于把已经装好的人的主题弄没。
+（直连仓库的 githack / jsDelivr 链接不在此列，那类地址要加上 `legacy/`。）
+
+演示构建带 `VITE_DEMO=1`：`src/demo/` 会把 `fetch` 换成一个只认识 `api/` 的假服务端，
+封面是现画的 SVG，写操作一律「成功但什么也没做」。正式产物里这些代码会被整块摇掉，
+CI 里也有一条检查：正式包里出现演示数据就直接失败。
 
 ## 许可
 
-MIT。与 ani-rss 官方、VueTorrent、qb-web 均无隶属关系。
+MIT。与 ani-rss 官方无隶属关系；五款界面只是参照了各自的设计语言，与 Vue、GitHub、Google、Apple 均无关联。

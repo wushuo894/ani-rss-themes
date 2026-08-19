@@ -1,0 +1,72 @@
+import {computed, onMounted, ref} from 'vue'
+import type {Ani} from '@shared/types'
+import {useAniStore} from '@/stores/ani'
+import {usePrefsStore} from '@/stores/prefs'
+
+/**
+ * 订阅页的「非视觉」部分：弹窗开关、多选状态、批量动作。
+ *
+ * 五款界面长得完全不一样，但这一层一模一样 —— 抽出来之后每款只剩「怎么摆」，
+ * 加一个弹窗、改一次批量逻辑，五款同时生效。
+ */
+export function useAniScreen() {
+    const ani = useAniStore()
+    const prefs = usePrefsStore()
+
+    /* 各弹窗的目标对象。用 null 表示关闭，避免再多一个 boolean 状态 */
+    const editing = ref<Ani | null>(null)
+    const adding = ref(false)
+    const deleting = ref<Ani[] | null>(null)
+    const playlistOf = ref<Ani | null>(null)
+    const coverOf = ref<Ani | null>(null)
+    const ratingOf = ref<Ani | null>(null)
+    const previewOf = ref<Ani | null>(null)
+    const importing = ref(false)
+    const collecting = ref(false)
+
+    const selectMode = ref(false)
+
+    onMounted(() => {
+        if (!ani.all.length) void ani.reload()
+    })
+
+    const selectedIds = computed(() => [...ani.selected])
+    const selectedAnis = computed(() => ani.all.filter(a => a.id && ani.selected.has(a.id)))
+
+    /** 按星期分组只在「显示星期」开着且没搜索时才有意义 —— 搜索结果再按星期切碎反而难找 */
+    const grouped = computed(() => prefs.showWeek && !ani.keyword.trim())
+
+    function exitSelect() {
+        selectMode.value = false
+        ani.clearSelection()
+    }
+
+    function toggleSelectMode() {
+        selectMode.value ? exitSelect() : (selectMode.value = true)
+    }
+
+    async function batch(fn: () => Promise<unknown>) {
+        await fn()
+        exitSelect()
+    }
+
+    /** 卡片/行统一往这里丢事件，省得每款界面各写一遍 v-on */
+    const on = {
+        edit: (a: Ani) => (editing.value = a),
+        playlist: (a: Ani) => (playlistOf.value = a),
+        cover: (a: Ani) => (coverOf.value = a),
+        rate: (a: Ani) => (ratingOf.value = a),
+        preview: (a: Ani) => (previewOf.value = a),
+        del: (a: Ani) => (deleting.value = [a]),
+        toggle: (a: Ani) => a.id && ani.toggleSelect(a.id),
+    }
+
+    return {
+        ani, prefs,
+        editing, adding, deleting, playlistOf, coverOf, ratingOf, previewOf, importing, collecting,
+        selectMode, selectedIds, selectedAnis, grouped,
+        exitSelect, toggleSelectMode, batch, on,
+    }
+}
+
+export type AniScreen = ReturnType<typeof useAniScreen>

@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>ani-rss WebUI 预览</title>
+    <meta name="description" content="ani-rss 替代 WebUI 的在线预览：五款界面各点开就能试，数据是内置的假数据"/>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --panel: #161b22;
+            --line: #272e38;
+            --fg: #e6edf3;
+            --dim: #9aa6b2;
+            --accent: #42d392;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #f6f8fa;
+                --panel: #ffffff;
+                --line: #d8dee4;
+                --fg: #1f2328;
+                --dim: #656d76;
+                --accent: #1a7f37;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px 72px;
+            background: var(--bg);
+            color: var(--fg);
+            font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+            letter-spacing: -.02em;
+        }
+
+        .lede {
+            color: var(--dim);
+            margin: 0 0 6px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 28px;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .back:hover {
+            text-decoration: underline;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            transition: transform .18s, border-color .18s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+        }
+
+        /* 缩略图全部用 CSS 画：预览站不该为了几张截图多下几百 KB */
+        .thumb {
+            height: 132px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            padding: 10px;
+            gap: 6px;
+        }
+
+        .thumb i {
+            display: block;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, .75);
+        }
+
+        .t-acg {
+            background: linear-gradient(135deg, #4a7fe8, #b06ab3 55%, #ff9ebb);
+        }
+
+        .t-acg i {
+            width: 22%;
+            height: 74%;
+            border-radius: 8px;
+        }
+
+        .t-glass {
+            background: linear-gradient(135deg, #5e5ce6, #ff6eb4 60%, #50c8ff);
+        }
+
+        .t-glass i {
+            width: 100%;
+            height: 34%;
+            border-radius: 14px;
+            backdrop-filter: blur(4px);
+        }
+
+        .t-vue {
+            background: radial-gradient(80% 90% at 50% 0, #42d392, #35495e 70%);
+            align-items: stretch;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .t-vue i {
+            height: 8px;
+            width: 100%;
+        }
+
+        .t-vue i:nth-child(2) {
+            width: 72%;
+        }
+
+        .t-vue i:nth-child(3) {
+            width: 84%;
+        }
+
+        .t-github {
+            background: linear-gradient(180deg, #161b22 0 34%, #0d1117 34%);
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-end;
+        }
+
+        .t-github i {
+            height: 10px;
+            width: 100%;
+            background: rgba(255, 255, 255, .22);
+        }
+
+        .t-github i:first-child {
+            background: #3fb950;
+            width: 40%;
+        }
+
+        .t-material {
+            background: linear-gradient(135deg, #6750a4, #d0bcff);
+        }
+
+        .t-material i {
+            width: 30%;
+            height: 60%;
+            border-radius: 16px;
+        }
+
+        .body {
+            padding: 14px 16px 18px;
+            border-top: 1px solid var(--line);
+        }
+
+        .name {
+            font-weight: 650;
+            font-size: 17px;
+            margin-bottom: 4px;
+        }
+
+        .desc {
+            color: var(--dim);
+            font-size: 13.5px;
+        }
+
+        .tag {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 2px 8px;
+            font-size: 12px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--dim);
+        }
+
+        .note {
+            margin-top: 34px;
+            padding: 16px 18px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--panel);
+            color: var(--dim);
+            font-size: 13.5px;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            background: rgba(128, 128, 128, .16);
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 12.5px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <a class="back" href="../">← 回主题预览</a>
+    <h1>WebUI 预览</h1>
+    <p class="lede">五款界面，同一套功能。点开就能试，数据是内置的假数据，改什么都不会保存。</p>
+    <p class="lede">窄屏也能看 —— 这五款是同一套响应式代码，不是另做的手机版。</p>
+
+    <div class="grid" style="margin-top: 26px">
+        <a class="card" href="acg/">
+            <div class="thumb t-acg"><i></i><i></i><i></i><i></i></div>
+            <div class="body">
+                <div class="name">二次元</div>
+                <div class="desc">壁纸打底的海报墙，外壳半透明浮在图上，窄屏走底部导航</div>
+                <span class="tag">海报墙 · 每次刷新换壁纸</span>
+            </div>
+        </a>
+
+        <a class="card" href="liquid-glass/">
+            <div class="thumb t-glass"><i></i></div>
+            <div class="body">
+                <div class="name">液态玻璃</div>
+                <div class="desc">导航是一枚悬浮的玻璃胶囊，内容是一张张横躺的大圆角卡</div>
+                <span class="tag">悬浮岛 · 按下回弹</span>
+            </div>
+        </a>
+
+        <a class="card" href="vue/">
+            <div class="thumb t-vue"><i></i><i></i><i></i></div>
+            <div class="body">
+                <div class="name">Vue 文档</div>
+                <div class="desc">文档站的路子：左侧分组导航 + 居中正文，靠细线分栏不靠阴影</div>
+                <span class="tag">分组侧栏 · 信息密度适中</span>
+            </div>
+        </a>
+
+        <a class="card" href="github/">
+            <div class="thumb t-github"><i></i><i></i><i></i><i></i></div>
+            <div class="body">
+                <div class="name">GitHub</div>
+                <div class="desc">Primer 的路子：深色顶栏 + 一排 tab，内容是一张带边框的清单</div>
+                <span class="tag">无侧栏 · 打开就干活</span>
+            </div>
+        </a>
+
+        <a class="card" href="material/">
+            <div class="thumb t-material"><i></i><i></i></div>
+            <div class="body">
+                <div class="name">Material Design 3</div>
+                <div class="desc">宽屏导航栏杆 + 窄屏底部导航，扩展 FAB 常驻右下</div>
+                <span class="tag">M3 响应式导航 · FAB</span>
+            </div>
+        </a>
+    </div>
+
+    <div class="note">
+        <p style="margin-top:0"><strong>装到自己的 ani-rss 上</strong>（Linux / macOS / NAS）：</p>
+        <p><code>curl -fsSL https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.sh | bash</code></p>
+        <p>Windows PowerShell：<code>irm https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.ps1 | iex</code></p>
+        <p style="margin-bottom:0">脚本会问装哪一款、装到哪个目录，在线播放器一并装好。装完刷新 ani-rss 页面即可，
+            想还原就把 <code>webui</code> 目录清空。</p>
+    </div>
+</div>
+</body>
+</html>

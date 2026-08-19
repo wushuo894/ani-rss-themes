@@ -5,7 +5,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.sh | bash
 #
 # 非交互：
-#   curl -fsSL .../install.sh | bash -s -- --dir /vol1/docker/ani-rss/config/webui --ui vt --player
+#   curl -fsSL .../install.sh | bash -s -- --dir /vol1/docker/ani-rss/config/webui --ui vue -y
 #
 # 用 POSIX sh 写，不依赖 bash 特性 —— 群晖/威联通的默认 shell 常常是 ash/busybox。
 set -eu
@@ -14,9 +14,11 @@ REPO="zzzwannasleep/ani-rss-themes"
 # 可用 ANIRSS_BASE 覆盖下载源（自建镜像、或本地测试）
 BASE="${ANIRSS_BASE:-https://github.com/$REPO/releases/latest/download}"
 
+# 五款界面。序号只是给交互时少打几个字用的，真正的 id 是右边那个。
+UI_IDS="acg liquid-glass vue github material"
+
 DIR=""
 UI=""
-PLAYER=""
 ASSUME_YES=""
 
 # ── 输出 ───────────────────────────────────────────────
@@ -35,11 +37,10 @@ while [ $# -gt 0 ]; do
     case "$1" in
         --dir) DIR="${2:-}"; shift 2 ;;
         --ui) UI="${2:-}"; shift 2 ;;
-        --player) PLAYER="yes"; shift ;;
-        --no-player) PLAYER="no"; shift ;;
         -y|--yes) ASSUME_YES="yes"; shift ;;
         -h|--help)
-            say "用法: install.sh [--dir <webui目录>] [--ui vt|qb] [--player|--no-player] [-y]"
+            say "用法: install.sh [--dir <webui目录>] [--ui acg|liquid-glass|vue|github|material] [-y]"
+            say "在线播放器包含在每个包里，不需要单独选。"
             exit 0 ;;
         *) die "未知参数: $1" ;;
     esac
@@ -135,63 +136,51 @@ else
 fi
 
 # ── 选界面 ─────────────────────────────────────────────
+# 五款是同一套功能的不同外观，装一款就够；先在线看看：
+#   https://zzzwannasleep.github.io/ani-rss-themes/webui/
 if [ -z "$UI" ]; then
     say ""
-    say "  ${B}vt${N}  VueTorrent 风：总览页 + 海报网格，密度舒适"
-    say "  ${B}qb${N}  qb-web 风：打开就是紧凑表格，信息密度高"
-    UI=$(ask "装哪一套" "vt")
+    say "  ${B}1${N} 二次元          壁纸打底的海报墙，窄屏走底部导航"
+    say "  ${B}2${N} 液态玻璃        悬浮玻璃胶囊导航 + 横躺大卡"
+    say "  ${B}3${N} Vue 文档        分组侧栏 + 居中正文，细线分栏"
+    say "  ${B}4${N} GitHub          深色顶栏 + tab，一张带边框的清单"
+    say "  ${B}5${N} Material 3      导航栏杆 / 底部导航 + 右下 FAB"
+    say "${D}  五款功能完全一样，只是长得不同。在线预览：${N}"
+    say "${D}  https://zzzwannasleep.github.io/ani-rss-themes/webui/${N}"
+    UI=$(ask "装哪一款（序号或 id）" "3")
 fi
-case "$UI" in vt|qb) : ;; *) die "只能是 vt 或 qb，收到: $UI" ;; esac
 
-# ── 播放器 ─────────────────────────────────────────────
-# 在线播放是 ani-rss 本来就有的功能，我们只是换掉了它自带的播放器，
-# 所以默认装 —— 不装等于把原有功能弄丢了。要省这 13MB 就显式 --no-player。
-if [ -z "$PLAYER" ]; then
-    PLAYER="yes"
-    say ""
-    say "${D}一并装 webplayer（本地拆容器交给 MSE，mkv、ASS 特效字幕、HDR 都能放）。${N}"
-    say "${D}下载约 13MB。不想要就加 --no-player。${N}"
-fi
+# 序号翻成 id，方便交互；直接给 id 的走下面的校验
+case "$UI" in
+    1) UI="acg" ;;
+    2) UI="liquid-glass" ;;
+    3) UI="vue" ;;
+    4) UI="github" ;;
+    5) UI="material" ;;
+esac
+
+_hit=""
+for _i in $UI_IDS; do [ "$UI" = "$_i" ] && _hit="yes"; done
+[ -n "$_hit" ] || die "只能是 $UI_IDS（或序号 1-5），收到: $UI"
 
 # ── 下载 ───────────────────────────────────────────────
 TMP=$(mktemp -d 2>/dev/null || mktemp -d -t anirss)
 cleanup() { rm -rf "$TMP"; }
 trap cleanup EXIT INT TERM
 
-fetch() {  # fetch <文件名>
-    say ""
-    say "下载 $1 ..."
-    # shellcheck disable=SC2086
-    $DL "$TMP/$1" "$BASE/$1" || die "下载失败：$BASE/$1"
-    # 截断的包解压时才报错，先验一下，错误信息能落在下载这一步上
-    if [ "$UNZIP" = "unzip" ]; then
-        unzip -tq "$TMP/$1" >/dev/null 2>&1 || die "$1 不是完整的压缩包（下载被截断？）"
-    fi
-    ok "$1 ($(du -h "$TMP/$1" | cut -f1))"
-}
+ZIP="ani-rss-webui-$UI.zip"
 
-extract() {  # extract <文件名> <目标目录>
-    if [ "$UNZIP" = "unzip" ]; then
-        unzip -oq "$TMP/$1" -d "$2"
-    else
-        python3 -c 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' "$TMP/$1" "$2"
-    fi
-}
-
-fetch "ani-rss-webui-$UI.zip"
-[ "$PLAYER" = "yes" ] && fetch "ani-rss-webplayer.zip"
+say ""
+say "下载 $ZIP ${D}（含在线播放器，约 14MB）${N}"
+# shellcheck disable=SC2086
+$DL "$TMP/$ZIP" "$BASE/$ZIP" || die "下载失败：$BASE/$ZIP"
+# 截断的包解压时才报错，先验一下，错误信息能落在下载这一步上
+if [ "$UNZIP" = "unzip" ]; then
+    unzip -tq "$TMP/$ZIP" >/dev/null 2>&1 || die "$ZIP 不是完整的压缩包（下载被截断？）"
+fi
+ok "$ZIP ($(du -h "$TMP/$ZIP" | cut -f1))"
 
 # ── 备份 ───────────────────────────────────────────────
-# 只升级界面时要把已装好的播放器留下：它有 40MB，
-# 跟着备份走的话用户升一次界面就静默失去在线播放，或者得重下一遍。
-KEEP_PLAYER=""
-if [ "$PLAYER" != "yes" ] && [ -d "$DIR/player" ]; then
-    KEEP_PLAYER="$TMP/keep-player"
-    mv "$DIR/player" "$KEEP_PLAYER"
-    say ""
-    ok "已装的播放器会原样保留"
-fi
-
 if [ -d "$DIR" ] && [ -n "$(ls -A "$DIR" 2>/dev/null)" ]; then
     BAK="$DIR.bak.$(date +%Y%m%d%H%M%S)"
     say ""
@@ -202,30 +191,26 @@ fi
 
 mkdir -p "$DIR" || die "无法创建 $DIR（权限？）"
 
-[ -n "$KEEP_PLAYER" ] && mv "$KEEP_PLAYER" "$DIR/player"
-
 # ── 解压 ───────────────────────────────────────────────
 say ""
 say "解压到 $DIR ..."
-extract "ani-rss-webui-$UI.zip" "$DIR"
+if [ "$UNZIP" = "unzip" ]; then
+    unzip -oq "$TMP/$ZIP" -d "$DIR"
+else
+    python3 -c 'import sys,zipfile;zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' "$TMP/$ZIP" "$DIR"
+fi
 [ -f "$DIR/index.html" ] || die "解压后没有 index.html，包可能有问题"
 ok "界面已就位"
-
-if [ "$PLAYER" = "yes" ]; then
-    extract "ani-rss-webplayer.zip" "$DIR"
-    [ -f "$DIR/player/play.html" ] || die "解压后没有 player/play.html"
-    ok "播放器已就位"
-fi
+[ -f "$DIR/player/play.html" ] || die "解压后没有 player/play.html，包可能有问题"
+ok "播放器已就位"
 
 # ── 收尾 ───────────────────────────────────────────────
 say ""
-say "${G}${B}装好了${N}  $DIR"
+say "${G}${B}装好了${N}  $DIR  ${D}($UI)${N}"
 say ""
 say "刷新 ani-rss 页面即可。想还原：清空该目录（或删掉后把 .bak 改回来）。"
-if [ "$PLAYER" = "yes" ]; then
-    say ""
-    say "${Y}播放前建议先验一下服务端的 Range 实现：${N}"
-    say "${D}  ani-rss 当前版本每个分段响应少一字节，会让 webplayer 崩在解复用阶段，"
-    say "  看起来像播放器的锅。仓库里的 webui-shared/tools/range-probe.mjs 可判定。${N}"
-fi
+say ""
+say "${Y}播放前建议先验一下服务端的 Range 实现：${N}"
+say "${D}  ani-rss 当前版本每个分段响应少一字节，会让播放器崩在解复用阶段，"
+say "  看起来像播放器的锅。仓库里的 webui/shared/tools/range-probe.mjs 可判定。${N}"
 say ""

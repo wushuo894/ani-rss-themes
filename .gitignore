@@ -14,12 +14,12 @@ genshin-replica-main/
 
 # WebUI 工程
 node_modules/
-webui-*/node_modules/
-webui-*/dist/
-webui-*/config.local.json
+webui/node_modules/
+webui/dist/
+webui/.env.local
 
 # 生成器用的上游源码浅克隆，第三方代码不进版本控制
-webui-shared/tools/upstream/
+webui/shared/tools/upstream/
 
 # pack.mjs 组装出来的可部署目录
 dist-webui/

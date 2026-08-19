@@ -1,0 +1,142 @@
+/*
+ * 主题变量 → Vuetify 组件的接线层。
+ *
+ * 每款主题只需要给出 --ani-* 变量，具体接到哪些组件上由这份文件统一决定；
+ * 这样加一款新主题不必再写一遍选择器，改接线也只改这一处。
+ *
+ * 变量没定义时全部回退到 Vuetify 默认值，所以「不选主题」是完全正常的形态。
+ */
+
+:root {
+    /* 默认值：不启用任何主题时就是这套，等同于 Vuetify 原生观感 */
+    --ani-font: inherit;
+    --ani-font-title: var(--ani-font);
+    --ani-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --ani-radius: 8px;
+    --ani-radius-pill: 4px;
+    --ani-radius-input: 4px;
+    --ani-letter-spacing: normal;
+    --ani-panel-blur: 0px;
+    --ani-surface-alpha: 1;
+}
+
+/* ── 字体 ── */
+html[data-ani-theme] .v-application {
+    font-family: var(--ani-font);
+    letter-spacing: var(--ani-letter-spacing);
+}
+
+html[data-ani-theme] .v-app-bar-title,
+html[data-ani-theme] .v-card-title,
+html[data-ani-theme] .text-h4,
+html[data-ani-theme] .text-h5,
+html[data-ani-theme] .text-h6 {
+    font-family: var(--ani-font-title);
+}
+
+html[data-ani-theme] .log-box,
+html[data-ani-theme] .changelog {
+    font-family: var(--ani-font-mono);
+}
+
+/* ── 圆角 ── */
+html[data-ani-theme] .v-card,
+html[data-ani-theme] .v-sheet.v-sheet--rounded,
+html[data-ani-theme] .v-navigation-drawer,
+html[data-ani-theme] .v-overlay__content > .v-card {
+    border-radius: var(--ani-radius);
+}
+
+html[data-ani-theme] .v-btn {
+    border-radius: var(--ani-radius-pill);
+}
+
+/* 纯图标按钮是圆的，别被药丸圆角改成方的 */
+html[data-ani-theme] .v-btn--icon {
+    border-radius: 50%;
+}
+
+html[data-ani-theme] .v-field {
+    border-radius: var(--ani-radius-input);
+}
+
+html[data-ani-theme] .v-chip {
+    border-radius: var(--ani-radius-pill);
+}
+
+/* ── 面板：带壁纸的主题靠这两个变量透出背景 ── */
+html[data-ani-theme] .v-card,
+html[data-ani-theme] .v-navigation-drawer,
+html[data-ani-theme] .v-toolbar,
+html[data-ani-theme] .v-overlay__content > .v-card {
+    backdrop-filter: blur(var(--ani-panel-blur));
+    -webkit-backdrop-filter: blur(var(--ani-panel-blur));
+}
+
+/*
+ * 面板底色透明度。
+ * Vuetify 的表面色是 rgb(var(--v-theme-surface))，这里改成 rgba 掺进 alpha，
+ * 不透明（alpha=1）时和原来完全一致，所以对不带壁纸的主题无副作用。
+ */
+html[data-ani-theme] .v-card:not(.v-card--variant-tonal):not(.v-card--variant-flat),
+html[data-ani-theme] .v-navigation-drawer,
+html[data-ani-theme] .v-toolbar {
+    background: rgba(var(--v-theme-surface), var(--ani-surface-alpha)) !important;
+}
+
+/* ── 阴影：主题给了就用主题的，没给就保持 Vuetify 的高度体系 ── */
+html[data-ani-theme] .v-card.v-card--variant-elevated,
+html[data-ani-theme] .v-sheet.elevation-4 {
+    box-shadow: var(--ani-shadow, inherit);
+}
+
+/* ── 壁纸底图：由各主题设置 --ani-bg-image，这里只负责铺开 ── */
+html[data-ani-theme] body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background-image: var(--ani-bg-image, none);
+    background-size: cover;
+    background-position: center;
+    filter: blur(var(--ani-bg-blur, 0px)) brightness(var(--ani-bg-bright, 1));
+    transform: scale(var(--ani-bg-scale, 1));
+    pointer-events: none;
+}
+
+/* 压暗层：让正文在任意壁纸上都可读 */
+html[data-ani-theme] body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--ani-bg-scrim, none);
+    pointer-events: none;
+}
+
+/*
+ * 主题一生效就让 Vuetify 的应用底色让位，改由 body 上色。
+ *
+ * 装饰层（上面那两个伪元素）是负 z-index，压在应用底色下面 ——
+ * 不让位的话主题画的渐变、网格、壁纸一律看不见。这里特意不限定「带壁纸的主题」：
+ * 不带壁纸那几款画的是渐变和纹理，同样被盖住，之前是白画的。
+ * 底色挪到 body 上，画布仍然是不透明的，透出来的只有装饰层。
+ */
+html[data-ani-theme] body {
+    background: rgb(var(--v-theme-background));
+}
+
+html[data-ani-theme] .v-application,
+html[data-ani-theme] .v-main {
+    background: transparent !important;
+}
+
+/* 系统开了「减弱动态效果」就把主题里的装饰动画停掉 */
+@media (prefers-reduced-motion: reduce) {
+    html[data-ani-theme] *,
+    html[data-ani-theme] *::before,
+    html[data-ani-theme] *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

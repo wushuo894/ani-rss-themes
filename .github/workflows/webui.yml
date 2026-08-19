@@ -10,7 +10,7 @@ on:
     branches: [main]
     tags: ['webui-v*']
   pull_request:
-    paths: ['webui-vt/**', 'webui-qb/**', 'webui-shared/**']
+    paths: ['webui/**']
   workflow_dispatch:
 
 # 同一分支的新推送取消上一次未跑完的（构建 webplayer 要几分钟，不值得排队）
@@ -24,7 +24,7 @@ permissions:
 jobs:
   # ─────────────────────────────────────────────────────────
   build:
-    name: 构建两套 WebUI
+    name: 构建五款界面
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,56 +33,42 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: |
-            package-lock.json
-            webui-vt/package-lock.json
-            webui-qb/package-lock.json
+          cache-dependency-path: webui/package-lock.json
 
-      # webui-shared 的运行时依赖（js-md5）装在仓库根：
-      # 它被两个 app 用路径别名引入，不在任何一个 app 的 node_modules 里
-      - name: 装根依赖
-        run: npm ci
-
-      - name: 装 webui-vt 依赖
-        run: npm ci --prefix webui-vt
-
-      - name: 装 webui-qb 依赖
-        run: npm ci --prefix webui-qb
+      - run: npm ci
+        working-directory: webui
 
       # 主题的 scope() 有括号配对和 @media 递归，写错不会报错只会生成坏 CSS
       - name: 主题自检
         run: npm run test:themes
+        working-directory: webui
 
-      # build 脚本里已经串了 vue-tsc，类型错误会让构建直接失败
-      - name: 构建 webui-vt
-        run: npm run build --prefix webui-vt
-
-      - name: 构建 webui-qb
-        run: npm run build --prefix webui-qb
+      # build:all 里已经串了 vue-tsc，类型错误会让构建直接失败
+      - name: 构建五款
+        run: npm run build:all
+        working-directory: webui
 
       - name: 校验产物
         run: |
           set -e
-          for app in vt qb; do
-            d="webui-$app/dist"
+          for id in acg liquid-glass vue github material; do
+            d="webui/dist/$id"
             test -f "$d/index.html" || { echo "::error::$d 缺少 index.html"; exit 1; }
             test -d "$d/assets"     || { echo "::error::$d 缺少 assets/"; exit 1; }
             # base 必须是相对路径，否则挂子路径反代下资源全 404
             grep -q 'src="\./assets/' "$d/index.html" \
               || { echo "::error::$d/index.html 的资源不是相对路径，检查 vite 的 base"; exit 1; }
-            echo "$app: $(du -sh "$d" | cut -f1)"
+            # 演示数据只该出现在 Pages 的预览构建里，混进正式产物等于发了个假后端
+            if grep -rq '喵萌奶茶屋' "$d/assets"; then
+              echo "::error::$d 里混进了演示数据，检查 VITE_DEMO"; exit 1
+            fi
+            echo "$id: $(du -sh "$d" | cut -f1)"
           done
 
       - uses: actions/upload-artifact@v4
         with:
-          name: webui-vt
-          path: webui-vt/dist
-          retention-days: 7
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: webui-qb
-          path: webui-qb/dist
+          name: webui
+          path: webui/dist
           retention-days: 7
 
   # ─────────────────────────────────────────────────────────
@@ -115,7 +101,7 @@ jobs:
       - run: npm run build
         working-directory: webplayer
 
-      # 压缩包里要带一层 player/，这样和 WebUI 的包解压到同一个 webui/ 目录即可各就各位
+      # 压缩包里要带一层 player/，解压到 webui/ 就各就各位
       - name: 套一层 player/
         run: |
           set -e
@@ -143,30 +129,39 @@ jobs:
         with:
           path: art
 
+      # 每个包都自带播放器：在线播放本来就是 ani-rss 的功能，我们只是把它自带的
+      # 播放器换成支持 ASS 特效字幕和 HDR 的那个，拆成两个包只会让人少装一个然后以为坏了。
       # 资产名不带版本号：install 脚本用 releases/latest/download/<固定名> 取，
-      # 这个地址不需要调 API，也就没有速率限制的问题
+      # 这个地址不需要调 API，也就没有速率限制的问题。
       - name: 打压缩包
         run: |
           set -e
           mkdir -p out
-          (cd art/webui-vt   && zip -qr ../../out/ani-rss-webui-vt.zip .)
-          (cd art/webui-qb   && zip -qr ../../out/ani-rss-webui-qb.zip .)
-          (cd art/webplayer  && zip -qr ../../out/ani-rss-webplayer.zip .)
+          for id in acg liquid-glass vue github material; do
+            stage="stage/$id"
+            mkdir -p "$stage"
+            cp -r "art/webui/$id/." "$stage/"
+            cp -r art/webplayer/player "$stage/player"
+            test -f "$stage/player/play.html" || { echo "::error::$id 包里没有 player/play.html"; exit 1; }
+            (cd "$stage" && zip -qr "$GITHUB_WORKSPACE/out/ani-rss-webui-$id.zip" .)
+          done
           cd out && sha256sum *.zip > checksums.txt && ls -lh
 
       - name: 生成发布说明
         run: |
           cat > notes.md <<EOF
-          解压到 ani-rss 配置目录下的 \`webui/\` 即可（没有就新建一个）。
+          五款界面挑一款，解压到 ani-rss 配置目录下的 \`webui/\` 即可（没有就新建一个）。
+          **每个包都自带在线播放器**，不用再单独下一个。
 
-          | 压缩包 | 内容 | 解压到 |
-          |---|---|---|
-          | \`ani-rss-webui-vt.zip\`   | VueTorrent 风：总览页 + 海报网格 | \`webui/\` |
-          | \`ani-rss-webui-qb.zip\`   | qb-web 风：紧凑表格，打开就干活 | \`webui/\` |
-          | \`ani-rss-webplayer.zip\`  | 在线播放器（默认装，含一层 \`player/\`）| \`webui/\` |
+          | 压缩包 | 长什么样 |
+          |---|---|
+          | \`ani-rss-webui-acg.zip\`          | 二次元：壁纸打底的海报墙，窄屏走底部导航 |
+          | \`ani-rss-webui-liquid-glass.zip\` | 液态玻璃：悬浮玻璃胶囊导航 + 横躺大卡 |
+          | \`ani-rss-webui-vue.zip\`          | Vue 文档：分组侧栏 + 居中正文 |
+          | \`ani-rss-webui-github.zip\`       | GitHub：深色顶栏 + tab，一张带边框的清单 |
+          | \`ani-rss-webui-material.zip\`     | Material Design 3：导航栏杆 / 底部导航 + FAB |
 
-          两套界面**选一套**装，webplayer 那个包解压到同一个 \`webui/\` 下 —— 在线播放本来就是 ani-rss 的功能，
-          这个包只是把它自带的播放器换成支持 ASS 特效字幕和 HDR 的那个。
+          五款是同一套功能的不同外观，**装一款就够**，装第二款会覆盖第一款。
 
           ### 一行装好
 
@@ -180,7 +175,11 @@ jobs:
           irm https://raw.githubusercontent.com/${{ github.repository }}/main/install.ps1 | iex
           \`\`\`
 
-          脚本会问你 webui 目录在哪、装哪一套（播放器默认一起装），然后自己下载解压。
+          脚本会问你 webui 目录在哪、装哪一款，然后自己下载解压。
+
+          ### 先在线看看
+
+          <https://zzzwannasleep.github.io/ani-rss-themes/webui/> —— 五款都能点开试，数据是内置的假数据。
 
           ### 播放前先跑一下
 
@@ -188,7 +187,7 @@ jobs:
           而且崩在解复用阶段、看着像播放器的锅。先判定责任：
 
           \`\`\`bash
-          node webui-shared/tools/range-probe.mjs "http://<ani-rss>/api/file?filename=<base64>&s=<token>"
+          node webui/shared/tools/range-probe.mjs "http://<ani-rss>/api/file?filename=<base64>&s=<token>"
           \`\`\`
 
           ---
@@ -198,8 +197,6 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            out/ani-rss-webui-vt.zip
-            out/ani-rss-webui-qb.zip
-            out/ani-rss-webplayer.zip
+            out/*.zip
             out/checksums.txt
           body_path: notes.md

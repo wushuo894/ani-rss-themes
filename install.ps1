@@ -4,17 +4,22 @@
 #
 # 非交互（先设环境变量再执行）：
 #   $env:ANIRSS_WEBUI_DIR = 'D:\ani-rss\config\webui'
-#   $env:ANIRSS_UI = 'vt'; $env:ANIRSS_PLAYER = 'yes'
+#   $env:ANIRSS_UI = 'vue'
 #   irm .../install.ps1 | iex
 #
 # 注意：这里刻意不写 param()，因为 `irm | iex` 是把脚本文本当语句执行的，
 # 顶层 param() 在那种模式下不成立，只能走环境变量。
+#
+# 另：本文件必须存为 带 BOM 的 UTF-8。Windows PowerShell 5.1 对无 BOM 的文件按
+# ANSI 解码，中文注释的字节会被重解释出引号，直接把脚本结构撕开、报一堆莫名其妙的语法错。
 
 $ErrorActionPreference = 'Stop'
 
 $Repo = 'zzzwannasleep/ani-rss-themes'
 # 可用 $env:ANIRSS_BASE 覆盖下载源（自建镜像、或本地测试）
 $Base = if ($env:ANIRSS_BASE) { $env:ANIRSS_BASE } else { "https://github.com/$Repo/releases/latest/download" }
+
+$UiIds = @('acg', 'liquid-glass', 'vue', 'github', 'material')
 
 # param() 后面必须换行或加分号，同一行直接跟语句 PowerShell 解析不了
 function Say {
@@ -90,63 +95,50 @@ if (Test-Path (Join-Path $parent 'config.v2.json')) {
 }
 
 # ── 选界面 ──────────────────────────────────────────────
+# 五款是同一套功能的不同外观，装一款就够
 $ui = $env:ANIRSS_UI
 if (-not $ui) {
     Say ''
-    Say '  vt  VueTorrent 风：总览页 + 海报网格，密度舒适'
-    Say '  qb  qb-web 风：打开就是紧凑表格，信息密度高'
-    $ui = Ask '装哪一套' 'vt'
+    Say '  1 二次元          壁纸打底的海报墙，窄屏走底部导航'
+    Say '  2 液态玻璃        悬浮玻璃胶囊导航 + 横躺大卡'
+    Say '  3 Vue 文档        分组侧栏 + 居中正文，细线分栏'
+    Say '  4 GitHub          深色顶栏 + tab，一张带边框的清单'
+    Say '  5 Material 3      导航栏杆 / 底部导航 + 右下 FAB'
+    Say '  五款功能完全一样，只是长得不同。在线预览：' 'DarkGray'
+    Say '  https://zzzwannasleep.github.io/ani-rss-themes/webui/' 'DarkGray'
+    $ui = Ask '装哪一款（序号或 id）' '3'
 }
-if ($ui -notin @('vt', 'qb')) { Die "只能是 vt 或 qb，收到: $ui" }
 
-# ── 播放器 ──────────────────────────────────────────────
-# 在线播放是 ani-rss 本来就有的功能，我们只是换掉了它自带的播放器，
-# 所以默认装 —— 不装等于把原有功能弄丢了。要省这 13MB 就设 $env:ANIRSS_PLAYER='no'。
-$player = $env:ANIRSS_PLAYER
-if (-not $player) {
-    $player = 'yes'
-    Say ''
-    Say '一并装 webplayer（本地拆容器交给 MSE，mkv、ASS 特效字幕、HDR 都能放）。' 'DarkGray'
-    Say '下载约 13MB。不想要就先设 $env:ANIRSS_PLAYER = ''no''。' 'DarkGray'
+switch ($ui) {
+    '1' { $ui = 'acg' }
+    '2' { $ui = 'liquid-glass' }
+    '3' { $ui = 'vue' }
+    '4' { $ui = 'github' }
+    '5' { $ui = 'material' }
 }
+if ($ui -notin $UiIds) { Die "只能是 $($UiIds -join ' / ')（或序号 1-5），收到: $ui" }
 
 # ── 下载 ────────────────────────────────────────────────
 $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("anirss-" + [guid]::NewGuid().ToString('N').Substring(0, 8))
 New-Item -ItemType Directory -Path $tmp | Out-Null
 
-function Fetch {
-    param([string]$Name)
+try {
+    $zipName = "ani-rss-webui-$ui.zip"
+    $zip = Join-Path $tmp $zipName
     Say ''
-    Say "下载 $Name ..."
-    $out = Join-Path $tmp $Name
+    Say "下载 $zipName （含在线播放器，约 14MB）..."
     try {
         # 进度条会让下载慢一个数量级，关掉
         $old = $ProgressPreference; $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest -Uri "$Base/$Name" -OutFile $out
+        Invoke-WebRequest -Uri "$Base/$zipName" -OutFile $zip
         $ProgressPreference = $old
     } catch {
-        Die "下载失败：$Base/$Name`n$($_.Exception.Message)"
+        Die "下载失败：$Base/$zipName`n$($_.Exception.Message)"
     }
-    $mb = [math]::Round((Get-Item $out).Length / 1MB, 1)
-    Ok "$Name ($mb MB)"
-    return $out
-}
-
-try {
-    $uiZip = Fetch "ani-rss-webui-$ui.zip"
-    $playerZip = if ($player -eq 'yes') { Fetch 'ani-rss-webplayer.zip' } else { $null }
+    $mb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
+    Ok "$zipName ($mb MB)"
 
     # ── 备份 ────────────────────────────────────────────
-    # 只升级界面时要把已装好的播放器留下：它有 40MB，
-    # 跟着备份走的话用户升一次界面就静默失去在线播放，或者得重下一遍。
-    $keepPlayer = $null
-    if (($player -ne 'yes') -and (Test-Path (Join-Path $dir 'player'))) {
-        $keepPlayer = Join-Path $tmp 'keep-player'
-        Move-Item (Join-Path $dir 'player') $keepPlayer
-        Say ''
-        Ok '已装的播放器会原样保留'
-    }
-
     if ((Test-Path $dir) -and (Get-ChildItem $dir -Force | Select-Object -First 1)) {
         $bak = "$dir.bak." + (Get-Date -Format 'yyyyMMddHHmmss')
         Say ''
@@ -155,33 +147,26 @@ try {
         Ok '已备份'
     }
     New-Item -ItemType Directory -Path $dir -Force | Out-Null
-    if ($keepPlayer) { Move-Item $keepPlayer (Join-Path $dir 'player') }
 
     # ── 解压 ────────────────────────────────────────────
     Say ''
     Say "解压到 $dir ..."
-    Expand-Archive -Path $uiZip -DestinationPath $dir -Force
+    Expand-Archive -Path $zip -DestinationPath $dir -Force
     if (-not (Test-Path (Join-Path $dir 'index.html'))) { Die '解压后没有 index.html，包可能有问题' }
     Ok '界面已就位'
-
-    if ($playerZip) {
-        Expand-Archive -Path $playerZip -DestinationPath $dir -Force
-        if (-not (Test-Path (Join-Path $dir 'player\play.html'))) { Die '解压后没有 player\play.html' }
-        Ok '播放器已就位'
-    }
+    if (-not (Test-Path (Join-Path $dir 'player\play.html'))) { Die '解压后没有 player\play.html，包可能有问题' }
+    Ok '播放器已就位'
 } finally {
     Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 # ── 收尾 ────────────────────────────────────────────────
 Say ''
-Say "装好了  $dir" 'Green'
+Say "装好了  $dir  ($ui)" 'Green'
 Say ''
 Say '刷新 ani-rss 页面即可。想还原：清空该目录（或删掉后把 .bak 改回来）。'
-if ($player -eq 'yes') {
-    Say ''
-    Say '播放前建议先验一下服务端的 Range 实现：' 'Yellow'
-    Say '  ani-rss 当前版本每个分段响应少一字节，会让 webplayer 崩在解复用阶段，' 'DarkGray'
-    Say '  看起来像播放器的锅。仓库里的 webui-shared/tools/range-probe.mjs 可判定。' 'DarkGray'
-}
+Say ''
+Say '播放前建议先验一下服务端的 Range 实现：' 'Yellow'
+Say '  ani-rss 当前版本每个分段响应少一字节，会让播放器崩在解复用阶段，' 'DarkGray'
+Say '  看起来像播放器的锅。仓库里的 webui/shared/tools/range-probe.mjs 可判定。' 'DarkGray'
 Say ''

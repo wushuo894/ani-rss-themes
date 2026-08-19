@@ -1,6 +1,0 @@
-// Vuetify SASS 变量覆盖。只放「必须在编译期定的」——运行时能改的一律走 CSS 变量，
-// 否则后面那 17 款主题每换一次配色就得重新构建一遍。
-@use 'vuetify/settings' with (
-  // 关掉颜色包：Vuetify 默认会吐出几千行 .bg-red-lighten-2 之类的工具类，我们一个都不用
-  $color-pack: false
-);
