@@ -1,0 +1,248 @@
+<script setup lang="ts">
+import {useRouter} from 'vue-router'
+import {toApiFile} from '@shared/http'
+import {formatEpisodes, formatPercent, fromNow} from '@shared/format'
+import {useDashboard} from '@/composables/useDashboard'
+import AniSkeleton from '@/components/ani/AniSkeleton.vue'
+
+/**
+ * 「今天更新了什么」——追番的人一天里唯一会反复看的东西。
+ *
+ * 所以今天那一组占整个首屏，横着铺开一排大海报；统计数字缩成一行小药丸放在底下。
+ * 另外四款的总览是「先看数字再看内容」，这款反过来：先看图，数字是配菜。
+ */
+const d = useDashboard()
+const router = useRouter()
+
+const cover = (c?: string) => (c ? toApiFile(c) : '')
+</script>
+
+<template>
+  <div class="pa-4 pa-md-6">
+    <!-- ── 今天 ── -->
+    <div class="d-flex align-center ga-3 mb-4">
+      <h1 class="hero-title">{{ d.todayLabel.value || '今天' }}</h1>
+      <v-chip v-if="d.today.value.length" size="small" variant="flat">{{ d.today.value.length }} 部</v-chip>
+      <v-spacer/>
+      <v-btn :loading="d.ani.loading" icon="mdi-refresh" size="small" title="刷新全部"
+             variant="text" @click="d.ani.refreshAll()"/>
+    </div>
+
+    <!-- 横向轨道：一屏放不下就左右滑，不换行 —— 换行会把「今天」这一组切成好几层，
+         视线要来回扫，就没有「今天就这些」的一眼感 -->
+    <div class="rail mb-8">
+      <template v-if="d.firstLoad.value">
+        <div v-for="i in 6" :key="i" class="rail-item">
+          <div class="sk" style="aspect-ratio: .7; width: 100%"/>
+        </div>
+      </template>
+
+      <template v-else-if="d.today.value.length">
+        <div v-for="(a, i) in d.today.value" :key="a.id" :style="{'--i': i}"
+             class="rail-item ani-in ani-lift" @click="router.push('/subscriptions')">
+          <div class="tile">
+            <v-img :src="cover(a.cover)" aspect-ratio="0.7" cover>
+              <template #placeholder>
+                <div class="fill-height d-flex align-center justify-center bg-surface-variant">
+                  <v-icon icon="mdi-image-outline"/>
+                </div>
+              </template>
+            </v-img>
+            <div class="tile-veil">
+              <div class="tile-title">{{ a.title }}</div>
+              <div class="tile-sub">{{ formatEpisodes(a.currentEpisodeNumber, a.totalEpisodeNumber) }}</div>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <v-empty-state v-else class="w-100" icon="mdi-sleep" text="今天没有番要更新，去看看别的吧" title="今天休息"/>
+    </div>
+
+    <!-- ── 数字：一行药丸，不占版面 ── -->
+    <div class="pill-row mb-8">
+      <v-chip v-for="(s, i) in d.stats.value" :key="s.key" :prepend-icon="s.icon" :style="{'--i': i}"
+              :to="s.to" class="ani-in stat-pill" size="large" variant="flat">
+        <strong class="mr-1">{{ s.value }}</strong>{{ s.label }}
+      </v-chip>
+    </div>
+
+    <div class="two-col">
+      <!-- ── 下载中 ── -->
+      <section>
+        <h2 class="sec-title">下载中</h2>
+        <div v-if="d.torrents.downloading.length" class="dl-list">
+          <div v-for="(t, i) in d.torrents.downloading.slice(0, 6)" :key="t.hash" :style="{'--i': i}"
+               class="dl-row ani-in">
+            <div class="dl-name">{{ t.name }}</div>
+            <div class="d-flex align-center ga-2 mt-1">
+              <v-progress-linear :model-value="(t.progress ?? 0) * 100" color="primary" height="6" rounded/>
+              <span class="dl-pct">{{ formatPercent(t.progress) }}</span>
+            </div>
+          </div>
+        </div>
+        <p v-else class="empty-line">{{ d.downloadsHint.value }}</p>
+      </section>
+
+      <!-- ── 停更提醒 ── -->
+      <section>
+        <h2 class="sec-title">
+          疑似停更
+          <v-chip v-if="d.stalled.value.length" class="ml-2" color="warning" size="x-small" variant="flat">
+            {{ d.stalled.value.length }}
+          </v-chip>
+        </h2>
+        <div v-if="d.stalled.value.length" class="dl-list">
+          <div v-for="(a, i) in d.stalled.value.slice(0, 6)" :key="a.id" :style="{'--i': i}" class="dl-row ani-in">
+            <div class="dl-name">{{ a.title }}</div>
+            <div class="dl-pct mt-1">最后更新 {{ fromNow(a.lastDownloadTime) }}</div>
+          </div>
+        </div>
+        <p v-else class="empty-line">字幕组都很勤快。</p>
+      </section>
+    </div>
+
+    <!-- 首屏还在转的时候，下面这堆也给个占位，免得整页只有一排灰海报 -->
+    <div v-if="d.firstLoad.value" class="dl-list mt-4">
+      <AniSkeleton :count="3" shape="row"/>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.hero-title {
+    font-family: var(--ani-font-title, inherit);
+    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    font-weight: 700;
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+/* 横向轨道。scroll-snap 让每次滑动都停在整张海报上，不会停在半张 */
+.rail {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    /* 抬起动作会超出轨道上沿，不留出空间的话阴影和位移都会被裁掉 */
+    padding: 10px 4px 16px;
+    margin: -10px -4px -16px;
+    scrollbar-width: thin;
+}
+
+.rail-item {
+    flex: 0 0 clamp(126px, 30vw, 178px);
+    scroll-snap-align: start;
+    cursor: pointer;
+}
+
+.tile {
+    position: relative;
+    border-radius: var(--ani-radius, 14px);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, .34);
+    box-shadow: 0 6px 22px rgba(0, 0, 0, .3);
+}
+
+/* 标题压在海报下沿：壁纸这款的重点是图，文字不该另占一块白底 */
+.tile-veil {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 22px 10px 8px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, .82));
+    color: #fff;
+}
+
+.tile-title {
+    font-size: .82rem;
+    font-weight: 600;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.tile-sub {
+    font-size: .7rem;
+    opacity: .82;
+    margin-top: 2px;
+}
+
+.pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.stat-pill {
+    backdrop-filter: blur(var(--ani-panel-blur, 0px));
+}
+
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+}
+
+@media (min-width: 900px) {
+    .two-col {
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+    }
+}
+
+.sec-title {
+    font-family: var(--ani-font-title, inherit);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.dl-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dl-row {
+    padding: 10px 12px;
+    border-radius: var(--ani-radius, 14px);
+    background: rgba(var(--v-theme-surface), var(--ani-surface-alpha, 1));
+    backdrop-filter: blur(var(--ani-panel-blur, 0px));
+    border: 1px solid rgba(255, 255, 255, .22);
+    min-width: 0;
+}
+
+/* 任务名可以很长（整个发布标题），不截断会把进度条挤出卡片 */
+.dl-name {
+    font-size: .85rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dl-pct {
+    flex: 0 0 auto;
+    font-size: .72rem;
+    opacity: .7;
+    font-variant-numeric: tabular-nums;
+}
+
+/*
+ * 空态那句话也要有底板。
+ * 壁纸是随机图，这句话直接铺在图上时经常一个字都读不出来 ——
+ * 有底板就跟旁边的下载卡是一套，也不会因为换了张图突然消失。
+ */
+.empty-line {
+    padding: 14px 12px;
+    border-radius: var(--ani-radius, 14px);
+    background: rgba(var(--v-theme-surface), var(--ani-surface-alpha, 1));
+    backdrop-filter: blur(var(--ani-panel-blur, 0px));
+    border: 1px solid rgba(255, 255, 255, .22);
+    font-size: .85rem;
+    opacity: .8;
+}
+</style>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {useDisplay} from 'vuetify'
 import {useShell} from '@/composables/useShell'
+import './preset.css'
 
 /**
  * 壁纸外壳：顶栏透明浮在图上，宽屏左侧一条半透明图标栏，窄屏底部导航。
@@ -54,7 +55,11 @@ const s = useShell()
       <v-text-field v-model="s.ani.keyword" clearable density="compact" hide-details
                     placeholder="搜索订阅" prepend-inner-icon="mdi-magnify"/>
     </div>
-    <router-view/>
+    <router-view v-slot="{Component}">
+      <transition mode="out-in" name="page-rise">
+        <component :is="Component"/>
+      </transition>
+    </router-view>
     <div v-if="mobile" style="height: 76px"/>
   </v-main>
 
@@ -72,15 +77,23 @@ const s = useShell()
  * 单加 flex-grow-0 会让它宽度直接塌成 0，标题整块消失 —— 必须把 basis 也改成 auto。
  */
 .title-fit {
-    flex: 0 0 auto;
+    /* 0 1 而不是 0 0：不跟着抢宽度，但窄屏必须能让 —— 不让的话品牌名会把搜索框顶出顶栏 */
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 .brand {
     font-weight: 600;
     letter-spacing: .02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
+/* 能长能短：不给 flex 基准的话，窄屏下输入框会被压到只剩放大镜图标 */
 .search {
+    flex: 1 1 200px;
+    min-width: 0;
     max-width: 420px;
 }
 

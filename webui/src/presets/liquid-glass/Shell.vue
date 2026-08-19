@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {useDisplay} from 'vuetify'
 import {useShell} from '@/composables/useShell'
+import './preset.css'
 
 /**
  * 悬浮岛外壳：导航不是贴边的抽屉，而是一枚浮在内容之上的玻璃胶囊
@@ -51,7 +52,11 @@ const s = useShell()
   <v-main>
     <!-- 内边距写在内层：v-main 的 padding 是布局系统按内联样式算的，类选择器盖不过它 -->
     <div :class="mobile ? 'pad-bottom' : 'pad-left'">
-      <router-view/>
+      <router-view v-slot="{Component}">
+      <transition mode="out-in" name="page-zoom">
+        <component :is="Component"/>
+      </transition>
+    </router-view>
     </div>
   </v-main>
 </template>
@@ -83,7 +88,27 @@ const s = useShell()
     white-space: nowrap;
 }
 
+/*
+ * 超窄屏：品牌名让位给搜索框。
+ * 岛是固定宽度的胶囊，塞不下就必须有人退出，退品牌名比退搜索框合理 ——
+ * 订阅页上真正要用的是搜索。
+ */
+@media (max-width: 479px) {
+    .brand {
+        display: none;
+    }
+
+    .top-island {
+        left: 8px;
+        right: 8px;
+        padding: 6px 10px;
+        gap: 6px;
+    }
+}
+
 .search {
+    flex: 1 1 140px;
+    min-width: 0;
     max-width: 380px;
 }
 

@@ -1,0 +1,24 @@
+/*
+ * 二次元这款的动作语言：弹。
+ *
+ * 曲线末端过冲（1.56）——卡片抬到位会往回弹一点点，像有重量。
+ * 这在文档站或 GitHub 那种界面里是廉价感，但海报墙本来就是「玩」的界面，
+ * 手感轻快比克制重要。悬停的光晕用主色，跟壁纸上的高光是一套。
+ */
+:root {
+    --m-dur: 220ms;
+    --m-dur-slow: 420ms;
+    --m-ease: cubic-bezier(.34, 1.56, .64, 1);
+    --m-ease-out: cubic-bezier(.34, 1.56, .64, 1);
+    --m-rise: 14px;
+    --m-scale: .94;
+    --m-stagger: 26ms;
+    --m-lift: -7px;
+    --m-lift-shadow: 0 14px 34px rgba(var(--v-theme-primary), .42), 0 4px 12px rgba(0, 0, 0, .28);
+    --m-press: .96;
+}
+
+/* 玻璃面板上的分隔线要比默认亮，否则壁纸一亮就整条消失 */
+.v-divider {
+    border-color: rgba(255, 255, 255, .28) !important;
+}

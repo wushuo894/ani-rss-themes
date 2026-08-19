@@ -41,15 +41,13 @@ export const THEMES: ThemeDef[] = [
 /* 壁纸：横竖屏各取一个源，竖屏用竖版图，免得整张被裁掉 */
 :root {
     --ani-bg-image: url("${ACG_PC}");
-    --ani-bg-scrim: linear-gradient(rgba(8,12,22,.42), rgba(8,12,22,.62));
-    --ani-bg-blur: 0px;
-    --ani-bg-scale: 1.04;
-    --ani-bg-bright: 1;
+    /* 压暗层要够重：壁纸是随机的，遇到亮色图时正文和小标题会整段读不出来 */
+    --ani-bg-scrim: linear-gradient(rgba(8,12,22,.58), rgba(8,12,22,.76));
 }
 @media (orientation: portrait) {
     :root { --ani-bg-image: url("${ACG_MP}"); }
 }
-.v-card { border: 1px solid rgba(255,255,255,.2); }
+.v-card { border: 1px solid rgba(255,255,255,.34); }
 .v-btn:hover { box-shadow: 0 0 16px rgba(127,169,255,.5); }
 `,
     },
@@ -87,13 +85,19 @@ body::before {
 }
 @keyframes lg-drift-a { to { background-position: 3% 2%, -3% 3%, 2% -3%, 0 0, 0 0; } }
 
-/* 边缘折射带：上下亮、左右暗 */
+/* 边缘折射带 + 外阴影。
+   只写内阴影的话卡片看着是「陷进背景里」的，和「玻璃浮在渐变上」正好相反 ——
+   浮起来这件事只能靠外阴影表达。上边框比下边框亮，是光从上方来的意思。 */
 .v-card {
     border: 1px solid rgba(255,255,255,.3);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(255,255,255,.14);
+    border-top-color: rgba(255,255,255,.5);
+    box-shadow: 0 14px 40px rgba(0,0,0,.2),
+                inset 0 1px 0 rgba(255,255,255,.45),
+                inset 0 -1px 0 rgba(255,255,255,.14);
 }
-/* 按下回弹 */
-.v-btn { transition: transform .18s cubic-bezier(.34,1.56,.64,1); }
+/* 按下回弹；悬停先把高光边提亮，桌面端才有「这块能点」的预告 */
+.v-btn { transition: transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .28s cubic-bezier(.32,.72,0,1); }
+.v-btn:hover { box-shadow: inset 0 0 0 1px rgba(255,255,255,.45); }
 .v-btn:active { transform: scale(.95); }
 `,
     },
@@ -166,6 +170,8 @@ body::before {
     filter: none; transform: none; opacity: .5;
 }
 .v-card { border: 1px solid rgba(128,128,128,.28); box-shadow: none !important; }
+/* Primer 的圆角是 6px 且到处都是 6px，没有大圆角容器 */
+.v-list-item--active { border-radius: 6px; }
 `,
     },
 

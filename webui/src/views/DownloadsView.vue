@@ -4,6 +4,7 @@ import {useDisplay} from 'vuetify'
 import type {TorrentsInfo} from '@shared/types'
 import {formatPercent, formatSize} from '@shared/format'
 import {useTorrentsStore} from '@/stores/torrents'
+import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 
 const t = useTorrentsStore()
 const {mobile} = useDisplay()
@@ -56,16 +57,25 @@ async function confirmRemove() {
       <div class="text-caption mt-1">检查「设置 → 下载设置」里的地址与账号。</div>
     </v-alert>
 
-    <v-empty-state v-else-if="!t.loading && !t.items.length" icon="mdi-download-off"
+    <!-- 首屏骨架。轮询刷新时不铺骨架，否则每 3 秒整页闪一次 -->
+    <v-card v-else-if="t.loading && !t.items.length" variant="flat">
+      <div class="pa-4">
+        <AniSkeleton :count="6" shape="row"/>
+      </div>
+    </v-card>
+
+    <v-empty-state v-else-if="!t.items.length" icon="mdi-download-off"
                    text="下载器里当前没有任务" title="没有任务"/>
 
     <!-- 宽屏用表格，窄屏换卡片：表格在手机上只能横向滚动，很难用 -->
     <v-card v-else-if="!mobile" variant="flat">
+      <!-- 保存路径可以很长，横滚必须发生在卡片里，不能让整页跟着变宽 -->
+      <div class="table-scroll">
       <v-data-table :headers="headers" :items="t.items" :items-per-page="25" density="comfortable" item-value="hash">
         <template #item.name="{item}">
-          <div class="py-1">
-            <div class="text-body-2">{{ item.name }}</div>
-            <div class="text-caption text-medium-emphasis">{{ item.savePath }}</div>
+          <div class="py-1 name-cell">
+            <div class="text-body-2 ellipsis" :title="item.name">{{ item.name }}</div>
+            <div class="text-caption text-medium-emphasis ellipsis" :title="item.savePath">{{ item.savePath }}</div>
           </div>
         </template>
         <template #item.size="{item}">{{ item.formatSize || formatSize(item.size) }}</template>
@@ -83,12 +93,14 @@ async function confirmRemove() {
           <v-btn color="error" icon="mdi-delete-outline" size="small" variant="text" @click="removing = item"/>
         </template>
       </v-data-table>
+      </div>
     </v-card>
 
     <div v-else>
-      <v-card v-for="item in t.items" :key="item.hash" class="mb-2" variant="tonal">
+      <v-card v-for="(item, i) in t.items" :key="item.hash" :style="{'--i': i}" class="mb-2 ani-in"
+              variant="tonal">
         <v-card-text class="pb-2">
-          <div class="text-body-2 mb-1">{{ item.name }}</div>
+          <div class="text-body-2 mb-1 ellipsis" :title="item.name">{{ item.name }}</div>
           <div class="d-flex align-center ga-2 mb-1">
             <v-progress-linear :color="stateColor(item.state)" :model-value="(item.progress ?? 0) * 100"
                                height="6" rounded/>
@@ -108,7 +120,7 @@ async function confirmRemove() {
       <v-card>
         <v-card-title>删除任务</v-card-title>
         <v-card-text>
-          确定从下载器删除 <strong>{{ removing?.name }}</strong>？
+          确定从下载器删除 <strong class="d-block ellipsis">{{ removing?.name }}</strong>？
           <div class="text-caption text-medium-emphasis mt-2">只作用于下载器，订阅本身不受影响。</div>
         </v-card-text>
         <v-card-actions>
@@ -120,3 +132,20 @@ async function confirmRemove() {
     </v-dialog>
   </div>
 </template>
+
+<style scoped>
+.table-scroll {
+    overflow-x: auto;
+}
+
+/* 名称列封顶，否则一条长发布名能把「进度」「状态」两列推到视口外 */
+.name-cell {
+    max-width: 46ch;
+}
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+</style>

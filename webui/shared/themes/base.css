@@ -90,7 +90,14 @@ html[data-ani-theme] .v-sheet.elevation-4 {
     box-shadow: var(--ani-shadow, inherit);
 }
 
-/* ── 壁纸底图：由各主题设置 --ani-bg-image，这里只负责铺开 ── */
+/*
+ * ── 壁纸底图：由各主题设置 --ani-bg-image，这里只负责铺开 ──
+ *
+ * filter / transform 默认必须是 none，不能写成 blur(0px) 和 scale(1)：
+ * 那两个「等于没效果」的值照样会让浏览器给这层建一个独立合成层，
+ * 而这一层是铺满视口的固定层，还压着一张整屏大图 —— 每次滚动、每次改窗口
+ * 都要整屏重新栅格化。要模糊的主题自己给 --ani-bg-filter，不要的不付这个代价。
+ */
 html[data-ani-theme] body::before {
     content: '';
     position: fixed;
@@ -99,8 +106,8 @@ html[data-ani-theme] body::before {
     background-image: var(--ani-bg-image, none);
     background-size: cover;
     background-position: center;
-    filter: blur(var(--ani-bg-blur, 0px)) brightness(var(--ani-bg-bright, 1));
-    transform: scale(var(--ani-bg-scale, 1));
+    filter: var(--ani-bg-filter, none);
+    transform: var(--ani-bg-transform, none);
     pointer-events: none;
 }
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {useDisplay} from 'vuetify'
 import {useShell} from '@/composables/useShell'
+import './preset.css'
 
 /**
  * M3 外壳：宽屏是左侧「导航栏杆」（navigation rail，只有图标和短标签），
@@ -45,9 +46,9 @@ const s = useShell()
           :to="n.to"
           class="rail-item text-center"
       >
-        <v-badge :content="n.badge()" :model-value="!!n.badge()" color="error">
-          <v-icon :icon="n.icon" size="24"/>
-        </v-badge>
+        <!-- 不挂 badge：栏杆只有 88px，带数字的 badge 会压在图标上把自己盖掉一半；
+             而且「一共 22 条订阅」是状态不是提醒，M3 的 badge 是留给后者的 -->
+        <v-icon :icon="n.icon" size="24"/>
         <div class="rail-label">{{ n.label }}</div>
       </v-list-item>
     </v-list>
@@ -59,34 +60,43 @@ const s = useShell()
                     placeholder="搜索订阅" prepend-inner-icon="mdi-magnify" rounded="pill"
                     variant="solo-filled" flat/>
     </div>
-    <router-view/>
+    <router-view v-slot="{Component}">
+      <transition mode="out-in" name="page-rise">
+        <component :is="Component"/>
+      </transition>
+    </router-view>
     <!-- 底部导航挡住内容尾巴，给一段安全垫 -->
     <div v-if="mobile" style="height: 72px"/>
   </v-main>
 
   <v-bottom-navigation v-if="mobile" :elevation="2" grow>
     <v-btn v-for="n in s.nav.value" :key="n.to" :active="s.isActive(n.to)" :to="n.to" rounded="0">
-      <v-badge :content="n.badge()" :model-value="!!n.badge()" color="error">
-        <v-icon :icon="n.icon"/>
-      </v-badge>
+      <v-icon :icon="n.icon"/>
       <span class="text-caption mt-1">{{ n.label }}</span>
     </v-btn>
   </v-bottom-navigation>
 </template>
 
 <style scoped>
+/* M3 的 title-large：22px / 400。用 rem 是为了跟随用户的浏览器字号设置 */
 .title-lg {
-    font-size: 1.35rem;
-    font-weight: 500;
+    flex: 0 1 auto;
+    min-width: 0;
+    font-size: 1.375rem;
+    font-weight: 400;
+    letter-spacing: 0;
 }
 
+/* 能长能短：不给 flex 基准的话，窄屏下输入框会被压到只剩放大镜图标 */
 .search {
+    flex: 1 1 200px;
+    min-width: 0;
     max-width: 420px;
 }
 
 .rail-item {
     border-radius: 16px !important;
-    padding: 10px 4px !important;
+    padding: 12px 4px !important;
     margin-bottom: 6px;
 }
 

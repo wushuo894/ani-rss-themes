@@ -3,11 +3,12 @@ import {useDisplay} from 'vuetify'
 import {formatEpisodes, fromNow} from '@shared/format'
 import {useAniScreen} from '@/composables/useAniScreen'
 import AniCard from '@/components/ani/AniCard.vue'
+import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
 
 /**
- * M3 的清单：分段按钮切换密度，卡片是大圆角填充卡，主操作是右下角的扩展 FAB。
+ * M3 的清单：分段按钮切换网格/列表，卡片是大圆角填充卡，主操作是右下角的扩展 FAB。
  * FAB 而不是工具条上的按钮 —— M3 里「本页唯一最重要的动作」就该长这样。
  */
 const s = useAniScreen()
@@ -24,9 +25,11 @@ const headers = [
 </script>
 
 <template>
-  <div class="pa-4">
+  <div class="pa-4 pb-16">
     <div class="d-flex align-center flex-wrap ga-2 mb-4">
-      <v-btn-toggle v-model="s.prefs.viewMode" density="comfortable" mandatory rounded="pill" variant="outlined">
+      <!-- M3 的分段按钮是小圆角矩形，不是药丸；药丸是 FAB 和 chip 的形状 -->
+      <v-btn-toggle v-model="s.prefs.viewMode" density="comfortable" divided mandatory rounded="lg"
+                    variant="outlined">
         <v-btn prepend-icon="mdi-view-grid-outline" value="grid">网格</v-btn>
         <v-btn prepend-icon="mdi-view-list-outline" value="list">列表</v-btn>
       </v-btn-toggle>
@@ -44,76 +47,96 @@ const headers = [
 
     <AniBatchBar :s="s" rounded="xl"/>
 
-    <v-progress-linear v-if="s.ani.loading" class="mb-2" indeterminate rounded/>
+    <!-- 首屏骨架，形状按当前视图模式走 -->
+    <div v-if="s.ani.loading && !s.ani.all.length">
+      <div v-if="s.prefs.viewMode === 'grid'" class="m3-grid">
+        <AniSkeleton :count="10" shape="poster"/>
+      </div>
+      <v-card v-else rounded="xl" variant="flat">
+        <div class="pa-2">
+          <AniSkeleton :count="8" shape="row"/>
+        </div>
+      </v-card>
+    </div>
 
-    <v-empty-state
-        v-if="!s.ani.loading && !s.ani.filtered.length"
-        :text="s.ani.keyword ? '换个关键词试试，支持拼音和首字母' : '还没有订阅，点右下角添加一个'"
-        :title="s.ani.keyword ? '没有匹配的订阅' : '空空如也'"
-        icon="mdi-television-off"
-    />
+    <template v-else>
+      <v-progress-linear v-if="s.ani.loading" class="mb-2" indeterminate rounded/>
 
-    <template v-else-if="s.prefs.viewMode === 'grid'">
-      <template v-if="s.grouped.value">
-        <div v-for="w in s.ani.byWeek" :key="w.label" class="mb-6">
-          <div class="d-flex align-center ga-2 mb-3">
-            <h3 class="text-subtitle-1 font-weight-medium">{{ w.label }}</h3>
+      <v-empty-state
+          v-if="!s.ani.filtered.length"
+          :text="s.ani.keyword ? '换个关键词试试，支持拼音和首字母' : '还没有订阅，点右下角添加一个'"
+          :title="s.ani.keyword ? '没有匹配的订阅' : '空空如也'"
+          icon="mdi-television-off"
+      />
+
+      <!-- ── 网格 ── -->
+      <template v-else-if="s.prefs.viewMode === 'grid'">
+        <template v-for="w in (s.grouped.value ? s.ani.byWeek : [{label: '', items: s.ani.filtered}])"
+                  :key="w.label">
+          <div v-if="w.label" class="d-flex align-center ga-2 mb-3 mt-6">
+            <h2 class="text-subtitle-1 font-weight-medium">{{ w.label }}</h2>
             <v-chip size="x-small" variant="tonal">{{ w.items.length }}</v-chip>
           </div>
           <div class="m3-grid">
-            <AniCard v-for="a in w.items" :key="a.id" :item="a"
-                     :select-mode="s.selectMode.value" :selected="!!a.id && s.ani.selected.has(a.id)"
+            <AniCard v-for="(a, i) in w.items" :key="a.id" :item="a" :select-mode="s.selectMode.value"
+                     :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"
                      @cover="s.on.cover" @del="s.on.del" @edit="s.on.edit" @playlist="s.on.playlist"
                      @preview="s.on.preview" @rate="s.on.rate" @toggle="s.on.toggle"/>
           </div>
-        </div>
+        </template>
       </template>
+
+      <!--
+        ── 列表 ──
+        表格不按星期分组：表格的价值在于「整列对齐、可排序」，
+        切成七段之后既不能跨段排序，也没法一眼比较，两个优点全丢了。
+        要按星期看就切回网格。窄屏放不下六列，直接退回网格。
+      -->
+      <v-card v-else-if="!mobile" rounded="xl" variant="flat">
+        <div class="table-scroll">
+          <v-data-table :headers="headers" :items="s.ani.filtered" :items-per-page="50" item-value="id">
+            <template #item.title="{item}">
+              <div class="py-1 cell-w">
+                <div class="font-weight-medium ellipsis">{{ item.title }}</div>
+                <div class="text-caption text-medium-emphasis ellipsis">{{ item.themoviedbName || '—' }}</div>
+              </div>
+            </template>
+            <template #item.subgroup="{item}">
+              <div class="ellipsis" style="max-width: 160px">{{ item.subgroup || '未知字幕组' }}</div>
+            </template>
+            <template #item.episodes="{item}">
+              {{ formatEpisodes(item.currentEpisodeNumber, item.totalEpisodeNumber) }}
+            </template>
+            <template #item.enable="{item}">
+              <v-chip :color="item.enable ? 'success' : undefined" size="x-small" variant="tonal">
+                {{ item.enable ? '启用' : '停用' }}
+              </v-chip>
+            </template>
+            <template #item.lastDownloadTime="{item}">
+              <span class="text-caption">{{ fromNow(item.lastDownloadTime) }}</span>
+            </template>
+            <template #item.actions="{item}">
+              <v-btn density="comfortable" icon="mdi-eye-outline" size="small" variant="text"
+                     @click="s.on.preview(item)"/>
+              <v-btn density="comfortable" icon="mdi-pencil-outline" size="small" variant="text"
+                     @click="s.on.edit(item)"/>
+              <v-btn color="error" density="comfortable" icon="mdi-delete-outline" size="small" variant="text"
+                     @click="s.on.del(item)"/>
+            </template>
+          </v-data-table>
+        </div>
+      </v-card>
+
       <div v-else class="m3-grid">
-        <AniCard v-for="a in s.ani.filtered" :key="a.id" :item="a"
-                 :select-mode="s.selectMode.value" :selected="!!a.id && s.ani.selected.has(a.id)"
+        <AniCard v-for="(a, i) in s.ani.filtered" :key="a.id" :item="a" :select-mode="s.selectMode.value"
+                 :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"
                  @cover="s.on.cover" @del="s.on.del" @edit="s.on.edit" @playlist="s.on.playlist"
                  @preview="s.on.preview" @rate="s.on.rate" @toggle="s.on.toggle"/>
       </div>
     </template>
 
-    <!-- 列表态：窄屏放不下表格，退回网格 -->
-    <v-card v-else-if="!mobile">
-      <v-data-table :headers="headers" :items="s.ani.filtered" :items-per-page="50" item-value="id">
-        <template #item.title="{item}">
-          <div class="py-1">
-            <div class="font-weight-medium">{{ item.title }}</div>
-            <div class="text-caption text-medium-emphasis">{{ item.themoviedbName || '—' }}</div>
-          </div>
-        </template>
-        <template #item.episodes="{item}">
-          {{ formatEpisodes(item.currentEpisodeNumber, item.totalEpisodeNumber) }}
-        </template>
-        <template #item.enable="{item}">
-          <v-chip :color="item.enable ? 'success' : undefined" size="x-small" variant="tonal">
-            {{ item.enable ? '启用' : '停用' }}
-          </v-chip>
-        </template>
-        <template #item.lastDownloadTime="{item}">
-          <span class="text-caption">{{ fromNow(item.lastDownloadTime) }}</span>
-        </template>
-        <template #item.actions="{item}">
-          <v-btn icon="mdi-eye-outline" size="small" variant="text" @click="s.on.preview(item)"/>
-          <v-btn icon="mdi-file-video-outline" size="small" variant="text" @click="s.on.playlist(item)"/>
-          <v-btn icon="mdi-pencil" size="small" variant="text" @click="s.on.edit(item)"/>
-          <v-btn color="error" icon="mdi-delete-outline" size="small" variant="text" @click="s.on.del(item)"/>
-        </template>
-      </v-data-table>
-    </v-card>
-
-    <div v-else class="m3-grid">
-      <AniCard v-for="a in s.ani.filtered" :key="a.id" :item="a"
-               :select-mode="s.selectMode.value" :selected="!!a.id && s.ani.selected.has(a.id)"
-               @cover="s.on.cover" @del="s.on.del" @edit="s.on.edit" @playlist="s.on.playlist"
-               @preview="s.on.preview" @rate="s.on.rate" @toggle="s.on.toggle"/>
-    </div>
-
-    <!-- 扩展 FAB：M3 里页面主动作的标准位置 -->
-    <v-btn class="fab" color="primary" prepend-icon="mdi-plus" rounded="lg" size="large"
+    <!-- 扩展 FAB：M3 里页面主动作的标准位置。滚动时不缩成小圆点，这一页只有它一个主动作 -->
+    <v-btn class="fab" color="primary" elevation="3" prepend-icon="mdi-plus" rounded="lg" size="large"
            @click="s.adding.value = true">
       添加订阅
     </v-btn>
@@ -125,15 +148,37 @@ const headers = [
 <style scoped>
 .m3-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
 }
 
 @media (min-width: 960px) {
     .m3-grid {
-        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-        gap: 18px;
+        grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+        gap: 20px;
     }
+}
+
+@media (min-width: 1920px) {
+    .m3-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 232px));
+        justify-content: center;
+    }
+}
+
+/* 表格六列在小一点的桌面窗口上放不下，横滚发生在卡片内部而不是整页 */
+.table-scroll {
+    overflow-x: auto;
+}
+
+.cell-w {
+    max-width: 32ch;
+}
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .fab {
@@ -143,11 +188,15 @@ const headers = [
     z-index: 5;
 }
 
-/* 窄屏底部有导航条，FAB 往上让一让 */
+/*
+ * 窄屏底部有导航条，FAB 必须让开。
+ * 用 safe-area 而不是硬写 84px：全面屏手机的底部手势条会再吃掉一截，
+ * 硬写的话 FAB 会被压在手势条底下点不到。
+ */
 @media (max-width: 959px) {
     .fab {
-        bottom: 84px;
         right: 16px;
+        bottom: calc(72px + 16px + env(safe-area-inset-bottom, 0px));
     }
 }
 </style>

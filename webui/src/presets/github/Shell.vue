@@ -2,6 +2,7 @@
 import {ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import {useShell} from '@/composables/useShell'
+import './preset.css'
 
 /**
  * Primer 外壳：深色顶栏 + 一排下划线 tab，没有侧栏。
@@ -62,7 +63,11 @@ const menu = ref(false)
                     placeholder="搜索订阅" prepend-inner-icon="mdi-magnify" variant="outlined"/>
     </div>
     <div class="gh-content mx-auto">
-      <router-view/>
+      <router-view v-slot="{Component}">
+      <transition mode="out-in" name="page-fade">
+        <component :is="Component"/>
+      </transition>
+    </router-view>
     </div>
   </v-main>
 </template>
@@ -73,12 +78,17 @@ const menu = ref(false)
  * 单加 flex-grow-0 会让它宽度直接塌成 0，标题整块消失 —— 必须把 basis 也改成 auto。
  */
 .title-fit {
-    flex: 0 0 auto;
+    /* 0 1 而不是 0 0：不跟着抢宽度，但窄屏必须能让 —— 不让的话品牌名会把搜索框顶出顶栏 */
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 .brand {
     color: #f0f6fc;
     font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .gh-header :deep(.v-btn) {
@@ -86,6 +96,8 @@ const menu = ref(false)
 }
 
 .gh-search {
+    flex: 1 1 180px;
+    min-width: 0;
     max-width: 340px;
 }
 

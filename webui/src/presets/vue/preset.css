@@ -1,0 +1,23 @@
+/*
+ * 文档站这款的动作语言：几乎不动。
+ *
+ * 只留淡入，位移压到 4px，不抬起、不投影 —— 文档的层级来自留白和细线，
+ * 一抬起来就变成仪表盘了。悬停反馈交给边框和底色，跟 VitePress 一致。
+ */
+:root {
+    --m-dur: 150ms;
+    --m-dur-slow: 260ms;
+    --m-ease: cubic-bezier(.4, 0, .2, 1);
+    --m-ease-out: cubic-bezier(.4, 0, .2, 1);
+    --m-rise: 4px;
+    --m-scale: 1;
+    --m-stagger: 14ms;
+    --m-lift: 0px;
+    --m-lift-shadow: none;
+    --m-press: 1;
+}
+
+/* 文档站的正文链接：下划线只在悬停时出现 */
+.v-card {
+    box-shadow: var(--ani-shadow, none) !important;
+}

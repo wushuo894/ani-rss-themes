@@ -2,6 +2,7 @@
 import {ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import {useShell} from '@/composables/useShell'
+import './preset.css'
 
 /**
  * 文档站外壳：顶部一条细导航栏 + 左侧分组侧栏 + 居中正文。
@@ -69,7 +70,11 @@ const groups = ['追番', '系统'] as const
   <v-main>
     <!-- 文档站正文都有最大宽度：满屏铺开的长行读起来很累 -->
     <div class="doc-content mx-auto">
-      <router-view/>
+      <router-view v-slot="{Component}">
+      <transition mode="out-in" name="page-fade">
+        <component :is="Component"/>
+      </transition>
+    </router-view>
     </div>
   </v-main>
 </template>
@@ -80,12 +85,17 @@ const groups = ['追番', '系统'] as const
  * 单加 flex-grow-0 会让它宽度直接塌成 0，标题整块消失 —— 必须把 basis 也改成 auto。
  */
 .title-fit {
-    flex: 0 0 auto;
+    /* 0 1 而不是 0 0：不跟着抢宽度，但窄屏必须能让 —— 不让的话品牌名会把搜索框顶出顶栏 */
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 .brand {
     font-weight: 700;
     letter-spacing: -.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .doc-bar {
@@ -93,6 +103,8 @@ const groups = ['追番', '系统'] as const
 }
 
 .search {
+    flex: 1 1 180px;
+    min-width: 0;
     max-width: 380px;
 }
 

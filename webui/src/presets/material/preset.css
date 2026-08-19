@@ -1,0 +1,48 @@
+/*
+ * M3 的动作语言：emphasized 曲线 + state layer。
+ *
+ * 曲线数值取自 M3 的 motion token（standard 与 emphasized-decelerate），
+ * 时长落在官方给的 300–500ms 区间。反馈是「表面叠一层主色」而不是位移 ——
+ * M3 里容器不该乱飘，它变的是颜色和圆角。
+ */
+:root {
+    --m-dur: 250ms;
+    --m-dur-slow: 400ms;
+    --m-ease: cubic-bezier(.2, 0, 0, 1);
+    --m-ease-out: cubic-bezier(.05, .7, .1, 1);
+    --m-rise: 10px;
+    --m-scale: 1;
+    --m-stagger: 22ms;
+    --m-lift: 0px;
+    --m-lift-shadow: none;
+    --m-press: 1;
+}
+
+/*
+ * State layer：悬停时在容器上叠 8% 的当前前景色，按下叠 12%。
+ * 这是 M3 交互反馈的全部 —— 不需要阴影也不需要位移。
+ */
+.ani-lift {
+    position: relative;
+}
+
+.ani-lift::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--m-dur) var(--m-ease);
+}
+
+@media (hover: hover) {
+    .ani-lift:hover::after {
+        opacity: .08;
+    }
+}
+
+.ani-lift:active::after {
+    opacity: .12;
+}

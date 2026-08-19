@@ -1,0 +1,25 @@
+/*
+ * Primer 这款的动作语言：没有。
+ *
+ * GitHub 全站几乎不做动画 —— 层级靠 1px 边框和底色区分，反馈靠颜色变化。
+ * 所以入场只留极短的淡入（不留的话数据回来时整块闪现，反而更刺眼），
+ * 抬起和阴影全部关掉。焦点环仍然保留：那是可访问性，不是装饰。
+ */
+:root {
+    --m-dur: 80ms;
+    --m-dur-slow: 120ms;
+    --m-ease: ease-out;
+    --m-ease-out: ease-out;
+    --m-rise: 0px;
+    --m-scale: 1;
+    --m-stagger: 0ms;
+    --m-lift: 0px;
+    --m-lift-shadow: none;
+    --m-press: 1;
+}
+
+/* 键盘焦点必须看得见 —— Primer 的焦点环是它少数几个「显眼」的地方 */
+:focus-visible {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: -1px;
+}
