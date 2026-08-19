@@ -2,7 +2,7 @@ import {fileURLToPath, URL} from 'node:url'
 import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vuetify from 'vite-plugin-vuetify'
-import {mdiWoff2Only} from './shared/vite-mdi-woff2'
+import {mdiUsedIcons} from './shared/vite-mdi-svg'
 import {PRESET_IDS} from './src/presets/ids'
 
 /**
@@ -36,8 +36,9 @@ export default defineConfig({
 
     plugins: [
         vue(),
-        // 图标字体只留 woff2，砍掉 3.2MB 永远不会被加载的 eot/ttf/woff
-        mdiWoff2Only(),
+        /* 只把用到的图标打进产物。也扫 Vuetify 自己的图标别名表 ——
+           $collapse / $close 这些名字不出现在我们的源码里，漏了组件上的箭头就空着 */
+        mdiUsedIcons(['src', 'shared', 'node_modules/vuetify/lib/iconsets/mdi.js']),
         // 按需引入 Vuetify 组件与样式，顺带让 SASS 变量覆盖生效
         vuetify({autoImport: true, styles: {configFile: 'src/styles/settings.scss'}}),
     ],

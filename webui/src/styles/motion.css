@@ -94,58 +94,6 @@
     animation: ani-shimmer 1.5s var(--m-ease) infinite;
 }
 
-/* ── 换页 ──
-   三种备选，每款外壳挑一种，配合 mode="out-in" 用。
-   用 out-in 而不是让两页重叠：重叠要给离场页 position:absolute，
-   而 v-main 的高度是内容撑出来的，离场页一脱离文档流整页会先塌一下再弹回来。 */
-.page-fade-enter-active {
-    transition: opacity var(--m-dur) var(--m-ease);
-}
-
-.page-fade-leave-active {
-    transition: opacity 90ms var(--m-ease);
-}
-
-.page-fade-enter-from, .page-fade-leave-to {
-    opacity: 0;
-}
-
-.page-rise-enter-active {
-    transition: opacity var(--m-dur-slow) var(--m-ease-out),
-    transform var(--m-dur-slow) var(--m-ease-out);
-}
-
-.page-rise-leave-active {
-    transition: opacity 100ms var(--m-ease);
-}
-
-.page-rise-enter-from {
-    opacity: 0;
-    transform: translateY(12px);
-}
-
-.page-rise-leave-to {
-    opacity: 0;
-}
-
-.page-zoom-enter-active {
-    transition: opacity var(--m-dur) var(--m-ease-out),
-    transform var(--m-dur) var(--m-ease-out);
-}
-
-.page-zoom-leave-active {
-    transition: opacity 90ms var(--m-ease);
-}
-
-.page-zoom-enter-from {
-    opacity: 0;
-    transform: scale(.97);
-}
-
-.page-zoom-leave-to {
-    opacity: 0;
-}
-
 /*
  * 系统开了「减弱动态效果」就全部停掉。
  * 入场动画必须留 opacity:1 的落点 —— 直接 animation:none 会让 both 填充失效，
@@ -165,10 +113,5 @@
 
     .sk::after {
         animation: none;
-    }
-
-    [class*='page-'][class*='-enter-active'],
-    [class*='page-'][class*='-leave-active'] {
-        transition: none;
     }
 }

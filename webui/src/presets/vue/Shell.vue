@@ -70,11 +70,17 @@ const groups = ['追番', '系统'] as const
   <v-main>
     <!-- 文档站正文都有最大宽度：满屏铺开的长行读起来很累 -->
     <div class="doc-content mx-auto">
+      <!-- keep-alive：切走再切回来不重新挂载 —— 列表不重新渲染、滚动位置还在、
+           日志和下载器也不必重新拉一遍。4 个刚好装下总览/订阅/下载器/日志。
+
+           没有套 <transition>：它和 keep-alive 一起用会死锁 —— 离场的组件被
+           移进 keep-alive 的隐藏容器，leave 过渡永远收不到结束事件，
+           out-in 就一直等在那儿，整个路由卡死在上一页。页面自己的入场动效还在。 -->
       <router-view v-slot="{Component}">
-      <transition mode="out-in" name="page-fade">
-        <component :is="Component"/>
-      </transition>
-    </router-view>
+        <keep-alive :max="4">
+          <component :is="Component"/>
+        </keep-alive>
+      </router-view>
     </div>
   </v-main>
 </template>

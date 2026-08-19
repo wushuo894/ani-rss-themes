@@ -1,4 +1,4 @@
-import {computed, onBeforeUnmount, onMounted} from 'vue'
+import {computed, onActivated, onDeactivated} from 'vue'
 import type {Ani} from '@shared/types'
 import {useAniStore} from '@/stores/ani'
 import {useTorrentsStore} from '@/stores/torrents'
@@ -17,13 +17,15 @@ export function useDashboard() {
     const torrents = useTorrentsStore()
     const config = useConfigStore()
 
-    onMounted(() => {
+    /* activated 而不是 mounted：总览在 keep-alive 里，切走时不销毁，
+       用 onBeforeUnmount 停不掉轮询 */
+    onActivated(() => {
         if (!ani.all.length) void ani.reload()
         void config.load()
         // 总览的下载卡片不需要 3 秒级实时性，慢一点省几十次请求
         torrents.startPolling(8000)
     })
-    onBeforeUnmount(() => torrents.stopPolling())
+    onDeactivated(() => torrents.stopPolling())
 
     /** 首屏还没拿到订阅时为 true —— 骨架屏看这个，不是看 loading（刷新时不该整页变灰） */
     const firstLoad = computed(() => ani.loading && !ani.all.length)

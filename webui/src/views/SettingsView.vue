@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
-import {useDisplay} from 'vuetify'
 import * as api from '@shared/api'
 import {useConfigStore} from '@/stores/config'
 import {useUiStore} from '@/stores/ui'
@@ -18,7 +17,6 @@ const store = useConfigStore()
 const ui = useUiStore()
 const route = useRoute()
 const router = useRouter()
-const {mobile} = useDisplay()
 
 const TABS = [
   {value: 'download', label: '下载设置'},
@@ -85,7 +83,7 @@ async function testIpWhitelist() {
 
 <template>
   <div class="settings-page">
-    <v-tabs v-model="tab" :direction="mobile ? 'horizontal' : 'horizontal'" density="comfortable" show-arrows>
+    <v-tabs v-model="tab" density="comfortable" show-arrows>
       <v-tab v-for="t in TABS" :key="t.value" :value="t.value">{{ t.label }}</v-tab>
     </v-tabs>
     <v-divider/>
@@ -206,15 +204,41 @@ async function testIpWhitelist() {
 </template>
 
 <style scoped>
+/*
+ * 整页不滚，只有中间那段滚。
+ *
+ * 高度不能写死 100vh - 64px：顶栏五款不一样高（56 / 64 / 悬浮岛），手机上还多一条底部导航。
+ * --v-layout-top / --v-layout-bottom 是 Vuetify 按实际布局算出来的；外壳自己额外占掉的
+ * （液态玻璃的悬浮岛、手机上的底部导航垫片）Vuetify 不知道，由外壳写进 --ani-page-*。
+ * dvh 而不是 vh：手机上地址栏收起时 vh 不变，用 vh 会把保存条顶到屏幕外面。
+ */
 .settings-page {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 64px);
+    height: calc(100vh - var(--v-layout-top, 0px) - var(--v-layout-bottom, 0px)
+    - var(--ani-page-top, 0px) - var(--ani-page-bottom, 0px));
+    height: calc(100dvh - var(--v-layout-top, 0px) - var(--v-layout-bottom, 0px)
+    - var(--ani-page-top, 0px) - var(--ani-page-bottom, 0px));
 }
 
+/*
+ * min-height: 0 是这里的关键，不是可有可无的保险。
+ *
+ * flex 子项的默认 min-height 是 auto —— 内容有多高就赖着多高，一点都不肯缩。
+ * 于是展开一个设置面板，内容撑到 1300px，收缩压力全转嫁给兄弟节点：
+ * 上面的标签栏被从 48px 压成 27px，标签文字被自己的 overflow:hidden 拦腰切掉，
+ * 底下的保存条同样被啃掉一截。看着就像「下面的东西把上面的挡住了」。
+ * 让真正能滚的这一段可以缩到 0，兄弟才不会被挤。
+ */
 .settings-body {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    min-height: 0;
     overflow-y: auto;
+}
+
+/* 标签栏、分隔线、保存条都是固定高度，一律不参与收缩 */
+.settings-page > :not(.settings-body) {
+    flex: 0 0 auto;
 }
 
 .save-bar {

@@ -16,3 +16,19 @@ if (__DEMO__) {
 }
 
 createApp(App).use(createPinia()).use(router).use(vuetify).mount('#app')
+
+/*
+ * 首屏画完之后趁空把其余几页的代码块拉下来。
+ *
+ * 路由是按页切块的，不预热的话点「设置」那一下才现下 45KB —— 本地看不出来，
+ * 走反代或者外网就是明显一顿。浏览器缓存里已经有了，路由再 import 时直接命中。
+ * requestIdleCallback 保证这件事排在首屏渲染和首批接口请求后面，不跟它们抢。
+ */
+const warmRoutes = () => {
+    void import('@preset/SubsView.vue')
+    void import('@/views/SettingsView.vue')
+    void import('@/views/DownloadsView.vue')
+    void import('@/views/LogsView.vue')
+}
+if ('requestIdleCallback' in window) requestIdleCallback(warmRoutes, {timeout: 4000})
+else setTimeout(warmRoutes, 2000)

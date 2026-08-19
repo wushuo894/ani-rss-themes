@@ -52,11 +52,17 @@ const s = useShell()
   <v-main>
     <!-- 内边距写在内层：v-main 的 padding 是布局系统按内联样式算的，类选择器盖不过它 -->
     <div :class="mobile ? 'pad-bottom' : 'pad-left'">
+      <!-- keep-alive：切走再切回来不重新挂载 —— 列表不重新渲染、滚动位置还在、
+           日志和下载器也不必重新拉一遍。4 个刚好装下总览/订阅/下载器/日志。
+
+           没有套 <transition>：它和 keep-alive 一起用会死锁 —— 离场的组件被
+           移进 keep-alive 的隐藏容器，leave 过渡永远收不到结束事件，
+           out-in 就一直等在那儿，整个路由卡死在上一页。页面自己的入场动效还在。 -->
       <router-view v-slot="{Component}">
-      <transition mode="out-in" name="page-zoom">
-        <component :is="Component"/>
-      </transition>
-    </router-view>
+        <keep-alive :max="4">
+          <component :is="Component"/>
+        </keep-alive>
+      </router-view>
     </div>
   </v-main>
 </template>
@@ -148,13 +154,21 @@ const s = useShell()
 }
 
 /* 岛是浮的，不占布局，正文的让位只能手写 */
+/*
+ * 这两个变量给「整屏高度」的页面（设置、日志）用。
+ * 这一款的顶栏是悬浮岛，不是 v-app-bar，Vuetify 的 --v-layout-top 因此是 0 ——
+ * 页面只按它算高度就会比视口高出这里的 74px，多出来一条谁也不需要的窗口滚动条。
+ */
 .pad-left {
     padding-left: 92px;
     padding-top: 74px;
+    --ani-page-top: 74px;
 }
 
 .pad-bottom {
     padding-top: 74px;
     padding-bottom: 88px;
+    --ani-page-top: 74px;
+    --ani-page-bottom: 88px;
 }
 </style>

@@ -50,15 +50,22 @@ const s = useShell()
     </v-list>
   </v-navigation-drawer>
 
-  <v-main>
+  <!-- 手机上底部垫了 76px 给导航条让位，整屏高度的页面（设置/日志）要把它扣掉 -->
+  <v-main :style="mobile ? {'--ani-page-bottom': '76px'} : undefined">
     <div v-if="s.showSearch.value && mobile" class="pa-3 pb-0">
       <v-text-field v-model="s.ani.keyword" clearable density="compact" hide-details
                     placeholder="搜索订阅" prepend-inner-icon="mdi-magnify"/>
     </div>
+    <!-- keep-alive：切走再切回来不重新挂载 —— 列表不重新渲染、滚动位置还在、
+         日志和下载器也不必重新拉一遍。4 个刚好装下总览/订阅/下载器/日志。
+
+         没有套 <transition>：它和 keep-alive 一起用会死锁 —— 离场的组件被
+         移进 keep-alive 的隐藏容器，leave 过渡永远收不到结束事件，
+         out-in 就一直等在那儿，整个路由卡死在上一页。页面自己的入场动效还在。 -->
     <router-view v-slot="{Component}">
-      <transition mode="out-in" name="page-rise">
+      <keep-alive :max="4">
         <component :is="Component"/>
-      </transition>
+      </keep-alive>
     </router-view>
     <div v-if="mobile" style="height: 76px"/>
   </v-main>

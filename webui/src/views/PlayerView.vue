@@ -86,6 +86,8 @@ function back() {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    /* 手机上地址栏收起前后 vh 不变，播放器会被顶出屏幕露不出底部控件 */
+    height: 100dvh;
     background: #000;
 }
 

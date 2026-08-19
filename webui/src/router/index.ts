@@ -21,6 +21,15 @@ const children: RouteRecordRaw[] = meta.dashboard
     : [{path: '', name: 'subscriptions', component: subs}]
 
 /**
+ * 离开某一页时记下它滚到哪儿了。
+ *
+ * 页面组件本身在 keep-alive 里，切回来 DOM 是原样的，但滚动条属于窗口不属于组件 ——
+ * 不记的话回到订阅页会从头开始，翻了半天的位置白翻。按路由名存，
+ * 设置页换标签（路径变、名字不变）不会被当成两页。
+ */
+const scrollTops = new Map<string, number>()
+
+/**
  * 必须是 hash 路由。
  *
  * 上游 WebMvcConfig 把 webui 目录挂成静态资源目录，registry.addResourceHandler("/**")
@@ -29,6 +38,11 @@ const children: RouteRecordRaw[] = meta.dashboard
  */
 const router = createRouter({
     history: createWebHashHistory(),
+
+    scrollBehavior(to, _from, savedPosition) {
+        return savedPosition ?? {top: scrollTops.get(String(to.name)) ?? 0}
+    },
+
     routes: [
         {
             path: '/login',
@@ -65,7 +79,8 @@ const router = createRouter({
     ],
 })
 
-router.beforeEach(to => {
+router.beforeEach((to, from) => {
+    scrollTops.set(String(from.name), window.scrollY)
     if (to.meta.public) return true
     if (getToken()) return true
     // 记住原本要去哪，登录后送回去

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import {computed, nextTick, onActivated, onDeactivated, ref, watch} from 'vue'
 import {downloadLogsUrl} from '@shared/api'
 import {useLogsStore} from '@/stores/logs'
 
@@ -9,8 +9,8 @@ const confirmClear = ref(false)
 const follow = ref(true)
 const box = ref<HTMLElement | null>(null)
 
-onMounted(() => logs.startPolling(5000))
-onBeforeUnmount(() => logs.stopPolling())
+onActivated(() => logs.startPolling(5000))
+onDeactivated(() => logs.stopPolling())
 
 watch(() => logs.filtered.length, async () => {
   if (!follow.value) return
@@ -89,9 +89,27 @@ function levelColor(l?: string) {
 </template>
 
 <style scoped>
-/* 让日志区域自己占满视口剩余高度，内部滚动，页面本身不滚 */
+/*
+ * 让日志区域自己占满视口剩余高度，内部滚动，页面本身不滚。
+ * 高度按 Vuetify 实际算出来的布局边距扣，别写死 64 —— 五款顶栏不一样高。
+ * 外壳自己额外占掉的（悬浮岛、底部导航垫片）写在 --ani-page-*，Vuetify 算不到。
+ * dvh 是为了地址栏收起时不把底部顶出屏幕。
+ */
 .logs-page {
-    height: calc(100vh - 64px);
+    height: calc(100vh - var(--v-layout-top, 0px) - var(--v-layout-bottom, 0px)
+    - var(--ani-page-top, 0px) - var(--ani-page-bottom, 0px));
+    height: calc(100dvh - var(--v-layout-top, 0px) - var(--v-layout-bottom, 0px)
+    - var(--ani-page-top, 0px) - var(--ani-page-bottom, 0px));
+}
+
+/* 同 SettingsView：能滚的那一段必须允许缩到 0，否则日志一多就把上面的筛选栏压扁 */
+.logs-page > .v-card {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.logs-page > :not(.v-card) {
+    flex: 0 0 auto;
 }
 
 .log-box {

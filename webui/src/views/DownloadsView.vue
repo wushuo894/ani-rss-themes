@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onBeforeUnmount, onMounted, ref} from 'vue'
+import {onActivated, onDeactivated, ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import type {TorrentsInfo} from '@shared/types'
 import {formatPercent, formatSize} from '@shared/format'
@@ -10,9 +10,13 @@ const t = useTorrentsStore()
 const {mobile} = useDisplay()
 const removing = ref<TorrentsInfo | null>(null)
 
-// 只在本页可见时轮询，离开立刻停
-onMounted(() => t.startPolling(3000))
-onBeforeUnmount(() => t.stopPolling())
+/*
+ * 只在本页可见时轮询，离开立刻停。
+ * 用 activated/deactivated 而不是 mounted/unmounted：这一页在 keep-alive 里，
+ * 切走时组件不销毁，onBeforeUnmount 根本不会触发，轮询会一直空转到关标签页。
+ */
+onActivated(() => t.startPolling(3000))
+onDeactivated(() => t.stopPolling())
 
 /** 状态 → 配色。后端 TorrentsStateEnum 的取值沿用 qBittorrent 那一套命名 */
 function stateColor(s?: string) {

@@ -12,12 +12,12 @@
     "test:themes": "node --experimental-strip-types shared/themes/apply.test.ts"
   },
   "dependencies": {
-    "@mdi/font": "^7.4.47",
+    "@mdi/js": "^7.4.47",
+    "js-md5": "^0.8.3",
     "pinia": "^3.0.0",
     "vue": "^3.5.0",
     "vue-router": "^4.5.0",
-    "vuetify": "^3.8.0",
-    "js-md5": "^0.8.3"
+    "vuetify": "^3.8.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.0",
