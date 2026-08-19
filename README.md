@@ -6,6 +6,24 @@
 
 **👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/)**（可点、可操作，看到什么样装上就什么样）
 
+## 另外：两套完整的替代 WebUI
+
+上游 `test` 分支加了「备用 webui」——把文件放进 `{configDir}/webui/` 就能整个替换掉自带界面。
+仓库里现在有两套做好的：
+
+| | 参照 | 长什么样 |
+| --- | --- | --- |
+| `webui-vt/` | [VueTorrent](https://github.com/VueTorrent/VueTorrent) | 总览页 + 海报网格，密度舒适 |
+| `webui-qb/` | [qb-web](https://github.com/CzBiX/qb-web) | 打开就是紧凑表格，信息密度高 |
+
+Vue 3 + Vuetify 3，一套响应式代码同时适配手机和 PC。后端 66 个接口全部接上，
+上游 64 个 `.vue` 的功能面对齐。**上面那 17 款主题也一并迁过去了**，在设置里直接选。
+
+装法、约束与已知取舍见 **[WEBUI.md](WEBUI.md)**。
+
+与本仓库原有的 CSS 主题是两条路：主题是给自带界面换肤，WebUI 是把界面整个换掉，各用各的。
+
+
 ## 安装
 
 ani-rss 里：**设置 → 基础设置 → 页面设置 → 自定义 → CSS**，填一行：
