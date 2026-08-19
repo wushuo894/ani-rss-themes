@@ -122,11 +122,14 @@ body::before {
             shadow: '0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.06)',
         },
         css: `
-/* VitePress 首屏那团绿紫渐变：只压在顶部，往下很快化开 */
+/* VitePress 首屏那团绿紫渐变：只压在顶部，往下很快化开。
+   刻意不用 filter: blur() —— 那是铺满视口的固定层，每次滚动都要整屏重新栅格化，
+   没有 GPU 的机器上会卡住主线程。渐变本身给足过渡段，观感是一样的。 */
 body::before {
-    background-image: radial-gradient(68% 44% at 50% 0%,
-        rgba(66,211,146,.42) 0%, rgba(100,126,255,.3) 45%, transparent 78%);
-    filter: blur(56px); transform: none;
+    background-image: radial-gradient(72% 48% at 50% -6%,
+        rgba(66,211,146,.34) 0%, rgba(66,211,146,.22) 22%,
+        rgba(100,126,255,.2) 48%, rgba(100,126,255,.08) 66%, transparent 82%);
+    filter: none; transform: none;
 }
 /* 文档站的分隔感来自细线，不来自阴影 */
 .v-card { border: 1px solid rgba(128,128,128,.22); }
