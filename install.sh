@@ -144,11 +144,13 @@ fi
 case "$UI" in vt|qb) : ;; *) die "只能是 vt 或 qb，收到: $UI" ;; esac
 
 # ── 播放器 ─────────────────────────────────────────────
+# 在线播放是 ani-rss 本来就有的功能，我们只是换掉了它自带的播放器，
+# 所以默认装 —— 不装等于把原有功能弄丢了。要省这 13MB 就显式 --no-player。
 if [ -z "$PLAYER" ]; then
+    PLAYER="yes"
     say ""
-    say "${D}在线播放用 webplayer：本地拆容器交给 MSE，mkv 与 ASS 特效字幕都能放。${N}"
-    say "${D}约 40MB。不装也能用列表和设置，播放可交给本机播放器。${N}"
-    if confirm "一并安装播放器?"; then PLAYER="yes"; else PLAYER="no"; fi
+    say "${D}一并装 webplayer（本地拆容器交给 MSE，mkv、ASS 特效字幕、HDR 都能放）。${N}"
+    say "${D}下载约 13MB。不想要就加 --no-player。${N}"
 fi
 
 # ── 下载 ───────────────────────────────────────────────

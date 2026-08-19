@@ -163,9 +163,10 @@ jobs:
           |---|---|---|
           | \`ani-rss-webui-vt.zip\`   | VueTorrent 风：总览页 + 海报网格 | \`webui/\` |
           | \`ani-rss-webui-qb.zip\`   | qb-web 风：紧凑表格，打开就干活 | \`webui/\` |
-          | \`ani-rss-webplayer.zip\`  | 在线播放器（可选，含一层 \`player/\`）| \`webui/\` |
+          | \`ani-rss-webplayer.zip\`  | 在线播放器（默认装，含一层 \`player/\`）| \`webui/\` |
 
-          两套界面**选一套**装。想要在线播放就把 webplayer 那个包也解压到同一个 \`webui/\` 下。
+          两套界面**选一套**装，webplayer 那个包解压到同一个 \`webui/\` 下 —— 在线播放本来就是 ani-rss 的功能，
+          这个包只是把它自带的播放器换成支持 ASS 特效字幕和 HDR 的那个。
 
           ### 一行装好
 
@@ -179,7 +180,7 @@ jobs:
           irm https://raw.githubusercontent.com/${{ github.repository }}/main/install.ps1 | iex
           \`\`\`
 
-          脚本会问你 webui 目录在哪、装哪一套、要不要播放器，然后自己下载解压。
+          脚本会问你 webui 目录在哪、装哪一套（播放器默认一起装），然后自己下载解压。
 
           ### 播放前先跑一下
 

@@ -56,15 +56,18 @@ irm .../install.ps1 | iex
 |---|---|---|---|
 | `ani-rss-webui-vt.zip` | 0.7 MB | 1.8 MB | `webui/` |
 | `ani-rss-webui-qb.zip` | 0.7 MB | 1.8 MB | `webui/` |
-| `ani-rss-webplayer.zip` | 13 MB | 40 MB | `webui/`（包内自带 `player/` 一层）|
+| `ani-rss-webplayer.zip` | 13 MB | 40 MB | `webui/`（包内自带 `player/` 一层，默认装）|
 
-两套界面**选一套**。要在线播放就把 webplayer 那个包解压到同一个 `webui/` 下。
+两套界面**选一套**，webplayer 那个包解压到同一个 `webui/` 下。
+
+在线播放本来就是 ani-rss 的功能，我们只是换掉了它自带的播放器，所以脚本默认装 webplayer；
+真不想要就 `--no-player`（Windows 设 `$env:ANIRSS_PLAYER='no'`），但在线播放会跟着没了。
 
 ```
 {configDir}/webui/
 ├── index.html
 ├── assets/
-└── player/          # 装了播放器才有
+└── player/          # 默认装；--no-player 时才没有
     └── play.html
 ```
 
@@ -187,7 +190,17 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 
 ## 主题
 
-仓库原有的 17 款 CSS 主题已全部迁过来，在 **设置 → 基本设置 → 页面设置 → 主题** 里选。
+从仓库原有的 CSS 主题里挑了 5 款迁过来，在 **设置 → 基本设置 → 页面设置 → 主题** 里选：
+
+| id | 名字 | 长什么样 |
+|---|---|---|
+| `acg` | 二次元 | 随机壁纸 + 玻璃药丸，每次刷新换图（联网） |
+| `liquid-glass` | 液态玻璃 | 复刻 Apple WWDC25，胶囊控件按下回弹 |
+| `vue` | Vue 文档 | VitePress 配色，顶部绿紫晕染 |
+| `github` | GitHub | Primer 配色与字栈，贡献热力图格子 |
+| `material` | Material Design 3 | Roboto，全圆角胶囊 |
+
+原来那些 `.css` 主题文件一个没动，给 ani-rss 自带界面换肤照用。
 
 迁移带过来的是设计决策本身（字体栈、主色、圆角尺度、背景与装饰），不是原来的选择器 —— 类名体系已换成 Vuetify。
 每款从 12~60KB 缩到几十行：原来要逐个覆盖 Element Plus 的上百个组件，现在 DOM 是自己的，
@@ -196,7 +209,7 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 **这一层的意义不只是省代码。** 原来的主题是贴在 ani-rss 自己的 DOM 上的，
 换个版本、换个「页面设置」就可能散架；现在主题只依赖 Vuetify 的公开类名和一组自有变量，不再赌别人的内部结构。
 
-7 款带壁纸的主题会向第三方公共接口请求图片，在选择器里标了「联网」。
+「二次元」会向第三方公共接口请求壁纸，在选择器里标了「联网」，介意就选别的四款。
 
 三个 JS 附加件没有迁：
 
@@ -215,7 +228,7 @@ webui-shared/          两套共用，不含 UI 组件
 ├── format.ts          体积/时间/集数格式化
 ├── player.ts          webplayer 接入：地址拼装与部署探测
 ├── vite-mdi-woff2.ts  构建期插件：图标字体只留 woff2（省 3.2MB）
-├── themes/            主题系统 + 17 款主题 + 自检
+├── themes/            主题系统 + 5 款主题 + 自检
 └── tools/             类型/接口生成器、产物组装、Range 探针
 webui-vt/              VueTorrent 风
 webui-qb/              qb-web 风

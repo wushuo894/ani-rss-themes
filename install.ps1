@@ -100,12 +100,14 @@ if (-not $ui) {
 if ($ui -notin @('vt', 'qb')) { Die "只能是 vt 或 qb，收到: $ui" }
 
 # ── 播放器 ──────────────────────────────────────────────
+# 在线播放是 ani-rss 本来就有的功能，我们只是换掉了它自带的播放器，
+# 所以默认装 —— 不装等于把原有功能弄丢了。要省这 13MB 就设 $env:ANIRSS_PLAYER='no'。
 $player = $env:ANIRSS_PLAYER
 if (-not $player) {
+    $player = 'yes'
     Say ''
-    Say '在线播放用 webplayer：本地拆容器交给 MSE，mkv 与 ASS 特效字幕都能放。' 'DarkGray'
-    Say '约 40MB。不装也能用列表和设置，播放可交给本机播放器。' 'DarkGray'
-    $player = if (Confirm '一并安装播放器?') { 'yes' } else { 'no' }
+    Say '一并装 webplayer（本地拆容器交给 MSE，mkv、ASS 特效字幕、HDR 都能放）。' 'DarkGray'
+    Say '下载约 13MB。不想要就先设 $env:ANIRSS_PLAYER = ''no''。' 'DarkGray'
 }
 
 # ── 下载 ────────────────────────────────────────────────
