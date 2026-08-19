@@ -19,6 +19,15 @@
 Vue 3 + Vuetify 3，一套响应式代码同时适配手机和 PC。后端 66 个接口全部接上，
 上游 64 个 `.vue` 的功能面对齐。在线播放接的是 [webplayer](https://github.com/zzzwannasleep/webplayer) —— mkv 与 ASS 特效字幕都能放。**上面那 17 款主题也一并迁过去了**，在设置里直接选。
 
+**一行装好**（脚本会问你 webui 目录在哪、装哪一套、要不要播放器）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.sh | bash
+```
+
+Windows：`irm https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.ps1 | iex`
+
+也可以去 [Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 下压缩包手动解压。
 装法、约束与已知取舍见 **[WEBUI.md](WEBUI.md)**。
 
 与本仓库原有的 CSS 主题是两条路：主题是给自带界面换肤，WebUI 是把界面整个换掉，各用各的。

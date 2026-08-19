@@ -1,0 +1,10 @@
+# 安装脚本的行尾必须锁死。
+# install.sh 带上 CRLF 在 Linux 上会直接 "bad interpreter: /usr/bin/env sh^M"，
+# 而它是通过 raw.githubusercontent.com 直接 curl 下来执行的，仓库里存成什么样就是什么样。
+*.sh text eol=lf
+
+# PowerShell 反过来：Windows 侧用 CRLF 更稳妥（BOM 已经加了，5.1 才能正确读中文）
+*.ps1 text eol=crlf
+
+# 其余交给 git 自己判断
+* text=auto

@@ -18,26 +18,72 @@
 
 ## 安装
 
+### 一行装好（推荐）
+
+Linux / macOS / NAS / Docker 宿主机：
+
 ```bash
-cd webui-vt        # 或 webui-qb
-npm install
-npm run build
+curl -fsSL https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.sh | bash
 ```
 
-把 `dist/` 里的**内容**（不是 `dist` 目录本身）复制到 ani-rss 的配置目录下的 `webui/`：
+Windows PowerShell：
+
+```powershell
+irm https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.ps1 | iex
+```
+
+脚本会问三件事：webui 目录在哪、装哪一套、要不要播放器，然后自己下载解压。
+填配置目录也行 —— 认出 `config.v2.json` 后会自动补上 `webui/`。
+已有内容会先备份成 `webui.bak.<时间戳>`；**只升级界面时已装的播放器会原样保留**，
+不会让你为了换个皮肤重下一遍。
+
+非交互（脚本自动化用）：
+
+```bash
+curl -fsSL .../install.sh | bash -s -- --dir /vol1/docker/ani-rss/config/webui --ui vt --player -y
+```
+
+```powershell
+$env:ANIRSS_WEBUI_DIR='D:ani-rssconfigwebui'; $env:ANIRSS_UI='vt'; $env:ANIRSS_PLAYER='yes'
+irm .../install.ps1 | iex
+```
+
+### 手动装
+
+[Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 里三个包：
+
+| 压缩包 | 下载 | 解压后 | 解压到 |
+|---|---|---|---|
+| `ani-rss-webui-vt.zip` | 0.7 MB | 1.8 MB | `webui/` |
+| `ani-rss-webui-qb.zip` | 0.7 MB | 1.8 MB | `webui/` |
+| `ani-rss-webplayer.zip` | 13 MB | 40 MB | `webui/`（包内自带 `player/` 一层）|
+
+两套界面**选一套**。要在线播放就把 webplayer 那个包解压到同一个 `webui/` 下。
 
 ```
 {configDir}/webui/
 ├── index.html
-└── assets/
+├── assets/
+└── player/          # 装了播放器才有
+    └── play.html
 ```
 
-`{configDir}` 的确定顺序（`ConfigUtil.getConfigDir()`）：环境变量 `CONFIG` → 当前工作目录下的 `config/` →
-Windows/macOS 为 `~/ani-rss`，其他系统为 `config`。
+`{configDir}` 的确定顺序（`ConfigUtil.getConfigDir()`）：环境变量 `CONFIG` → 当前工作目录下的
+`config/` → Windows/macOS 为 `~/ani-rss`，其他系统为 `config`。
 
 刷新页面即可。想换回自带界面，把 `webui/` 清空或改名。
 
 > qBittorrent 的替代 WebUI 要求产物根目录下有 `public/` 子目录，**ani-rss 没有这个要求**，文件直接放 `webui/` 根下。
+
+### 自己构建
+
+```bash
+npm ci                                    # 根依赖（webui-shared 用的 js-md5）
+npm ci --prefix webui-vt && npm run build --prefix webui-vt
+node webui-shared/tools/pack.mjs vt --player ../webplayer/dist
+```
+
+产物在 `dist-webui/vt/`。打 `webui-v*` 标签会由 GitHub Actions 自动构建并发布上面那三个包。
 
 ## 开发
 
@@ -92,25 +138,13 @@ npm run typecheck
 而是并排放在 `webui/player/` 下，由本界面的 `#/play` 路由整屏 iframe 引入。
 两边同源，所以 webplayer README 里对 Emby 场景强调的混合内容与 CORS 两道墙，在这里天然不存在。
 
-#### 一起打包
+#### 装它
 
-```bash
-# 1. 构建 webplayer
-git clone https://github.com/zzzwannasleep/webplayer && cd webplayer
-npm install && npm run build          # -> dist/
+用上面的一行脚本，或从 Releases 下 `ani-rss-webplayer.zip` 解压到 `webui/`。
+自己构建见 `webui-shared/tools/pack.mjs` 的 `--player` 参数。
 
-# 2. 回到本仓库，构建并组装
-cd ../ani-rss-themes
-npm --prefix webui-vt run build
-node webui-shared/tools/pack.mjs vt --player ../webplayer/dist
-```
-
-产物在 `dist-webui/vt/`，把里面的内容复制到 `{configDir}/webui/` 即可。
-不给 `--player` 也能装，只是点播放时会提示怎么补上。
-
-**体积**：webplayer 的 dist 约 40 MB，其中 `vendor/ffmpeg-core.wasm` 就占 31 MB
-（音频转码用），`jassub-worker*.wasm` 各 2 MB（ASS 渲染），`anime4k.js` 3.4 MB。
-本界面自己只有 1.8 MB。放进配置目录前心里有个数。
+**体积**：下载 13 MB，解压后 40 MB —— 其中 `vendor/ffmpeg-core.wasm` 独占 31 MB（音频转码用），
+`jassub-worker*.wasm` 各 2 MB（ASS 渲染），`anime4k.js` 3.4 MB。本界面自己只有 1.8 MB。
 
 #### ⚠️ 先跑一下 Range 探针
 
