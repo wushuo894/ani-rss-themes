@@ -165,7 +165,7 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
 
 .group-count {
     font-size: .8rem;
-    opacity: .55;
+    opacity: .72;
     font-variant-numeric: tabular-nums;
 }
 
@@ -213,7 +213,7 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
 }
 
 .is-off {
-    opacity: .6;
+    opacity: .72;
 }
 
 .poster {
@@ -241,7 +241,7 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
 
 .sub {
     font-size: .78rem;
-    opacity: .64;
+    opacity: .72;
     margin-top: 4px;
     overflow: hidden;
     text-overflow: ellipsis;

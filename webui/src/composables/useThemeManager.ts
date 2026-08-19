@@ -3,6 +3,7 @@ import {useTheme} from 'vuetify'
 import {applyTheme} from '@shared/themes/apply'
 import {THEME_MAP} from '@shared/themes/registry'
 import {usePrefsStore} from '@/stores/prefs'
+import {fillForeground} from '@/plugins/vuetify'
 
 /**
  * 主题总管：把「选了哪款主题」+「当前明暗」翻译成 Vuetify 的主题名和一层装饰 CSS。
@@ -39,11 +40,14 @@ export function useThemeManager() {
              * 主题只声明关心的那几个，其余原样继承，缺键不会导致组件取到 undefined。
              */
             const inherited = theme.themes.value[mode]
-            theme.themes.value[name] = {
+            /* fillForeground：皮肤只给底色时补上对应的前景色，
+               不补的话 Vuetify 会拿它自己那套（浅色主题里 surface-variant 是深灰）的
+               on- 值来配，浅底浅字 / 深底深字 */
+            theme.themes.value[name] = fillForeground({
                 ...inherited,
                 dark: mode === 'dark',
                 colors: {...inherited.colors, ...colors},
-            }
+            })
             theme.change(name)
         } else {
             theme.change(mode)

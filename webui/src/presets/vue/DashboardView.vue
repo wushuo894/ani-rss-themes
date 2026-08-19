@@ -175,7 +175,7 @@ const router = useRouter()
 }
 
 .feature-icon {
-    opacity: .55;
+    opacity: .72;
     margin-bottom: 10px;
 }
 
@@ -188,7 +188,7 @@ const router = useRouter()
 
 .feature-label {
     font-size: .82rem;
-    opacity: .62;
+    opacity: .72;
     margin-top: 6px;
 }
 
@@ -226,7 +226,7 @@ const router = useRouter()
 .doc-table th {
     font-size: .78rem;
     font-weight: 600;
-    opacity: .55;
+    opacity: .72;
     border-bottom-width: 2px;
 }
 
@@ -257,7 +257,7 @@ const router = useRouter()
 }
 
 .cell-dim, .dim, .pct {
-    opacity: .62;
+    opacity: .72;
 }
 
 .pct {

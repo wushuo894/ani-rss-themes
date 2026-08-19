@@ -89,6 +89,18 @@ const menu = ref(false)
     min-width: 0;
 }
 
+/*
+ * 顶栏在明暗两种主题下都是深色 —— github.com 就是这样，顶栏不跟着主题翻。
+ *
+ * 但 base.css 为了让带壁纸的主题能透出背景，给 .v-toolbar 的底色加了 !important，
+ * 把 <v-app-bar color="#161b22"> 盖掉了：浅色主题下顶栏变成白底，
+ * 而品牌名、图标按钮、搜索框里的字都是照着深色底写死的 #f0f6fc ——
+ * 白底白字，整条顶栏（品牌、搜索、主题切换、账号）全部消失。这里把底色抢回来。
+ */
+.gh-header.v-toolbar {
+    background: #161b22 !important;
+}
+
 .brand {
     color: #f0f6fc;
     font-weight: 600;

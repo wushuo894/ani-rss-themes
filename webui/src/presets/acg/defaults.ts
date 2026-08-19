@@ -8,8 +8,8 @@ export const light: ThemeDefinition = {
     dark: false,
     colors: {
         background: '#e9eefb', surface: '#ffffff', 'surface-variant': '#dde5f6',
-        primary: '#4a7fe8', secondary: '#7d8ba5', success: '#4fae7a',
-        warning: '#dda12f', error: '#e06666', info: '#7d8ba5',
+        primary: '#2657bf', secondary: '#525e77', success: '#2f6849',
+        warning: '#795714', error: '#b12424', info: '#525e77',
     },
 }
 

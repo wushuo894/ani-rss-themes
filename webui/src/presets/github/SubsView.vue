@@ -186,7 +186,7 @@ const desc = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.ti
     font-size: .75rem;
     font-weight: 600;
     letter-spacing: .04em;
-    opacity: .7;
+    opacity: .72;
     background: rgba(var(--v-theme-on-surface), .05);
     border-bottom: 1px solid rgba(128, 128, 128, .18);
 }
@@ -244,7 +244,7 @@ const desc = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.ti
 
 .desc {
     font-size: .8rem;
-    opacity: .68;
+    opacity: .72;
     margin-top: 2px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -256,7 +256,7 @@ const desc = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.ti
     flex-wrap: wrap;
     gap: 4px 14px;
     font-size: .78rem;
-    opacity: .68;
+    opacity: .72;
     margin-top: 6px;
     min-width: 0;
 }

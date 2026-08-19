@@ -50,11 +50,13 @@ async function doStop(status: number) {
 
 <template>
   <div>
-    <v-card class="mb-4" variant="tonal">
+    <!-- 这张卡不用 tonal：里面还有 tonal 的状态药丸，一层染色叠一层，
+         药丸的字和它自己的底就只剩 3.8:1 了 —— 嵌套染色是对比度的隐形杀手 -->
+    <v-card class="mb-4" variant="flat">
       <v-card-text>
         <div class="d-flex align-center flex-wrap ga-2 mb-2">
           <span class="text-h6">ani-rss</span>
-          <v-chip size="small" variant="flat">{{ info?.version || store.config.version || '—' }}</v-chip>
+          <v-chip size="small" variant="tonal">{{ info?.version || store.config.version || '—' }}</v-chip>
           <v-chip v-if="info?.update" color="warning" size="small" variant="tonal">
             有新版本 {{ info.latest }}
           </v-chip>

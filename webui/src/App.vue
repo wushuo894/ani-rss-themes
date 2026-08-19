@@ -56,6 +56,5 @@ setUnauthorizedHandler(() => {
     bottom: 12px;
     z-index: 9999;
     pointer-events: none;
-    opacity: .85;
 }
 </style>

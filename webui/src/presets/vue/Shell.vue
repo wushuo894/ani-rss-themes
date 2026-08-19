@@ -119,7 +119,7 @@ const groups = ['追番', '系统'] as const
     font-size: .75rem;
     font-weight: 600;
     letter-spacing: .04em;
-    opacity: .55;
+    opacity: .72;
 }
 
 /* 文档式导航：不用药丸，用左侧一道竖线标当前项 */

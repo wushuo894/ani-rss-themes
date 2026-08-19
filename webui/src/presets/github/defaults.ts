@@ -5,8 +5,8 @@ export const light: ThemeDefinition = {
     dark: false,
     colors: {
         background: '#f6f8fa', surface: '#ffffff', 'surface-variant': '#eaeef2',
-        primary: '#0969da', secondary: '#57606a', success: '#1a7f37',
-        warning: '#9a6700', error: '#cf222e', info: '#57606a',
+        primary: '#085fc6', secondary: '#57606a', success: '#187131',
+        warning: '#865900', error: '#bd1f2a', info: '#57606a',
     },
 }
 

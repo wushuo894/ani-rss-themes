@@ -129,7 +129,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 
 .support {
     font-size: .95rem;
-    opacity: .68;
+    opacity: .72;
 }
 
 .title-m {
@@ -152,7 +152,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 }
 
 .stat-icon {
-    opacity: .6;
+    opacity: .72;
 }
 
 .stat-num {
@@ -165,7 +165,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 
 .stat-label {
     font-size: .8rem;
-    opacity: .7;
+    opacity: .72;
     margin-top: 2px;
 }
 
@@ -198,7 +198,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 
 .track-sub {
     font-size: .75rem;
-    opacity: .68;
+    opacity: .72;
     margin-top: 4px;
 }
 
@@ -220,7 +220,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 
 .hint {
     font-size: .88rem;
-    opacity: .7;
+    opacity: .72;
 }
 
 /* 任务名是整条发布标题，不截断会把进度条挤出卡片 */

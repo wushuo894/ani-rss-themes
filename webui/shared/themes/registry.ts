@@ -22,11 +22,18 @@ export const THEMES: ThemeDef[] = [
     {
         id: 'acg',
         name: '二次元',
-        desc: '随机壁纸，玻璃药丸，hover 光晕，每次刷新换图',
-        base: 'auto', remote: true,
+        desc: '随机壁纸，玻璃药丸，hover 光晕，每次刷新换图（只在深色下成立）',
+        /*
+         * base 是 dark 不是 auto：底图是随机的照片，压暗层、玻璃面板、白色细边、
+         * 压在图上的白字 —— 整套视觉语言都是按深色设计的。跟着用户切到浅色，
+         * 正文会变成深色的字压在一张亮度完全不可控的照片上，
+         * 「疑似停更」这类直接落在背景上的小标题就读不出来了。
+         * 随机照片托不住深色文字，这一款干脆只提供深色。
+         */
+        base: 'dark', remote: true,
         light: {
             background: '#e9eefb', surface: '#ffffff', 'surface-variant': '#dde5f6',
-            primary: '#4a7fe8', success: '#4fae7a', warning: '#dda12f', error: '#e06666', info: '#7d8ba5',
+            primary: '#2657bf', success: '#2f6849', warning: '#795714', error: '#b12424', info: '#525e77',
         },
         dark: {
             background: '#0f1420', surface: '#18202e', 'surface-variant': '#232c3d',
@@ -59,11 +66,11 @@ export const THEMES: ThemeDef[] = [
         base: 'auto',
         light: {
             background: '#eceaf6', surface: '#ffffff', 'surface-variant': '#e3e0f2',
-            primary: '#5e5ce6', success: '#34c759', warning: '#ff9f0a', error: '#ff3b30', info: '#64d2ff',
+            primary: '#4442e2', success: '#1c692f', warning: '#845000', error: '#b50a00', info: '#00618a',
         },
         dark: {
             background: '#0d0d14', surface: '#17171f', 'surface-variant': '#22222e',
-            primary: '#7d7aff', success: '#32d74b', warning: '#ffd60a', error: '#ff453a', info: '#64d2ff',
+            primary: '#8d8aff', success: '#32d74b', warning: '#ffd60a', error: '#ff453a', info: '#64d2ff',
         },
         vars: {
             font: `-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable Text", ${CN}, sans-serif`,
@@ -109,8 +116,8 @@ body::before {
         base: 'auto',
         light: {
             background: '#ffffff', surface: '#ffffff', 'surface-variant': '#f6f6f7',
-            primary: '#42b883', secondary: '#35495e', success: '#42b883', warning: '#d97706',
-            error: '#e45649', info: '#3451b2',
+            primary: '#2b7352', secondary: '#35495e', success: '#2a7453', warning: '#9b5505',
+            error: '#c12a1d', info: '#3451b2',
             'on-background': '#3c3c43', 'on-surface': '#3c3c43',
         },
         dark: {
@@ -150,7 +157,7 @@ body::before {
         base: 'auto',
         light: {
             background: '#f6f8fa', surface: '#ffffff', 'surface-variant': '#eaeef2',
-            primary: '#0969da', success: '#1a7f37', warning: '#9a6700', error: '#cf222e', info: '#57606a',
+            primary: '#085fc6', success: '#187131', warning: '#865900', error: '#bd1f2a', info: '#57606a',
         },
         dark: {
             background: '#0d1117', surface: '#161b22', 'surface-variant': '#21262d',

@@ -231,7 +231,7 @@ function onCardClick() {
 
 .subgroup, .time-line {
     font-size: .75rem;
-    opacity: .66;
+    opacity: .72;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

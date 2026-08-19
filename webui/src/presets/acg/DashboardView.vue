@@ -227,7 +227,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 .dl-pct {
     flex: 0 0 auto;
     font-size: .72rem;
-    opacity: .7;
+    opacity: .72;
     font-variant-numeric: tabular-nums;
 }
 

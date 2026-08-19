@@ -5,8 +5,8 @@ export const light: ThemeDefinition = {
     dark: false,
     colors: {
         background: '#eceaf6', surface: '#ffffff', 'surface-variant': '#e3e0f2',
-        primary: '#5e5ce6', secondary: '#64d2ff', success: '#34c759',
-        warning: '#ff9f0a', error: '#ff3b30', info: '#64d2ff',
+        primary: '#4442e2', secondary: '#00618a', success: '#1c692f',
+        warning: '#845000', error: '#b50a00', info: '#00618a',
     },
 }
 
@@ -14,7 +14,7 @@ export const dark: ThemeDefinition = {
     dark: true,
     colors: {
         background: '#0d0d14', surface: '#17171f', 'surface-variant': '#22222e',
-        primary: '#7d7aff', secondary: '#64d2ff', success: '#32d74b',
+        primary: '#8d8aff', secondary: '#64d2ff', success: '#32d74b',
         warning: '#ffd60a', error: '#ff453a', info: '#64d2ff',
     },
 }

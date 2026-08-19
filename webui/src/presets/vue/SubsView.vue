@@ -162,7 +162,7 @@ function openBgm(a: Ani) {
 
 .count {
     font-size: .8rem;
-    opacity: .5;
+    opacity: .72;
     font-variant-numeric: tabular-nums;
 }
 
@@ -218,7 +218,7 @@ function openBgm(a: Ani) {
     gap: 6px;
     align-items: baseline;
     font-size: .78rem;
-    opacity: .6;
+    opacity: .72;
     margin-top: 3px;
     min-width: 0;
     overflow: hidden;
@@ -253,7 +253,7 @@ function openBgm(a: Ani) {
 }
 
 .off {
-    opacity: .6;
+    opacity: .72;
 }
 
 .actions {

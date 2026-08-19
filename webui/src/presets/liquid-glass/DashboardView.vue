@@ -188,7 +188,7 @@ const heroBg = computed(() => {
     font-size: .8rem;
     letter-spacing: .1em;
     text-transform: uppercase;
-    opacity: .68;
+    opacity: .72;
 }
 
 .hero-num {
@@ -226,7 +226,7 @@ const heroBg = computed(() => {
 
 .feature-sub {
     font-size: .76rem;
-    opacity: .68;
+    opacity: .72;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -271,7 +271,7 @@ const heroBg = computed(() => {
 
 .num-l {
     font-size: .78rem;
-    opacity: .66;
+    opacity: .72;
     margin-top: 6px;
 }
 
@@ -330,13 +330,13 @@ const heroBg = computed(() => {
 .dl-pct {
     flex: 0 0 auto;
     font-size: .74rem;
-    opacity: .68;
+    opacity: .72;
     font-variant-numeric: tabular-nums;
 }
 
 .dim {
     font-size: .86rem;
-    opacity: .6;
+    opacity: .72;
 }
 
 @media (max-width: 599px) {
