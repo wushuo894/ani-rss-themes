@@ -426,10 +426,14 @@ async function fillDownloadPath() {
               </v-col>
 
               <v-col cols="12" md="6">
-                <StringListField v-model="form.match" label="匹配"/>
+                <StringListField v-model="form.match"
+                                 :doc="{text: '正则语法', href: 'https://www.runoob.com/regexp/regexp-syntax.html'}"
+                                 label="匹配"/>
               </v-col>
               <v-col cols="12" md="6">
-                <StringListField v-model="form.exclude" label="排除"/>
+                <StringListField v-model="form.exclude"
+                                 :doc="{text: '正则语法', href: 'https://www.runoob.com/regexp/regexp-syntax.html'}"
+                                 import-key="exclude" label="排除"/>
               </v-col>
 
               <v-col cols="12">
@@ -511,7 +515,9 @@ async function fillDownloadPath() {
                   <v-switch v-model="form.customPriorityKeywordsEnable" color="primary" hide-details label="启用"
                             class="mb-2"/>
                   <StringListField v-model="form.customPriorityKeywords"
-                                   :disabled="!form.customPriorityKeywordsEnable" label="关键词"/>
+                                   :disabled="!form.customPriorityKeywordsEnable"
+                                   hint="种子里有多个文件时优先保留的，越靠前优先级越高"
+                                   import-key="priorityKeywords" label="关键词"/>
                 </template>
               </v-expansion-panel>
             </v-expansion-panels>
