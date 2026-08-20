@@ -151,7 +151,17 @@ export const getSubtitles = (filename: string) =>
 export const about = () => http.post<About>('api/about')
 export const update = () => http.post<void>('api/update')
 export const stop = (status: number) => http.post<void>(q('api/stop', {status}))
-export const verifyNo = (config: Config) => http.post<void>('api/verifyNo', config)
+/**
+ * 校验爱发电订单号。
+ *
+ * 后端 AfdianController#verifyNo 收 Config 但**只读 outTradeNo 一个字段**，校验通过后自己把
+ * outTradeNo / expirationTime / tryOut 写进服务端配置。所以这里只发订单号 ——
+ * 原来整个 config 发过去，会把用户刚在「登录」页敲进去、还没保存的明文密码一起带上。
+ *
+ * 返回 Result<Void>，data 是空的。上游 UI 那句 `config.expirationTime = res.data` 是错的，
+ * 别照抄 —— 真正的到期时间要等下次拉配置。
+ */
+export const verifyNo = (outTradeNo: string) => http.post<void>('api/verifyNo', {outTradeNo})
 
 /* ==================== 需要浏览器直接发起的请求 ==================== */
 /* 这几个不走 fetch：要么是让浏览器自己下载文件，要么是给外部系统抄的地址。

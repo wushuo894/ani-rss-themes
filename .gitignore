@@ -23,3 +23,7 @@ webui/shared/tools/upstream/
 
 # pack.mjs 组装出来的可部署目录
 dist-webui/
+
+# 本地实例地址/账号，永不进版本库
+*.env
+!*.env.example

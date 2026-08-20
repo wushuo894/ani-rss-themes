@@ -35,12 +35,20 @@ async function doUpdate() {
   }
 }
 
-/** status 语义来自后端 AboutController：0 停止，1 重启 */
+/* 后端 AboutController#stop 的第一行是 `List.of("重启", "关闭").get(status)`，
+   接着 `System.exit(status)` —— 也就是 **0 是重启、1 是关闭**，
+   和这个端点的名字（stop）给人的直觉相反。上游 UI 也是 stop(0)=重启、stop(1)=关闭。
+   原来这里的注释写反了（「0 停止，1 重启」），两个按钮跟着接反：
+   点「重启服务」实际发的是关闭，服务直接停掉、网页再也打不开，得去服务器上手动起。
+   用具名常量钉死，不要再出现裸的 0 / 1。 */
+const RESTART = 0
+const SHUTDOWN = 1
+
 async function doStop(status: number) {
   busy.value = 'stop'
   try {
     await api.stop(status)
-    ui.info(status === 0 ? '已发送停止指令' : '已发送重启指令')
+    ui.info(status === RESTART ? '已发送重启指令' : '已发送停止指令')
   } finally {
     busy.value = ''
     confirmStop.value = null
@@ -98,8 +106,10 @@ async function doStop(status: number) {
 
     <div class="text-subtitle-2 mb-2">服务</div>
     <div class="d-flex flex-wrap ga-2 mb-4">
-      <v-btn prepend-icon="mdi-restart" variant="tonal" @click="confirmStop = 1">重启服务</v-btn>
-      <v-btn color="error" prepend-icon="mdi-power" variant="tonal" @click="confirmStop = 0">停止服务</v-btn>
+      <v-btn prepend-icon="mdi-restart" variant="tonal" @click="confirmStop = RESTART">重启服务</v-btn>
+      <v-btn color="error" prepend-icon="mdi-power" variant="tonal" @click="confirmStop = SHUTDOWN">
+        停止服务
+      </v-btn>
     </div>
 
     <div class="d-flex flex-wrap ga-3 text-caption">
@@ -111,18 +121,25 @@ async function doStop(status: number) {
 
     <v-dialog :model-value="confirmStop !== null" max-width="400" @update:model-value="confirmStop = null">
       <v-card>
-        <v-card-title>{{ confirmStop === 0 ? '停止服务' : '重启服务' }}</v-card-title>
+        <v-card-title>{{ confirmStop === SHUTDOWN ? '停止服务' : '重启服务' }}</v-card-title>
         <v-card-text>
-          {{
-            confirmStop === 0
-                ? '停止后需要在服务器上手动启动，网页将无法继续使用。'
-                : '服务会短暂中断，稍后自行恢复。'
-          }}
+          <p class="mb-0">
+            {{
+              confirmStop === SHUTDOWN
+                  ? '停止后需要在服务器上手动启动，网页将无法继续使用。'
+                  : '服务会短暂中断，稍后自行恢复。'
+            }}
+          </p>
+          <!-- 后端对 exe 版直接拒绝重启（「Windows 端不支持重启」），提前说一声，
+               免得点下去只收到一句报错不知道为什么 -->
+          <p v-if="confirmStop === RESTART" class="text-caption text-medium-emphasis mt-2 mb-0">
+            Windows 的 .exe 版本不支持重启，服务端会直接拒绝。
+          </p>
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
           <v-btn variant="text" @click="confirmStop = null">取消</v-btn>
-          <v-btn :color="confirmStop === 0 ? 'error' : 'primary'" :loading="busy === 'stop'" variant="flat"
+          <v-btn :color="confirmStop === SHUTDOWN ? 'error' : 'primary'" :loading="busy === 'stop'" variant="flat"
                  @click="doStop(confirmStop!)">
             确定
           </v-btn>

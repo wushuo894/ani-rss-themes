@@ -125,6 +125,16 @@ export const DOWNLOAD_SECTIONS: SectionDef[] = [
             },
         ],
     },
+    {
+        /* 上游「下载」页里有这一项（Download.vue 的 <el-form-item label="自定义标签">），
+           我们之前只做了订阅级的标签（AniEditDialog），漏了这个全局的 —— 它是给所有
+           下载任务统一打的标签，qBittorrent 那边靠它归类。 */
+        title: '自定义标签',
+        note: '给所有下载任务统一打的标签，与单条订阅自己的标签叠加',
+        fields: [
+            {key: 'customTags', label: '标签', type: 'list'},
+        ],
+    },
 ]
 
 /* ══════════════ 基本设置（9 个折叠面板） ══════════════ */

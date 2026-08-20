@@ -117,6 +117,11 @@ export const CONFIG = {
     sortType: 'SCORE',
     rename: true, delete: false,
     notificationConfigList: [],
+    customTags: [],
+    /* 捐赠那一页得有个像样的状态才看得出组件长什么样。给「试用中」——
+       它把徽章、解锁清单、状态条、订单号输入全都渲染出来，覆盖面最广。
+       注意 verifyExpirationTime 为 true 是「还在有效期内」，不是「已过期」 */
+    tryOut: true, verifyExpirationTime: true, expirationTime: Date.now() + 14 * 864e5,
 } as unknown as Config
 
 export const ABOUT: About = {
