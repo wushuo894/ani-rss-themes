@@ -26,6 +26,10 @@ const items = days.flatMap(d => (d.items ?? []).map(it => ({
     // name_cn 常常是空串，退回原名
     title: it.name_cn || it.name,
     jp: it.name_cn ? it.name : '',
+    /* 取 common（150px，约 11KB）。
+       量过四档：grid 1.2KB / small 3.4KB / common 11KB / medium 5.7KB（比 common 还小）/
+       large 938KB —— large 是原图，113 张就是 100MB 出头，演示站不能这么干。
+       common 放到 206px 宽会略软，但这是这几档里唯一能看的。 */
     cover: String(it.images?.common || it.images?.medium || '').replace(/^http:/, 'https:'),
     score: Number(it.rating?.score ?? 0) || 0,
     eps: Number(it.eps ?? 0) || 0,
