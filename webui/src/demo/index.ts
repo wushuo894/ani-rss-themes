@@ -1,4 +1,7 @@
-import {ABOUT, CONFIG, LOGS, listAni, previewAni, TORRENTS} from './data'
+import {
+    ABOUT, aniBTList, animeGardenList, CONFIG, listAni, LOGS, mikanList,
+    previewAni, sourceGroups, TORRENTS,
+} from './data'
 
 /**
  * 演示模式：把 fetch 换成一个只认识 api/ 的假服务端。
@@ -69,6 +72,21 @@ export function installDemo(): void {
             case 'api/previewAni':
                 // 预览要拿请求体里的那条订阅来编数据，才有集数、字幕组和下载位置可看
                 return ok(previewAni(JSON.parse(String(init?.body ?? '{}'))))
+            /* 番剧浏览器：三个源各一个列表接口 + 一个字幕组接口。
+               不给假数据的话，演示站里这个新做的按星期浏览面板永远是空的 */
+            case 'api/mikan':
+                return ok(mikanList())
+            case 'api/aniBT':
+                return ok(aniBTList())
+            case 'api/animeGardenList':
+                return ok(animeGardenList())
+            case 'api/mikanGroup':
+            case 'api/aniBTGroup':
+            case 'api/animeGardenGroup':
+                return ok(sourceGroups(url))
+            case 'api/rssToAni':
+                // 浏览器挑完字幕组会走这一步，回一条订阅让确认框有东西可显示
+                return ok(listAni().weekList[0].items[0])
             case 'api/custom.css':
             case 'api/custom.js':
                 return new Response('', {headers: {'Content-Type': 'text/plain'}})

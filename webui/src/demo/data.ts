@@ -46,10 +46,16 @@ function poster(i: number): string {
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
+/* 每 8 部里挑一部当「很久没更新」的：总览上的「疑似停更」是真会出现的状态，
+   演示数据要是全都在 3 天内下过，那张卡永远是「字幕组都很勤快」，看不出长什么样。
+   停更判定要求「没下完」，所以这几部的进度也一并压到总集数以下。 */
+const STALE = (i: number) => i % 8 === 3
+
 function makeAni(title: string, i: number): Ani {
     const id = nextId()
     const total = 12 + rnd(id + 'a', 3)
-    const cur = rnd(id + 'b', total + 1)
+    const cur = STALE(i) ? Math.max(1, total - 4) : rnd(id + 'b', total + 1)
+    const idleDays = STALE(i) ? 18 + rnd(id + 'e', 26) : rnd(id + 'e', 3)
     return {
         id,
         title,
@@ -65,7 +71,9 @@ function makeAni(title: string, i: number): Ani {
         pinyin: '', pinyinInitials: '',
         themoviedbName: title,
         bgmUrl: '',
-        lastDownloadTime: Date.now() - rnd(id + 'e', 72) * 3600_000,
+        // 摸鱼检测的开关，默认开 —— 它不是「已停更」，别拿它当状态用
+        procrastinating: true,
+        lastDownloadTime: Date.now() - idleDays * 864e5 - rnd(id + 'f', 20) * 3600_000,
         standbyRssList: i % 5 === 0 ? ['https://example.invalid/rss'] : [],
     } as unknown as Ani
 }
@@ -160,4 +168,96 @@ export const ABOUT: About = {
     latest: '演示版',
     update: false,
     autoUpdate: false,
+}
+
+
+/* ────────── 番剧浏览器（Mikan / AniBT / AnimeGarden）的假数据 ────────── */
+
+/** 三家的返回结构不一样，但演示要的东西一样：按星期分的番剧 + 每部番的字幕组 */
+const browseItems = (i: number) => TITLES.slice(i * 3, i * 3 + 3 + (i % 2))
+
+export function mikanList() {
+    const y = new Date().getFullYear()
+    return {
+        seasons: [
+            {year: y, season: '春', seasonLabel: `${y} 春`, select: true},
+            {year: y, season: '冬', seasonLabel: `${y} 冬`, select: false},
+            {year: y - 1, season: '秋', seasonLabel: `${y - 1} 秋`, select: false},
+        ],
+        weeks: WEEK.map((w, i) => ({
+            weekLabel: w,
+            items: browseItems(i).map((t, k) => ({
+                bgmId: `${100000 + i * 10 + k}`,
+                cover: poster(i * 5 + k),
+                url: `https://mikanani.me/Home/Bangumi/${i}${k}`,
+                exists: (i + k) % 5 === 0,
+                score: Number((6.8 + rnd(t, 25) / 10).toFixed(1)),
+                title: t,
+                bgmUrl: `https://bgm.tv/subject/${100000 + i * 10 + k}`,
+            })),
+        })),
+        totalItem: TITLES.length,
+    }
+}
+
+export function aniBTList() {
+    const y = new Date().getFullYear()
+    return {
+        currentSeason: `${y} 春`,
+        requestedSeason: `${y} 春`,
+        availableSeasons: [`${y} 春`, `${y} 冬`, `${y - 1} 秋`],
+        byWeekday: WEEK.map((w, i) => ({
+            weekday: i + 1,
+            weekdayLabel: w,
+            animes: browseItems(i).map((t, k) => ({
+                animeId: `a${i}${k}`,
+                bgmId: `${200000 + i * 10 + k}`,
+                cover: poster(i * 7 + k),
+                rating: Number((6.5 + rnd(t, 30) / 10).toFixed(1)),
+                title: {chinese: t, primary: t, romaji: '', english: ''},
+                exists: (i + k) % 6 === 0,
+                rssReleaseCount: 3 + rnd(t, 20),
+            })),
+        })),
+    }
+}
+
+export function animeGardenList() {
+    return WEEK.map((w, i) => ({
+        weekLabel: w,
+        subjects: browseItems(i).map((t, k) => ({
+            id: `${300000 + i * 10 + k}`,
+            name: t,
+            cover: poster(i * 11 + k),
+            score: Number((6.2 + rnd(t, 35) / 10).toFixed(1)),
+            exists: (i + k) % 7 === 0,
+            weekLabel: w,
+        })),
+    }))
+}
+
+/** 字幕组列表。三家字段名不同，一次全给上，组件那边按名字取，多余的忽略 */
+export function sourceGroups(key: string) {
+    const versions = [
+        [{label: '简体', regex: 'CHS|简'}, {label: '1080P', regex: '1080'}],
+        [{label: '繁体', regex: 'CHT|繁'}, {label: '1080P', regex: '1080'}],
+        [{label: '简繁内封', regex: '简繁'}],
+    ]
+    return SUBGROUPS.slice(0, 3 + rnd(key, 3)).map((name, i) => ({
+        subgroupId: `sg-${i}`,
+        groupId: `sg-${i}`,
+        label: name,
+        name,
+        rss: `https://example.invalid/rss/${encodeURIComponent(key)}/${i}`,
+        bgmUrl: `https://bgm.tv/subject/${100000 + i}`,
+        bgmId: `${100000 + i}`,
+        updateDay: WEEK[i % 7],
+        status: '连载中',
+        lastUpdatedAt: Date.now() - i * 86400_000,
+        items: [],
+        groupRegex: {
+            tags: ['1080P', i % 2 ? '简体' : '繁体'],
+            regexList: versions.slice(0, 2 + (i % 2)),
+        },
+    }))
 }

@@ -1,0 +1,89 @@
+/*
+ * 留白基线。
+ *
+ * 为什么要有这么一层：Vuetify 的默认间距是按「信息密度优先」调的 —— 对话框标题
+ * 上下各 16px、正文 16px、按钮条 8px，几个控件并排时相邻边距会互相塌陷。
+ * 单看一个组件不难看，一旦一屏里摞上四五个（标题 + 标签栏 + 表单 + 按钮条），
+ * 就成了一坨；而且没有空隙的地方，hover 抬起、展开下拉这些动效根本没地方发生 ——
+ * 元素一动就会碰到邻居。
+ *
+ * 档位取 M3 那一套 4dp 网格：紧邻 8 / 同组 12 / 跨组 20 / 跨区 28。
+ * 下面每条规则只落在我们自己的对话框和表单上，不动 Vuetify 的全局 token
+ * （改 token 会连带影响导航栏、卡片、列表，五款界面的排版全要重调）。
+ */
+
+/* ── 对话框：标题 / 正文 / 按钮条 ── */
+
+/* 选择器写到 .v-dialog 这一层，不要写成 .v-overlay —— 那会把 v-menu、
+   v-tooltip 的浮层一起套进来，播放器那几个下拉菜单会被撑开 */
+.v-dialog > .v-overlay__content > .v-card > .v-card-title {
+    padding: 20px 24px 14px;
+}
+
+.v-dialog > .v-overlay__content > .v-card > .v-card-subtitle {
+    padding-inline: 24px;
+}
+
+.v-dialog > .v-overlay__content > .v-card > .v-card-text {
+    padding: 22px 24px 26px;
+}
+
+.v-dialog > .v-overlay__content > .v-card > .v-card-actions {
+    gap: 8px;
+    padding: 14px 20px 18px;
+}
+
+/* 按钮条里 Vuetify 自带 4px 的 margin-inline，叠上 gap 会变成 12px，
+   看着像少了一个按钮。统一交给 gap 管 */
+.v-dialog > .v-overlay__content > .v-card > .v-card-actions > .v-btn {
+    margin-inline: 0;
+}
+
+/* 标签栏和正文之间：紧贴着切页时内容像是从分割线里长出来的 */
+.v-dialog > .v-overlay__content > .v-card > .v-tabs {
+    padding-inline: 12px;
+}
+
+/* ── 表单：相邻控件之间 ── */
+
+/*
+ * hide-details 的输入框没有 details 那 22px，上下就真的贴在一起了。
+ * 只补相邻的那一侧（+ 选择器），第一个控件不会多出一截空白。
+ */
+.v-card-text .v-input--hide-details + .v-input--hide-details,
+.v-card-text .v-input--hide-details + .v-btn,
+.v-card-text .v-input + .v-expansion-panels,
+.v-card-text .v-list + .v-input {
+    margin-top: 14px;
+}
+
+/* 手风琴一节一节之间给条缝：贴着摞会分不清点开的是哪一节 */
+.v-card-text .v-expansion-panels .v-expansion-panel + .v-expansion-panel {
+    margin-top: 8px;
+}
+
+/* 展开后的内容离标题远一点，别贴着标题行 */
+.v-card-text .v-expansion-panel-text__wrapper {
+    padding-top: 6px;
+    padding-bottom: 18px;
+}
+
+/* 一排开关（全局排除 / 剧场版 / 启用……）之间至少留 20px，
+   开关本身的点击热区就有 40px 宽，挨太近很容易点错一个 */
+.v-card-text .v-switch + .v-switch {
+    margin-left: 8px;
+}
+
+/* ── 列表：行与行 ── */
+
+/*
+ * v-list-item 默认是零间距的连续行，右侧带开关时两行的开关几乎连成一条竖线。
+ * 给 6px 并把圆角补上，hover 的底色才有形状。
+ */
+.v-card-text > .v-list > .v-list-item + .v-list-item {
+    margin-top: 6px;
+}
+
+.v-card-text > .v-list > .v-list-item {
+    border-radius: 10px;
+}

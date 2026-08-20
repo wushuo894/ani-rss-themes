@@ -108,11 +108,11 @@ async function showDownloadPath() {
 
       <v-divider/>
 
-      <v-card-text style="min-height: 420px">
+      <v-card-text style="min-height: 440px">
         <v-tabs-window v-model="tab">
           <!-- ══ 基本 ══ -->
           <v-tabs-window-item value="basic">
-            <v-row dense>
+            <v-row>
               <v-col cols="12">
                 <v-text-field v-model="form.title" label="标题">
                   <template #append>
@@ -148,9 +148,9 @@ async function showDownloadPath() {
               </v-col>
 
               <v-col cols="12">
-                <div class="text-caption text-medium-emphasis mb-1">备用 RSS</div>
+                <div class="text-caption text-medium-emphasis mb-2">备用 RSS</div>
                 <div v-if="!form.standbyRssList?.length" class="text-caption text-disabled mb-2">未配置</div>
-                <div v-for="(s, i) in form.standbyRssList || []" :key="i" class="d-flex ga-2 mb-2">
+                <div v-for="(s, i) in form.standbyRssList || []" :key="i" class="d-flex ga-3 mb-3">
                   <v-text-field v-model="s.label" density="compact" hide-details label="名称" style="max-width: 180px"/>
                   <v-text-field v-model="s.url" density="compact" hide-details label="地址"/>
                   <v-text-field v-model.number="s.offset" density="compact" hide-details label="偏移"
@@ -185,7 +185,7 @@ async function showDownloadPath() {
               </v-col>
 
               <v-col cols="12">
-                <div class="d-flex flex-wrap ga-4">
+                <div class="d-flex flex-wrap ga-6 mt-1">
                   <v-switch v-model="form.globalExclude" color="primary" hide-details label="全局排除"/>
                   <v-switch v-model="form.ova" color="primary" hide-details label="剧场版"/>
                   <v-switch v-model="form.enable" color="primary" hide-details label="启用"/>

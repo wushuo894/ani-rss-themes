@@ -45,8 +45,39 @@ export function useDashboard() {
             .filter(a => a.lastDownloadTime)
             .sort((a, b) => (b.lastDownloadTime ?? 0) - (a.lastDownloadTime ?? 0)))
 
-    /** 后端标了 procrastinating：字幕组很久没动静，这是真正需要人介入的一类 */
-    const stalled = computed(() => ani.all.filter(a => a.procrastinating && a.enable))
+    /*
+     * 「疑似停更」不能直接读 ani.procrastinating —— 那不是状态，是开关。
+     *
+     * 上游 AniUtil 新建订阅时就 .setProcrastinating(true)，ani.js 的默认模板里也写着 true，
+     * 编辑框里它是一个叫「摸鱼检测」的勾选框。拿它当「已停更」筛，结果是每一条启用中的
+     * 订阅都被报成停更 —— 正在下的也一样，因为它压根不表示这个意思。
+     *
+     * 后端也没有存「这条停更了」：ItemsUtil.procrastinating() 算完只发一条通知
+     * （NotificationStatusEnum.PROCRASTINATING）就完了，不写回订阅。所以只能在前端算。
+     *
+     * 口径照抄后端那段：
+     *  - 全局开关 config.procrastinating 关掉 → 整个功能不存在，一条都不报
+     *  - 订阅自己的开关关掉 → 跳过（剧场版默认就是关的，BgmUtil 里设的）
+     *  - 阈值取 config.procrastinatingDay（后端默认 14 天）
+     *  - 已经下完的不算：还差集数才谈得上「等更新」
+     *
+     * 后端量的是 RSS 里最新一条的 pubDate，前端拿不到（得一条条 previewAni），
+     * 用 lastDownloadTime 代替 —— 没有新集发布就没有新的下载，两者只差一个下载耗时。
+     * 从没下过的一条也不报：刚加进来的订阅会立刻被打成停更，那是噪音不是信号。
+     */
+    const stalled = computed(() => {
+        if (config.config.procrastinating === false) return []
+        const limit = config.config.procrastinatingDay ?? 14
+        const now = Date.now()
+        return ani.all
+            .filter(a => a.enable
+                && a.procrastinating !== false
+                && !a.ova
+                && !!a.lastDownloadTime
+                && !(a.totalEpisodeNumber && (a.currentEpisodeNumber ?? 0) >= a.totalEpisodeNumber)
+                && (now - a.lastDownloadTime!) / 864e5 >= limit)
+            .sort((x, y) => (x.lastDownloadTime ?? 0) - (y.lastDownloadTime ?? 0))
+    })
 
     const stats = computed(() => [
         {key: 'total', label: '订阅总数', value: ani.total, icon: 'mdi-television-play', to: '/subscriptions'},

@@ -11,10 +11,10 @@
 import {md5} from 'js-md5'
 import {http, toApiUrl, getToken, base64Encode} from './http'
 import type {
-    About, Ani, AniBTGroup, AnimeGardenGroup, AnimeGardenItem, BgmInfo, BgmMe,
-    CollectionInfo, Config, EmbyViews, ImportAniDataDTO, Item, ListAni, Log, Login,
-    MikanGroup, MikanInfo, NotificationConfig, PlayItem, PlayItemSubtitles,
-    ProxyTest, RssToAniDTO, ThemoviedbVO, TorrentsInfo,
+    About, Ani, AniBT, AniBTGroup, AniBTQueryDTO, AnimeGardenGroup, AnimeGardenWeek,
+    BgmInfo, BgmMe, CollectionInfo, Config, EmbyViews, ImportAniDataDTO, Item, ListAni,
+    Log, Login, Mikan, MikanGroup, MikanSeason, NotificationConfig, PlayItem,
+    PlayItemSubtitles, ProxyTest, RssToAniDTO, ThemoviedbVO, TorrentsInfo,
 } from './types'
 
 /** 把查询参数拼到路径上，值一律转义 */
@@ -93,12 +93,19 @@ export const scrape = (force: boolean, ani: Ani) => http.post<void>(q('api/scrap
 
 /* ==================== 番剧源 ==================== */
 
-export const mikan = (text: string, season: unknown) => http.post<MikanInfo>(q('api/mikan', {text}), season)
+/* 三个源都返回「按星期分组的番剧列表」，字段名各叫各的：
+   Mikan 是 {seasons, weeks[].items}，AniBT 是 {availableSeasons, byWeekday[].animes}，
+   AnimeGarden 直接就是 Week[]。SourceBrowserDialog 把它们归一成同一个形状。 */
+
+/** MikanController#mikan 返回的是 Mikan（seasons / weeks / totalItem），不是单个番剧 */
+export const mikan = (text: string, season?: MikanSeason | null) =>
+    http.post<Mikan>(q('api/mikan', {text}), season ?? {})
 export const mikanGroup = (url: string) => http.post<MikanGroup[]>(q('api/mikanGroup', {url}))
-export const aniBT = (season: unknown, bgmUrl: string, text: string) =>
-    http.post<unknown>('api/aniBT', {season, bgmUrl, title: text})
+/** AniBTController#aniBT 收的是整个 DTO（season / bgmUrl / title），不是查询参数 */
+export const aniBT = (dto: AniBTQueryDTO) => http.post<AniBT>('api/aniBT', dto)
 export const aniBTGroup = (bgmId: string) => http.post<AniBTGroup[]>(q('api/aniBTGroup', {bgmId}))
-export const animeGardenList = (bgmUrl: string) => http.post<AnimeGardenItem[]>(q('api/animeGardenList', {bgmUrl}))
+export const animeGardenList = (bgmUrl?: string) =>
+    http.post<AnimeGardenWeek[]>(q('api/animeGardenList', {bgmUrl}))
 export const animeGardenGroup = (bgmId: string) => http.post<AnimeGardenGroup[]>(q('api/animeGardenGroup', {bgmId}))
 
 /* ==================== Bangumi ==================== */

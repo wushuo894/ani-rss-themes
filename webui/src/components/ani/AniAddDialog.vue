@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import type {Ani, BgmInfo} from '@shared/types'
 import * as api from '@shared/api'
 import {useAniStore} from '@/stores/ani'
 import {useUiStore} from '@/stores/ui'
 import AniEditDialog from './AniEditDialog.vue'
+import SourceBrowserDialog from './SourceBrowserDialog.vue'
 
 const model = defineModel<boolean>({required: true})
 
@@ -13,46 +14,100 @@ const ani = useAniStore()
 const ui = useUiStore()
 const {mobile} = useDisplay()
 
-const tab = ref('rss')
 const busy = ref(false)
-
-/**
- * 五个来源最后都归到同一步：拿到一个 RSS 地址 → rssToAni 换成订阅对象 → 打开编辑框确认。
- * 所以这里只维护「候选组」和「确认中的订阅」两个状态，各来源只负责把候选填进来。
- */
-interface Candidate {
-  label: string
-  rss: string
-  sub?: string
-  cover?: string
-  bgmUrl?: string
-}
-
-const candidates = ref<Candidate[]>([])
+/** 解析出来的订阅，先给人过一眼再入库 */
 const pending = ref<Ani | null>(null)
 
-/* ── 1. 直接填 RSS ── */
-const rssUrl = ref('')
+/**
+ * 三个番剧源的形式完全一样：填一个 RSS 地址，或者打开番剧列表按星期挑。
+ * 差别只有 placeholder 和列表接口，所以共用一套表单。
+ */
+const SOURCES = [
+  {
+    id: 'mikan', name: 'Mikan', type: 'mikan',
+    ph: 'https://mikanani.me/RSS/Bangumi?bangumiId=xxx&subgroupid=xxx',
+  },
+  {
+    id: 'anibt', name: 'AniBT', type: 'ani-bt',
+    ph: 'https://anibt.net/rss/anime.xml?bgmId=xxx&groupSlug=xxx',
+  },
+  {
+    id: 'garden', name: 'AnimeGarden', type: 'anime-garden',
+    ph: 'https://api.animes.garden/feed.xml?subject=xxx&fansub=xxx',
+  },
+] as const
 
-async function fromRss() {
-  if (!rssUrl.value.trim()) return ui.error('请填写 RSS 地址')
+type SourceId = typeof SOURCES[number]['id']
+
+const tab = ref<SourceId | 'other' | 'bgm'>('mikan')
+const browsing = ref(false)
+const browseSource = ref<SourceId>('mikan')
+
+/** 各来源各记各的地址，切标签页时不会被别的来源覆盖掉 */
+const urls = ref<Record<string, string>>({mikan: '', anibt: '', garden: '', other: ''})
+
+/** 从番剧列表挑中的字幕组会连带回填这几项，手填 RSS 时它们是空的 */
+const picked = ref<{bgmUrl?: string; subgroup?: string; match: string[]}>({match: []})
+
+const current = computed(() => SOURCES.find(s => s.id === tab.value))
+
+function openBrowser(id: SourceId) {
+  browseSource.value = id
+  browsing.value = true
+}
+
+/** 浏览器里选好字幕组和版本 → 回填表单并直接解析，少让人再点一次 */
+function onPicked(v: {url: string; bgmUrl?: string; subgroup?: string; match: string[]}) {
+  urls.value[browseSource.value] = v.url
+  picked.value = {bgmUrl: v.bgmUrl, subgroup: v.subgroup, match: v.match}
+  tab.value = browseSource.value
+  void parse()
+}
+
+/* ── 手填 / 回填的 RSS → 订阅对象 ── */
+/* 只留 BgmUrl：RssToAniDTO 根本没有 title 字段，标题是后端从 Bgm 条目上取的，
+   再摆一个「番剧名称」输入框只会让人以为填了有用 */
+const otherBgmUrl = ref('')
+
+async function parse() {
+  const isOther = tab.value === 'other'
+  const url = (isOther ? urls.value.other : urls.value[tab.value]).trim()
+  if (!url) return ui.error('请填写 RSS 地址')
+  if (isOther && !otherBgmUrl.value.trim()) {
+    // 上游在这一步就拦：没有 Bgm 条目后端认不出番剧名、季度、总集数
+    return ui.error('请填写 BgmUrl，或先用搜索选一个 Bangumi 条目')
+  }
+
   busy.value = true
   try {
-    pending.value = await api.rssToAni({url: rssUrl.value.trim(), enable: true})
+    /* type 必须带上：AniUtil.getAni 里 type 空着就当 mikan 处理，
+       会去 MikanService.getSubgroupId(url) 抠 subgroupId —— AniBT / AnimeGarden 的
+       地址里没这个参数，直接抛「获取失败」。取值是后端那个 switch 认的字面量。 */
+    const a = await api.rssToAni({
+      url,
+      type: isOther ? 'other' : current.value!.type,
+      bgmUrl: isOther ? otherBgmUrl.value.trim() : picked.value.bgmUrl,
+      subgroup: isOther ? undefined : picked.value.subgroup,
+      enable: true,
+    })
+    // rssToAni 不认匹配规则，选好的版本要自己带过去，否则挑了简中还是会全下
+    if (picked.value.match.length && !isOther) a.match = picked.value.match
+    pending.value = a
   } finally {
     busy.value = false
   }
 }
 
-/* ── 2. Bangumi 搜索：选中条目后后端直接给订阅对象，不经过 RSS ── */
+/* ── Bangumi 搜索：选中条目后后端直接给订阅对象，不经过 RSS ── */
 const bgmKeyword = ref('')
 const bgmResults = ref<BgmInfo[]>([])
 
 async function searchBgm() {
-  if (!bgmKeyword.value.trim()) return
+  const k = bgmKeyword.value.trim()
+  if (!k) return
   busy.value = true
   try {
-    bgmResults.value = await api.searchBgm(bgmKeyword.value.trim())
+    bgmResults.value = await api.searchBgm(k)
     if (!bgmResults.value.length) ui.warn('没有搜到条目')
   } finally {
     busy.value = false
@@ -68,55 +123,9 @@ async function pickBgm(b: BgmInfo) {
   }
 }
 
-/* ── 3~5. Mikan / AniBT / AnimeGarden：搜索出字幕组，每组带一个 RSS ── */
-const srcKeyword = ref('')
-
-async function searchSource(kind: 'mikan' | 'anibt' | 'garden') {
-  const k = srcKeyword.value.trim()
-  if (!k) return
-  busy.value = true
-  candidates.value = []
-  try {
-    if (kind === 'mikan') {
-      const info = await api.mikan(k, null)
-      candidates.value = (info.groups || []).map(g => ({
-        label: g.label || '未知字幕组',
-        rss: g.rss || '',
-        sub: g.updateDay,
-        cover: info.cover,
-        bgmUrl: g.bgmUrl || info.bgmUrl,
-      }))
-    } else if (kind === 'anibt') {
-      // AniBT / AnimeGarden 都按 bgmId 取组，这里先用关键词当 bgmId 试
-      const groups = await api.aniBTGroup(k)
-      candidates.value = groups.map(g => ({
-        label: g.name || '未知字幕组',
-        rss: g.rss || '',
-        sub: g.status,
-      }))
-    } else {
-      const groups = await api.animeGardenGroup(k)
-      candidates.value = groups.map(g => ({
-        label: g.name || '未知字幕组',
-        rss: g.rss || '',
-        sub: g.lastUpdatedAt,
-      }))
-    }
-    if (!candidates.value.length) ui.warn('没有找到字幕组')
-  } finally {
-    busy.value = false
-  }
-}
-
-async function pickCandidate(c: Candidate) {
-  if (!c.rss) return ui.error('该字幕组没有可用的 RSS 地址')
-  busy.value = true
-  try {
-    pending.value = await api.rssToAni({url: c.rss, bgmUrl: c.bgmUrl, subgroup: c.label, enable: true})
-  } finally {
-    busy.value = false
-  }
-}
+/* 展示时把 `{{字幕组}}:` 前缀去掉，只留版本名。
+   这个函数不能写成模板里的内联正则 —— 里面的 }} 会被当成插值结束 */
+const bare = (m: string) => m.replace(/^\{\{.*?\}\}:/, '')
 
 /** 编辑框确认后真正落库 */
 async function onConfirmed(a: Ani) {
@@ -127,75 +136,100 @@ async function onConfirmed(a: Ani) {
 }
 
 function reset() {
-  rssUrl.value = ''
+  urls.value = {mikan: '', anibt: '', garden: '', other: ''}
+  picked.value = {match: []}
+  otherBgmUrl.value = ''
   bgmKeyword.value = ''
-  srcKeyword.value = ''
   bgmResults.value = []
-  candidates.value = []
 }
 </script>
 
 <template>
-  <v-dialog v-model="model" :fullscreen="mobile" max-width="720" scrollable @after-leave="reset">
+  <v-dialog v-model="model" :fullscreen="mobile" max-width="760" scrollable @after-leave="reset">
     <v-card>
-      <v-card-title class="d-flex align-center">
+      <v-card-title class="d-flex align-center py-4">
         添加订阅
         <v-spacer/>
         <v-btn icon="mdi-close" size="small" variant="text" @click="model = false"/>
       </v-card-title>
 
       <v-tabs v-model="tab" density="comfortable" show-arrows>
-        <v-tab value="rss">RSS 地址</v-tab>
+        <v-tab v-for="s in SOURCES" :key="s.id" :value="s.id">{{ s.name }}</v-tab>
+        <v-tab value="other">其它 RSS</v-tab>
         <v-tab value="bgm">Bangumi</v-tab>
-        <v-tab value="mikan">Mikan</v-tab>
-        <v-tab value="anibt">AniBT</v-tab>
-        <v-tab value="garden">AnimeGarden</v-tab>
       </v-tabs>
       <v-divider/>
 
-      <v-card-text style="min-height: 340px">
+      <v-card-text class="pane">
         <v-tabs-window v-model="tab">
-          <!-- RSS -->
-          <v-tabs-window-item value="rss">
-            <v-textarea v-model="rssUrl" auto-grow label="RSS 地址" rows="3"
-                        hint="蜜柑计划、AniBT、AnimeGarden 等站点的订阅地址都可以" persistent-hint/>
-            <v-btn :loading="busy" class="mt-4" color="primary" prepend-icon="mdi-arrow-right" @click="fromRss">
+          <!-- ── 三个番剧源共用一套表单 ── -->
+          <v-tabs-window-item v-for="s in SOURCES" :key="s.id" :value="s.id">
+            <!--
+              把「浏览番剧列表」摆在最上面，比 RSS 输入框还显眼：
+              没人记得住 bangumiId，正常路径就是按星期翻着挑。
+            -->
+            <button class="browse" type="button" @click="openBrowser(s.id)">
+              <v-icon icon="mdi-calendar-week" size="26"/>
+              <span class="browse-text">
+                <b>浏览 {{ s.name }} 番剧列表</b>
+                <em>按星期看这一季在播什么，挑字幕组和版本</em>
+              </span>
+              <v-icon icon="mdi-arrow-right" size="20"/>
+            </button>
+
+            <div class="or">或者直接填地址</div>
+
+            <v-textarea
+                v-model="urls[s.id]" :placeholder="s.ph" auto-grow label="RSS 地址" rows="2"
+                persistent-hint hint="不支持聚合订阅：一次更新太多会漏集"/>
+
+            <!-- 从列表挑过来时把选中的东西显式摆出来，不然不知道匹配规则已经带上了 -->
+            <div v-if="picked.subgroup && urls[s.id]" class="d-flex flex-wrap ga-2 mt-4">
+              <v-chip prepend-icon="mdi-account-group" size="small" variant="tonal">{{ picked.subgroup }}</v-chip>
+              <v-chip v-for="m in picked.match" :key="m" size="small" variant="tonal">
+                {{ bare(m) }}
+              </v-chip>
+              <v-chip v-if="!picked.match.length" color="success" size="small" variant="tonal">全部版本</v-chip>
+            </div>
+
+            <v-btn :loading="busy" class="mt-5" color="primary" prepend-icon="mdi-arrow-right" variant="flat"
+                   @click="parse">
               解析
             </v-btn>
           </v-tabs-window-item>
 
-          <!-- Bangumi -->
+          <!-- ── 其它 RSS ── -->
+          <v-tabs-window-item value="other">
+            <v-text-field v-model="otherBgmUrl" class="mb-1" label="BgmUrl"
+                          placeholder="https://bgm.tv/subject/123456"
+                          persistent-hint hint="后端靠它认番剧名、季度和总集数，留空会解析失败">
+              <template #append>
+                <v-btn icon="mdi-magnify" size="small" variant="tonal" @click="tab = 'bgm'"/>
+              </template>
+            </v-text-field>
+            <v-textarea v-model="urls.other" auto-grow label="RSS 地址" placeholder="https://xxxx.com/a.xml" rows="2"
+                        persistent-hint hint="dmhy 等只给磁力链接的 RSS 不支持 Aria2"/>
+            <v-btn :loading="busy" class="mt-5" color="primary" prepend-icon="mdi-arrow-right" variant="flat"
+                   @click="parse">
+              解析
+            </v-btn>
+          </v-tabs-window-item>
+
+          <!-- ── Bangumi ── -->
           <v-tabs-window-item value="bgm">
             <v-text-field v-model="bgmKeyword" append-inner-icon="mdi-magnify" label="番剧名称"
+                          persistent-hint hint="选中条目后由后端直接建订阅，不需要 RSS 地址"
                           @click:append-inner="searchBgm" @keyup.enter="searchBgm"/>
-            <v-list v-if="bgmResults.length" class="mt-2" density="comfortable">
-              <v-list-item v-for="b in bgmResults" :key="b.id" :subtitle="`${b.date || ''} · ${b.name || ''}`"
-                           :title="b.nameCn || b.name" @click="pickBgm(b)">
+            <v-list v-if="bgmResults.length" class="mt-4 rounded-lg" density="comfortable" lines="two">
+              <v-list-item v-for="b in bgmResults" :key="b.id" :subtitle="[b.date, b.name].filter(Boolean).join(' · ')"
+                           :title="b.nameCn || b.name" class="mb-1 rounded-lg" @click="pickBgm(b)">
                 <template #prepend>
-                  <v-avatar rounded size="40">
+                  <v-avatar class="mr-3" rounded size="44">
                     <v-img :src="b.images?.grid || b.images?.small"/>
                   </v-avatar>
                 </template>
-              </v-list-item>
-            </v-list>
-          </v-tabs-window-item>
-
-          <!-- 三个番剧源共用一套列表 -->
-          <v-tabs-window-item v-for="k in (['mikan', 'anibt', 'garden'] as const)" :key="k" :value="k">
-            <v-text-field
-                v-model="srcKeyword"
-                :hint="k === 'mikan' ? '按番剧名搜索' : '填 Bangumi 条目 ID'"
-                :label="k === 'mikan' ? '番剧名称' : 'Bangumi ID'"
-                append-inner-icon="mdi-magnify"
-                persistent-hint
-                @click:append-inner="searchSource(k)"
-                @keyup.enter="searchSource(k)"
-            />
-            <v-list v-if="candidates.length" class="mt-2" density="comfortable">
-              <v-list-item v-for="(c, i) in candidates" :key="i" :subtitle="c.sub" :title="c.label"
-                           @click="pickCandidate(c)">
                 <template #append>
-                  <v-icon size="small">mdi-chevron-right</v-icon>
+                  <v-icon icon="mdi-chevron-right" size="small"/>
                 </template>
               </v-list-item>
             </v-list>
@@ -209,6 +243,79 @@ function reset() {
     </v-card>
   </v-dialog>
 
+  <SourceBrowserDialog v-model="browsing" :source="browseSource" @pick="onPicked"/>
+
   <!-- 解析出来的订阅先给人过一眼再入库，避免匹配规则不对就开始下载 -->
   <AniEditDialog v-if="pending" :item="pending" is-new @close="pending = null" @submit="onConfirmed"/>
 </template>
+
+<style scoped>
+/* 表单本身给足留白：上面是 tab，下面是按钮，挤在一起点着容易点错 */
+.pane {
+    min-height: 380px;
+    padding: 24px 24px 28px;
+}
+
+.browse {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid rgba(var(--v-theme-primary), .35);
+    border-radius: 14px;
+    background: rgba(var(--v-theme-primary), .07);
+    color: rgb(var(--v-theme-primary));
+    text-align: left;
+    cursor: pointer;
+    transition: background .18s, border-color .18s, transform .18s cubic-bezier(.2, .7, .3, 1);
+}
+
+.browse:hover {
+    transform: translateY(-1px);
+    border-color: rgba(var(--v-theme-primary), .6);
+    background: rgba(var(--v-theme-primary), .12);
+}
+
+.browse:active {
+    transform: none;
+}
+
+.browse-text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.browse-text b {
+    font-size: 14.5px;
+    font-weight: 650;
+}
+
+/* 说明文字用正文色而不是主色的半透明：主色压淡后在浅底上到不了 4.5:1 */
+.browse-text em {
+    font-size: 11.5px;
+    font-style: normal;
+    color: rgba(var(--v-theme-on-surface), .68);
+}
+
+/* 「或者」分隔线：两侧各画一条，中间留字 */
+.or {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0 16px;
+    font-size: 12px;
+    color: rgba(var(--v-theme-on-surface), .55);
+}
+
+.or::before,
+.or::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: rgba(var(--v-border-color), var(--v-border-opacity));
+}
+</style>
