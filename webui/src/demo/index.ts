@@ -1,4 +1,4 @@
-import {ABOUT, ANI_LIST, CONFIG, LOGS, listAni, TORRENTS} from './data'
+import {ABOUT, CONFIG, LOGS, listAni, previewAni, TORRENTS} from './data'
 
 /**
  * 演示模式：把 fetch 换成一个只认识 api/ 的假服务端。
@@ -67,7 +67,8 @@ export function installDemo(): void {
             case 'api/playList':
                 return ok([])
             case 'api/previewAni':
-                return ok(ANI_LIST.slice(0, 3))
+                // 预览要拿请求体里的那条订阅来编数据，才有集数、字幕组和下载位置可看
+                return ok(previewAni(JSON.parse(String(init?.body ?? '{}'))))
             case 'api/custom.css':
             case 'api/custom.js':
                 return new Response('', {headers: {'Content-Type': 'text/plain'}})

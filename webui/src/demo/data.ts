@@ -72,6 +72,37 @@ function makeAni(title: string, i: number): Ani {
 
 export const ANI_LIST = TITLES.map(makeAni)
 
+/**
+ * previewAni 的返回。
+ *
+ * 接口约定是 {downloadPath, items, omitList}，原来演示这边直接回了一个 Ani 数组，
+ * 形状对不上，预览面板在演示站里永远是空的 —— 而这个面板恰恰是操作最多的一个。
+ */
+export function previewAni(ani: {title?: string; subgroup?: string; currentEpisodeNumber?: number}) {
+    const total = ani.currentEpisodeNumber ?? 8
+    const groups = ['桜都字幕组', 'LoliHouse', 'ANi', '喵萌奶茶屋']
+    return {
+        downloadPath: `/downloads/anime/${ani.title ?? '演示番剧'}/Season 1`,
+        items: Array.from({length: total}, (_, i) => {
+            const ep = i + 1
+            const g = groups[i % groups.length]
+            return {
+                title: `[${g}] ${ani.title ?? '演示番剧'} - ${String(ep).padStart(2, '0')} [1080p][简繁内封].mkv`,
+                reName: `${ani.title ?? '演示番剧'} S01E${String(ep).padStart(2, '0')}.mkv`,
+                infoHash: `demo-hash-${ep}`,
+                episode: ep,
+                formatSize: `${(0.9 + (i % 4) * 0.25).toFixed(2)} GB`,
+                length: Math.round((0.9 + (i % 4) * 0.25) * 1024 ** 3),
+                hasDownloaded: ep <= total - 2,
+                master: i % 5 !== 3,          // 偶尔命中备用 RSS，那一列才有东西可看
+                subgroup: g,
+                pubDate: '',
+            }
+        }),
+        omitList: total > 5 ? [3] : [],
+    }
+}
+
 /** 第 i 部排在周几（0=周一）。按 PER_DAY 依次铺满 */
 const dayOf = (() => {
     const map: number[] = []
