@@ -91,6 +91,9 @@ export function installDemo(): void {
                     {id: 'g2', name: 'DVD Order', typeName: 'DVD 顺序', groupCount: 2, episodeCount: 24},
                     {id: 'g3', name: 'Seasons (TMDB)', typeName: '剧集组', groupCount: 3, episodeCount: 36},
                 ])
+            case 'api/downloadPath':
+                // 「填入默认位置」要有东西可填，不然点了跟没反应一样
+                return ok({downloadPath: '/downloads/anime/${title}/Season ${season}'})
             case 'api/getThemoviedbName':
                 return ok({themoviedbName: '演示番剧 (2026)', tmdb: {id: '123456'}})
             case 'api/rssToAni':

@@ -6,7 +6,18 @@ import * as api from '@shared/api'
 import {useAniStore} from '@/stores/ani'
 import {useUiStore} from '@/stores/ui'
 
-const props = defineProps<{item: Ani}>()
+const props = defineProps<{
+  item: Ani
+  /**
+   * 由外层负责落盘。
+   *
+   * 这个面板有两个入口：卡片菜单点进来时它是孤立的，改完「禁止下载」必须自己存；
+   * 编辑订阅里点进来时外面还有一颗「保存」，这里再存一次就等于把人家没改完的
+   * 表单提前提交了 —— 改了一半的标题、还没确认的匹配规则，全被写进去。
+   * 这种情况只改传进来的对象，落盘交给外层那颗保存。
+   */
+  deferSave?: boolean
+}>()
 const emit = defineEmits<{close: []}>()
 
 const store = useAniStore()
@@ -67,10 +78,17 @@ async function setBlocked(block: boolean) {
   for (const e of eps) block ? next.add(e) : next.delete(e)
 
   const list = [...next].sort((a, b) => a - b)
+  const msg = block ? `已禁止下载 ${eps.length} 集` : `已允许下载 ${eps.length} 集`
+
+  if (props.deferSave) {
+    props.item.notDownload = list
+    ui.info(`${msg}，保存后生效`)
+    return
+  }
+
   busy.value = block ? 'block' : 'allow'
   try {
-    await store.update({...props.item, notDownload: list}, false,
-        block ? `已禁止下载 ${eps.length} 集` : `已允许下载 ${eps.length} 集`)
+    await store.update({...props.item, notDownload: list}, false, msg)
     props.item.notDownload = list
   } finally {
     busy.value = ''

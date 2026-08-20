@@ -2,7 +2,7 @@
 import {computed, ref, watch} from 'vue'
 import {useDisplay} from 'vuetify'
 import type {
-  AniBTGroup, AniBTItem, AnimeGardenGroup, AnimeGardenItem, GroupRegexRegexItem,
+  Ani, AniBTGroup, AniBTItem, AnimeGardenGroup, AnimeGardenItem, GroupRegexRegexItem,
   MikanGroup, MikanItem, MikanSeason,
 } from '@shared/types'
 import * as api from '@shared/api'
@@ -22,7 +22,14 @@ import {useUiStore} from '@/stores/ui'
  */
 
 const model = defineModel<boolean>({required: true})
-const props = defineProps<{source: 'mikan' | 'anibt' | 'garden'}>()
+const props = defineProps<{
+  source: 'mikan' | 'anibt' | 'garden'
+  /**
+   * 带着一条订阅打开：直接定位到这部番，而不是从整季列表从头翻。
+   * 「换个字幕组」是编辑订阅里的常规动作，让人重新搜一遍番名等于没做。
+   */
+  preset?: Ani
+}>()
 const emit = defineEmits<{pick: [{url: string; bgmUrl?: string; subgroup?: string; match: string[]}]}>()
 
 const ani = useAniStore()
@@ -99,6 +106,37 @@ const groupLoading = ref(false)
 const basket = ref<{item: Item; group: Group}[]>([])
 const batching = ref(0)
 
+/**
+ * 把订阅换成一个「定位条件」。三家各认各的：
+ *  - Mikan 只有搜索框，所以拼一个搜索词。它认 `id: 12345` 这种写法（bangumiId），
+ *    抠得到就用 id，精确；抠不到退回番名，并且要先把标题里的 `(2024)`、
+ *    `[tmdbid=123]` 这些刮削后缀去掉 —— 带着后缀去搜是搜不到的。
+ *  - AniBT 和 AnimeGarden 的列表接口直接收 bgmUrl，服务端自己筛。
+ * 逻辑照抄上游 Mikan.vue#searchAni / Ani.vue#aniBTShow。
+ */
+function locate(ani?: Ani): {text: string; bgmUrl: string} {
+  if (!ani) return {text: '', bgmUrl: ''}
+  const bgmUrl = ani.bgmUrl ?? ''
+
+  if (ani.url) {
+    try {
+      const id = new URL(ani.url).searchParams.get('bangumiId')
+      if (id) return {text: `id: ${id}`, bgmUrl}
+    } catch {
+      // 地址不合法就当没有，退回按名字搜
+    }
+  }
+
+  const title = (ani.mikanTitle || ani.title || '')
+      .replace(/ ?\((19|20)\d{2}\)/g, '')
+      .replace(/ ?\[tmdbid=\d+]/g, '')
+      .trim()
+  return {text: title.length > 2 ? title : '', bgmUrl}
+}
+
+/** 本次打开的定位条件，fetchList 要用 */
+const pin = ref<{text: string; bgmUrl: string}>({text: '', bgmUrl: ''})
+
 /* ── 三家的适配 ── */
 
 function mapGroups(list: (MikanGroup | AniBTGroup | AnimeGardenGroup)[]): Group[] {
@@ -149,7 +187,11 @@ async function fetchList() {
         })),
       }))
     } else if (props.source === 'anibt') {
-      const r = await api.aniBT({season: season.value || undefined, title: k || undefined})
+      const r = await api.aniBT({
+        season: season.value || undefined,
+        title: k || undefined,
+        bgmUrl: pin.value.bgmUrl || undefined,
+      })
       if (r.availableSeasons?.length) {
         seasons.value = r.availableSeasons.map(s => ({label: s, value: s}))
         if (!season.value) season.value = r.requestedSeason || r.currentSeason || ''
@@ -164,7 +206,7 @@ async function fetchList() {
         })),
       }))
     } else {
-      const r = await api.animeGardenList()
+      const r = await api.animeGardenList(pin.value.bgmUrl || undefined)
       weeks.value = (r || []).map(w => ({
         label: w.weekLabel || '其它',
         items: (w.subjects || []).map(s => ({
@@ -286,10 +328,24 @@ async function batchAdd() {
   }
 }
 
-/* 打开时拉一次（已经拉过就不重来，来回开关不白等）；换季度重拉 */
+/*
+ * 打开时拉一次。
+ * 带了 preset（从编辑订阅点进来的）就每次都重拉 —— 定位条件变了，缓存的整季列表没用；
+ * 没带 preset 就沿用上次的结果，来回开关不白等。
+ */
 watch(model, v => {
   if (!v) return
   basket.value = []
+  const next = locate(props.preset)
+  const changed = next.text !== pin.value.text || next.bgmUrl !== pin.value.bgmUrl
+  pin.value = next
+  if (props.preset) {
+    keyword.value = next.text
+    // 换了一部番，季度也要重挑，否则会拿上一部番的季度去筛
+    if (changed) season.value = ''
+    void fetchList()
+    return
+  }
   if (!weeks.value.length) void fetchList()
 })
 watch(season, (v, old) => {

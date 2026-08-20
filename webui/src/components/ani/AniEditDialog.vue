@@ -7,6 +7,8 @@ import * as api from '@shared/api'
 import type {TmdbGroup} from '@shared/api'
 import {useUiStore} from '@/stores/ui'
 import StringListField from '@/components/common/StringListField.vue'
+import SourceBrowserDialog from './SourceBrowserDialog.vue'
+import PreviewDialog from './PreviewDialog.vue'
 
 const props = defineProps<{
   item: Ani
@@ -48,6 +50,98 @@ async function save() {
 
 /* ── 几个「按当前表单去后端算一下」的辅助动作 ── */
 const busy = ref('')
+
+/*
+ * 换字幕组 / 换 RSS：带着这条订阅去对应的番剧站，直接定位到这部番。
+ *
+ * 上游主 RSS 那一栏下面就挂着 Mikan / AniBT / AnimeGarden 三颗图标按钮，
+ * 我们之前一颗都没有 —— 想换个字幕组只能自己去网站上找 RSS 地址粘回来，
+ * 比上游还退了一步。
+ */
+type SourceId = 'mikan' | 'anibt' | 'garden'
+
+const SOURCES: {id: SourceId; name: string; icon: string}[] = [
+  {id: 'mikan', name: 'Mikan', icon: 'mdi-alpha-m-circle-outline'},
+  {id: 'anibt', name: 'AniBT', icon: 'mdi-alpha-b-circle-outline'},
+  {id: 'garden', name: 'AnimeGarden', icon: 'mdi-flower-outline'},
+]
+
+const browsing = ref(false)
+const browseSource = ref<SourceId>('mikan')
+
+function browse(id: SourceId) {
+  browseSource.value = id
+  browsing.value = true
+}
+
+/**
+ * 从番剧站挑完回来：换掉 RSS 和字幕组，并把匹配规则换成新组的。
+ *
+ * 关键是先剔除旧的同字幕组规则再追加 —— 上游那句 filter 就是干这个的。
+ * 不剔的话，来回换几次字幕组，match 里会积一堆早就不用的 `{{某组}}:xxx`，
+ * 而这些规则是「或」的关系，等于把过滤条件一点点放宽到形同虚设。
+ */
+function onPicked(v: {url: string; bgmUrl?: string; subgroup?: string; match: string[]}) {
+  form.value.url = v.url
+  if (v.bgmUrl) form.value.bgmUrl = v.bgmUrl
+  const sub = v.subgroup ?? ''
+  form.value.subgroup = sub
+  const kept = (form.value.match ?? []).filter(m => !m.startsWith(`{{${sub}}}:`))
+  form.value.match = [...kept, ...v.match]
+  ui.success(`已换成 ${sub || '所选字幕组'} 的 RSS`)
+}
+
+/* ── TMDB ── */
+
+/** TMDB 条目页地址：剧场版走 movie，其余走 tv —— 上游就是按 ova 分的 */
+const tmdbUrl = computed(() => {
+  const id = tmdbId.value
+  return id ? `https://www.themoviedb.org/${form.value.ova ? 'movie' : 'tv'}/${id}` : ''
+})
+
+/** 按 TmdbId 反查：番名被改过、或同名番太多时，按标题搜是搜不准的 */
+const askTmdbId = ref(false)
+const tmdbIdInput = ref('')
+
+async function applyTmdbId() {
+  const id = tmdbIdInput.value.trim()
+  if (!id) return
+  askTmdbId.value = false
+  busy.value = 'tmdb'
+  try {
+    const r = await api.getThemoviedbName({...form.value, tmdbId: id} as Ani)
+    if (!r?.themoviedbName) return ui.warn('这个 TmdbId 没查到条目')
+    form.value.themoviedbName = r.themoviedbName
+    if (r.tmdb) form.value.tmdb = r.tmdb
+    ui.success(`已获取：${r.themoviedbName}`)
+  } finally {
+    busy.value = ''
+  }
+}
+
+/* ── 底部「其他」：刷新 / 刮削 / 强制刮削 ── */
+const previewing = ref(false)
+
+const MORE = [
+  {key: 'refresh', title: '刷新这一条', subtitle: '立刻按当前规则跑一遍 RSS', icon: 'mdi-refresh'},
+  {key: 'scrape', title: '刮削', subtitle: '生成 nfo 和封面，已刮过的跳过', icon: 'mdi-image-text'},
+  {key: 'scrapeF', title: '强制刮削', subtitle: '忽略已有结果，整条重做', icon: 'mdi-image-sync-outline'},
+] as const
+
+async function runMore(key: typeof MORE[number]['key']) {
+  busy.value = key
+  try {
+    if (key === 'refresh') {
+      await api.refreshAni(form.value)
+      ui.success('已触发刷新')
+    } else {
+      await api.scrape(key === 'scrapeF', form.value)
+      ui.success(key === 'scrapeF' ? '已触发强制刮削' : '已触发刮削')
+    }
+  } finally {
+    busy.value = ''
+  }
+}
 
 async function pickTmdbName() {
   busy.value = 'tmdb'
@@ -127,11 +221,19 @@ function pickGroup(g: TmdbGroup) {
   ui.success(`已选择剧集组：${g.name ?? g.id}`)
 }
 
-async function showDownloadPath() {
+/**
+ * 算出「不启用自定义路径时会下到哪」，并把结果填进模板框。
+ *
+ * 上游就是这么做的：算之前先把 customDownloadPath 置 false，拿到的才是全局模板
+ * 算出来的真实路径 —— 不置的话后端会拿你正在编辑的这个模板去算，等于原样返回。
+ * 填进去而不是弹个提示：这一步的用处是「拿默认路径当起点改」，只给人看等于白算。
+ */
+async function fillDownloadPath() {
   busy.value = 'path'
   try {
-    const r = await api.downloadPath(form.value)
-    ui.info(`下载位置：${Object.values(r).join(' / ')}`)
+    const r = await api.downloadPath({...form.value, customDownloadPath: false})
+    form.value.customDownloadPathTemplate = r.downloadPath
+    ui.success('已填入当前的默认下载位置')
   } finally {
     busy.value = ''
   }
@@ -164,7 +266,14 @@ async function showDownloadPath() {
                 <v-text-field v-model="form.title" label="标题">
                   <template #append>
                     <v-btn :loading="busy === 'bgm'" size="small" variant="tonal" @click="pickBgmTitle">
-                      取 Bgm 标题
+                      用 Bgm 名
+                    </v-btn>
+                    <!-- 刮削按 TMDB 名走，标题和它不一致时目录名会对不上，
+                         上游给了这颗一键对齐的按钮 -->
+                    <v-btn :disabled="!form.themoviedbName || form.title === form.themoviedbName"
+                           class="ml-2" size="small" variant="tonal"
+                           @click="form.title = form.themoviedbName">
+                      用 TMDB 名
                     </v-btn>
                   </template>
                 </v-text-field>
@@ -172,8 +281,17 @@ async function showDownloadPath() {
 
               <v-col cols="12" md="8">
                 <v-text-field v-model="form.themoviedbName" label="TMDB">
+                  <template v-if="tmdbUrl" #append-inner>
+                    <!-- 条目页可点：核对刮到的是不是同一部（同名不同年的番很常见） -->
+                    <a :href="tmdbUrl" class="tmdb-link" rel="noopener" target="_blank" @click.stop>
+                      <v-icon icon="mdi-open-in-new" size="16"/>
+                    </a>
+                  </template>
                   <template #append>
-                    <v-btn :loading="busy === 'tmdb'" size="small" variant="tonal" @click="pickTmdbName">
+                    <v-btn icon="mdi-magnify" size="small" title="按 TmdbId 反查" variant="tonal"
+                           @click="tmdbIdInput = tmdbId; askTmdbId = true"/>
+                    <v-btn :loading="busy === 'tmdb'" class="ml-2" size="small" title="按标题重新获取"
+                           variant="tonal" @click="pickTmdbName">
                       获取
                     </v-btn>
                   </template>
@@ -200,6 +318,18 @@ async function showDownloadPath() {
               </v-col>
               <v-col cols="12">
                 <v-textarea v-model="form.url" auto-grow label="主 RSS" rows="2"/>
+                <!--
+                  换字幕组的入口。上游主 RSS 底下就挂着这三颗，
+                  少了它们，想换个组只能自己上网站找 RSS 粘回来 —— 比上游还退一步。
+                  点开是带着这条订阅定位过去的，不用重新搜番名。
+                -->
+                <div class="d-flex flex-wrap align-center ga-2 mt-2">
+                  <span class="text-caption text-medium-emphasis mr-1">换字幕组：</span>
+                  <v-btn v-for="src in SOURCES" :key="src.id" :prepend-icon="src.icon"
+                         size="small" variant="tonal" @click="browse(src.id)">
+                    {{ src.name }}
+                  </v-btn>
+                </div>
               </v-col>
 
               <v-col cols="12">
@@ -222,11 +352,12 @@ async function showDownloadPath() {
               <v-col cols="6" md="3">
                 <v-text-field v-model="form.releaseDate" label="日期" placeholder="yyyy-MM-dd"/>
               </v-col>
+              <!-- 剧场版没有「季」和「集数偏移」，上游这两栏在 ova 下是禁用的 -->
               <v-col cols="6" md="3">
-                <v-text-field v-model.number="form.season" label="季" type="number"/>
+                <v-text-field v-model.number="form.season" :disabled="form.ova" label="季" type="number"/>
               </v-col>
               <v-col cols="6" md="3">
-                <v-text-field v-model.number="form.offset" label="集数偏移" type="number"/>
+                <v-text-field v-model.number="form.offset" :disabled="form.ova" label="集数偏移" type="number"/>
               </v-col>
               <v-col cols="6" md="3">
                 <v-text-field v-model.number="form.totalEpisodeNumber" label="总集数" type="number"/>
@@ -266,9 +397,13 @@ async function showDownloadPath() {
                   <v-switch v-model="form.customDownloadPath" color="primary" hide-details label="启用" class="mb-2"/>
                   <v-text-field v-model="form.customDownloadPathTemplate" :disabled="!form.customDownloadPath"
                                 label="路径模版"/>
-                  <v-btn :loading="busy === 'path'" class="mt-3" size="small" variant="tonal" @click="showDownloadPath">
-                    预览实际下载位置
-                  </v-btn>
+                  <div class="d-flex align-center flex-wrap ga-2 mt-3">
+                    <v-btn :disabled="!form.customDownloadPath" :loading="busy === 'path'" size="small"
+                           variant="tonal" @click="fillDownloadPath">
+                      填入默认位置
+                    </v-btn>
+                    <span class="text-caption text-medium-emphasis">最终位置以「预览」为准</span>
+                  </div>
                 </template>
               </v-expansion-panel>
 
@@ -293,7 +428,12 @@ async function showDownloadPath() {
                   <v-switch v-model="form.customRenameTemplateEnable" color="primary" hide-details label="启用"
                             class="mb-2"/>
                   <v-text-field v-model="form.customRenameTemplate" :disabled="!form.customRenameTemplateEnable"
-                                label="模版"/>
+                                label="模版" placeholder="${title} S${seasonFormat}E${episodeFormat}"/>
+                  <a class="text-caption doc-link" href="https://docs.wushuo.top/config/basic/rename#rename-template"
+                     rel="noopener" target="_blank">
+                    可用占位符看文档
+                    <v-icon icon="mdi-open-in-new" size="12"/>
+                  </a>
                 </template>
               </v-expansion-panel>
 
@@ -356,11 +496,52 @@ async function showDownloadPath() {
       <v-divider/>
 
       <v-card-actions class="flex-wrap">
+        <!-- 「其他」和「预览」只对已存在的订阅有意义：新建的还没入库，
+             刷新和刮削都没有对象可作用 -->
+        <template v-if="!isNew">
+          <v-menu location="top start">
+            <template #activator="{props: p}">
+              <v-btn v-bind="p" append-icon="mdi-menu-up" variant="text">其他</v-btn>
+            </template>
+            <v-list density="comfortable" min-width="240">
+              <v-list-item v-for="m in MORE" :key="m.key" :prepend-icon="m.icon" :subtitle="m.subtitle"
+                           :title="m.title" @click="runMore(m.key)"/>
+            </v-list>
+          </v-menu>
+          <v-btn prepend-icon="mdi-eye-outline" variant="text" @click="previewing = true">预览</v-btn>
+        </template>
+
         <!-- 移动文件是不可逆的，放在保存旁边并默认关闭，避免顺手点了 -->
         <v-checkbox v-if="!isNew" v-model="move" density="compact" hide-details label="同时移动已下载的文件"/>
         <v-spacer/>
         <v-btn variant="text" @click="close">取消</v-btn>
         <v-btn :loading="saving" color="primary" variant="flat" @click="save">{{ isNew ? '添加' : '保存' }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- 带着这条订阅去番剧站换字幕组：定位到这部番，不用重新搜 -->
+  <SourceBrowserDialog v-model="browsing" :preset="form" :source="browseSource" @pick="onPicked"/>
+
+  <!-- 预览：改完匹配规则先看命中了什么再保存，比存完再回来看少一趟 -->
+  <PreviewDialog v-if="previewing" :item="form" defer-save @close="previewing = false"/>
+
+  <!-- 按 TmdbId 反查：番名被改过、或同名番太多时，按标题搜是搜不准的 -->
+  <v-dialog v-model="askTmdbId" max-width="380">
+    <v-card>
+      <v-card-title class="pt-4">按 TmdbId 获取</v-card-title>
+      <v-card-text>
+        <v-text-field v-model="tmdbIdInput" autofocus hide-details label="TmdbId" placeholder="例如 1429"
+                      @keyup.enter="applyTmdbId"/>
+        <div class="text-caption text-medium-emphasis mt-3">
+          在 themoviedb.org 打开条目，地址里 /tv/ 或 /movie/ 后面那串数字就是。
+        </div>
+      </v-card-text>
+      <v-divider/>
+      <v-card-actions class="pa-3">
+        <v-spacer/>
+        <v-btn variant="text" @click="askTmdbId = false">取消</v-btn>
+        <v-btn color="primary" variant="flat" @click="applyTmdbId">获取</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -405,6 +586,26 @@ async function showDownloadPath() {
 </template>
 
 <style scoped>
+/* TMDB 名右边那颗外链图标：贴在输入框内侧，不占 append 的位置 */
+.tmdb-link {
+    display: inline-flex;
+    align-items: center;
+    color: rgb(var(--v-theme-primary));
+}
+
+.doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 6px;
+    color: rgb(var(--v-theme-primary));
+    text-decoration: none;
+}
+
+.doc-link:hover {
+    text-decoration: underline;
+}
+
 .grp {
     padding: 12px 14px;
     border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
