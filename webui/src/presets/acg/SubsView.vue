@@ -88,19 +88,15 @@ function jump(label: string) {
             <v-chip size="x-small" variant="flat">{{ w.items.length }}</v-chip>
           </div>
           <div class="poster-wall">
-            <AniPosterCard v-for="(a, i) in w.items" :key="a.id" :item="a" :select-mode="s.selectMode.value"
-                           :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"
-                           @cover="s.on.cover" @del="s.on.del" @edit="s.on.edit" @playlist="s.on.playlist"
-                           @preview="s.on.preview" @rate="s.on.rate" @toggle="s.on.toggle"/>
+            <AniPosterCard v-for="(a, i) in w.items" :key="a.id" :item="a" :s="s" :select-mode="s.selectMode.value"
+                           :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"/>
           </div>
         </section>
       </template>
 
       <div v-else class="poster-wall">
-        <AniPosterCard v-for="(a, i) in s.ani.filtered" :key="a.id" :item="a" :select-mode="s.selectMode.value"
-                       :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"
-                       @cover="s.on.cover" @del="s.on.del" @edit="s.on.edit" @playlist="s.on.playlist"
-                       @preview="s.on.preview" @rate="s.on.rate" @toggle="s.on.toggle"/>
+        <AniPosterCard v-for="(a, i) in s.ani.filtered" :key="a.id" :item="a" :s="s" :select-mode="s.selectMode.value"
+                       :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"/>
       </div>
     </template>
 

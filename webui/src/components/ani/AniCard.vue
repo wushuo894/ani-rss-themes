@@ -4,6 +4,8 @@ import type {Ani} from '@shared/types'
 import {toApiFile} from '@shared/http'
 import {formatEpisodes, fromNow} from '@shared/format'
 import {usePrefsStore} from '@/stores/prefs'
+import type {AniScreen} from '@/composables/useAniScreen'
+import {aniActions, compactOf, overflowOf} from './aniActions'
 
 /**
  * M3 的订阅卡：海报在上、文字区在下、操作行收底。
@@ -16,19 +18,14 @@ import {usePrefsStore} from '@/stores/prefs'
  */
 const props = defineProps<{
   item: Ani
+  /* 整个订阅页的状态。传它而不是往外抛七个事件：
+     动作清单在 aniActions 里统一定义，卡片只负责摆，加动作不用改卡片 */
+  s: AniScreen
   selected?: boolean
   selectMode?: boolean
 }>()
 
-const emit = defineEmits<{
-  edit: [Ani]
-  playlist: [Ani]
-  cover: [Ani]
-  del: [Ani]
-  rate: [Ani]
-  preview: [Ani]
-  toggle: [Ani]
-}>()
+const acts = computed(() => aniActions(props.s, props.item))
 
 const prefs = usePrefsStore()
 
@@ -59,7 +56,7 @@ function openBgm() {
 }
 
 function onCardClick() {
-  if (props.selectMode) emit('toggle', props.item)
+  if (props.selectMode) props.s.on.toggle(props.item)
 }
 </script>
 
@@ -87,7 +84,7 @@ function onCardClick() {
       <!-- 评分角标挂在 poster-wrap 而不是 v-img 内部：v-img 有 overflow:hidden，
            挂里面会被裁掉一角（这个坑在 CSS 主题那边踩过一次） -->
       <v-chip v-if="prefs.showScore && item.score" class="badge-score" color="primary" size="small"
-              variant="flat" @click.stop="emit('rate', item)">
+              variant="flat" @click.stop="s.on.rate(item)">
         {{ item.score.toFixed(1) }}
       </v-chip>
 
@@ -101,7 +98,7 @@ function onCardClick() {
           class="select-box"
           density="compact"
           hide-details
-          @click.stop="emit('toggle', item)"
+          @click.stop="s.on.toggle(item)"
       />
     </div>
 
@@ -130,30 +127,17 @@ function onCardClick() {
       删除按钮被挤掉是看不出来的，只有想删的时候才发现点不到。
     -->
     <v-card-actions class="acts">
-      <v-btn
-          v-if="prefs.showPlaylist"
-          density="comfortable"
-          icon="mdi-play-circle-outline"
-          size="small"
-          title="视频列表"
-          variant="text"
-          @click.stop="emit('playlist', item)"
-      />
-      <v-btn density="comfortable" icon="mdi-pencil-outline" size="small" title="编辑" variant="text"
-             @click.stop="emit('edit', item)"/>
+      <v-btn v-for="act in compactOf(acts)" :key="act.key" :icon="act.icon" :title="act.title"
+             density="comfortable" size="small" variant="text" @click.stop="act.run()"/>
       <v-spacer/>
       <v-menu location="bottom end">
         <template #activator="{props: menu}">
           <v-btn v-bind="menu" density="comfortable" icon="mdi-dots-vertical" size="small" title="更多"
                  variant="text" @click.stop/>
         </template>
-        <v-list density="compact">
-          <v-list-item prepend-icon="mdi-eye-outline" title="预览匹配结果" @click="emit('preview', item)"/>
-          <v-list-item prepend-icon="mdi-image-edit-outline" title="更换封面" @click="emit('cover', item)"/>
-          <v-list-item prepend-icon="mdi-star-outline" title="评分" @click="emit('rate', item)"/>
-          <v-divider/>
-          <v-list-item base-color="error" prepend-icon="mdi-delete-outline" title="删除"
-                       @click="emit('del', item)"/>
+        <v-list density="comfortable" min-width="180">
+          <v-list-item v-for="act in overflowOf(acts)" :key="act.key" :base-color="act.danger ? 'error' : undefined"
+                       :prepend-icon="act.icon" :title="act.title" @click="act.run()"/>
         </v-list>
       </v-menu>
     </v-card-actions>

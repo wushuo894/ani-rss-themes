@@ -4,6 +4,8 @@ import type {Ani} from '@shared/types'
 import {toApiFile} from '@shared/http'
 import {formatEpisodes} from '@shared/format'
 import {usePrefsStore} from '@/stores/prefs'
+import type {AniScreen} from '@/composables/useAniScreen'
+import {aniActions, compactOf, overflowOf} from './aniActions'
 
 /**
  * 海报卡：整张卡就是一张海报，文字压在下沿的渐变里，操作按钮悬停才浮出来。
@@ -17,19 +19,13 @@ import {usePrefsStore} from '@/stores/prefs'
  */
 const props = defineProps<{
   item: Ani
+  /* 动作清单在 aniActions 里统一定义，卡片只负责摆，加动作不用改卡片 */
+  s: AniScreen
   selected?: boolean
   selectMode?: boolean
 }>()
 
-const emit = defineEmits<{
-  edit: [Ani]
-  playlist: [Ani]
-  cover: [Ani]
-  del: [Ani]
-  rate: [Ani]
-  preview: [Ani]
-  toggle: [Ani]
-}>()
+const acts = computed(() => aniActions(props.s, props.item))
 
 const prefs = usePrefsStore()
 
@@ -51,7 +47,7 @@ function openBgm() {
 
 <template>
   <div :class="{'is-selected': selected, 'is-off': !item.enable}" class="poster-card ani-lift"
-       @click="selectMode && emit('toggle', item)">
+       @click="selectMode && s.on.toggle(item)">
     <v-img :alt="item.title" :src="coverUrl" aspect-ratio="0.7" class="art" cover>
       <template #placeholder>
         <div class="d-flex align-center justify-center fill-height bg-surface-variant">
@@ -77,7 +73,7 @@ function openBgm() {
 
     <!-- 角标 -->
     <v-chip v-if="prefs.showScore && item.score" class="badge-score" color="primary" size="small"
-            variant="flat" @click.stop="emit('rate', item)">
+            variant="flat" @click.stop="s.on.rate(item)">
       {{ item.score.toFixed(1) }}
     </v-chip>
 
@@ -85,24 +81,19 @@ function openBgm() {
     <v-chip v-else-if="item.ova" class="badge-off" color="secondary" size="x-small" variant="flat">OVA</v-chip>
 
     <v-checkbox v-if="selectMode" :model-value="selected" class="pick" density="compact" hide-details
-                @click.stop="emit('toggle', item)"/>
+                @click.stop="s.on.toggle(item)"/>
 
     <!-- 悬停浮出的操作条。触屏下靠 @media (hover:none) 常驻 -->
     <div class="acts" @click.stop>
-      <v-btn v-if="prefs.showPlaylist" icon="mdi-play" size="small" title="视频列表" variant="flat"
-             @click="emit('playlist', item)"/>
-      <v-btn icon="mdi-pencil" size="small" title="编辑" variant="flat" @click="emit('edit', item)"/>
+      <v-btn v-for="act in compactOf(acts)" :key="act.key" :icon="act.icon" :title="act.title"
+             size="small" variant="flat" @click="act.run()"/>
       <v-menu location="top end">
         <template #activator="{props: menu}">
           <v-btn v-bind="menu" icon="mdi-dots-horizontal" size="small" title="更多" variant="flat"/>
         </template>
-        <v-list density="compact">
-          <v-list-item prepend-icon="mdi-eye-outline" title="预览匹配结果" @click="emit('preview', item)"/>
-          <v-list-item prepend-icon="mdi-image-edit-outline" title="更换封面" @click="emit('cover', item)"/>
-          <v-list-item prepend-icon="mdi-star-outline" title="评分" @click="emit('rate', item)"/>
-          <v-divider/>
-          <v-list-item base-color="error" prepend-icon="mdi-delete-outline" title="删除"
-                       @click="emit('del', item)"/>
+        <v-list density="comfortable" min-width="180">
+          <v-list-item v-for="act in overflowOf(acts)" :key="act.key" :base-color="act.danger ? 'error' : undefined"
+                       :prepend-icon="act.icon" :title="act.title" @click="act.run()"/>
         </v-list>
       </v-menu>
     </div>

@@ -5,6 +5,7 @@ import {formatEpisodes, fromNow} from '@shared/format'
 import {useAniScreen} from '@/composables/useAniScreen'
 import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
+import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
 
 /**
@@ -123,29 +124,22 @@ const desc = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.ti
               </div>
             </div>
 
+            <!-- 窄屏时按钮全部收进菜单：Primer 的行动作本来就是「一颗更多」，
+                 挤三颗按钮进 360px 的行里会把标题压没 -->
             <div class="d-flex flex-grow-0 ga-1">
-              <v-btn v-if="s.prefs.showPlaylist && !mobile" prepend-icon="mdi-file-video-outline" size="small"
-                     variant="outlined" @click.stop="s.on.playlist(a)">视频
-              </v-btn>
-              <v-btn v-if="!mobile" prepend-icon="mdi-eye-outline" size="small" variant="outlined"
-                     @click.stop="s.on.preview(a)">预览
-              </v-btn>
+              <template v-if="!mobile">
+                <v-btn v-for="act in compactOf(aniActions(s, a))" :key="act.key" :prepend-icon="act.icon"
+                       size="small" variant="outlined" @click.stop="act.run()">{{ act.title }}
+                </v-btn>
+              </template>
               <v-menu>
                 <template #activator="{props}">
                   <v-btn v-bind="props" icon="mdi-dots-horizontal" size="small" variant="outlined" @click.stop/>
                 </template>
-                <v-list density="compact">
-                  <v-list-item v-if="mobile && s.prefs.showPlaylist" prepend-icon="mdi-file-video-outline"
-                               title="视频列表" @click="s.on.playlist(a)"/>
-                  <v-list-item v-if="mobile" prepend-icon="mdi-eye-outline" title="预览匹配"
-                               @click="s.on.preview(a)"/>
-                  <v-list-item prepend-icon="mdi-pencil" title="编辑" @click="s.on.edit(a)"/>
-                  <v-list-item prepend-icon="mdi-image-edit-outline" title="更换封面" @click="s.on.cover(a)"/>
-                  <v-list-item prepend-icon="mdi-star-outline" title="评分" @click="s.on.rate(a)"/>
-                  <v-list-item prepend-icon="mdi-refresh" title="刷新这一条" @click="s.ani.refreshOne(a)"/>
-                  <v-divider/>
-                  <v-list-item base-color="error" prepend-icon="mdi-delete-outline" title="删除"
-                               @click="s.on.del(a)"/>
+                <v-list density="comfortable" min-width="180">
+                  <v-list-item v-for="act in (mobile ? aniActions(s, a) : overflowOf(aniActions(s, a)))"
+                               :key="act.key" :base-color="act.danger ? 'error' : undefined"
+                               :prepend-icon="act.icon" :title="act.title" @click="act.run()"/>
                 </v-list>
               </v-menu>
             </div>

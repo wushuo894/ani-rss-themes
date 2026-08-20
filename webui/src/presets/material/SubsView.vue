@@ -6,6 +6,7 @@ import AniCard from '@/components/ani/AniCard.vue'
 import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
+import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
 
 /**
  * M3 的清单：分段按钮切换网格/列表，卡片是大圆角填充卡，主操作是右下角的扩展 FAB。
@@ -20,7 +21,7 @@ const headers = [
   {title: '进度', key: 'episodes', sortable: false, width: 110},
   {title: '状态', key: 'enable', width: 96},
   {title: '更新', key: 'lastDownloadTime', width: 140},
-  {title: '', key: 'actions', sortable: false, align: 'end' as const, width: 130},
+  {title: '', key: 'actions', sortable: false, align: 'end' as const, width: 190},
 ]
 </script>
 
@@ -78,10 +79,8 @@ const headers = [
             <v-chip size="x-small" variant="tonal">{{ w.items.length }}</v-chip>
           </div>
           <div class="m3-grid">
-            <AniCard v-for="(a, i) in w.items" :key="a.id" :item="a" :select-mode="s.selectMode.value"
-                     :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"
-                     @cover="s.on.cover" @del="s.on.del" @edit="s.on.edit" @playlist="s.on.playlist"
-                     @preview="s.on.preview" @rate="s.on.rate" @toggle="s.on.toggle"/>
+            <AniCard v-for="(a, i) in w.items" :key="a.id" :item="a" :s="s" :select-mode="s.selectMode.value"
+                     :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"/>
           </div>
         </template>
       </template>
@@ -115,23 +114,30 @@ const headers = [
             <template #item.lastDownloadTime="{item}">
               <span class="text-caption">{{ fromNow(item.lastDownloadTime) }}</span>
             </template>
+            <!-- 动作从 aniActions 来：这一行原来只有「预览 / 编辑 / 删除」三项，
+                 同一条订阅在网格视图里有八项，在这儿少五项 -->
             <template #item.actions="{item}">
-              <v-btn density="comfortable" icon="mdi-eye-outline" size="small" variant="text"
-                     @click="s.on.preview(item)"/>
-              <v-btn density="comfortable" icon="mdi-pencil-outline" size="small" variant="text"
-                     @click="s.on.edit(item)"/>
-              <v-btn color="error" density="comfortable" icon="mdi-delete-outline" size="small" variant="text"
-                     @click="s.on.del(item)"/>
+              <v-btn v-for="act in compactOf(aniActions(s, item))" :key="act.key" :icon="act.icon"
+                     :title="act.title" density="comfortable" size="small" variant="text" @click="act.run()"/>
+              <v-menu location="bottom end">
+                <template #activator="{props: menu}">
+                  <v-btn v-bind="menu" density="comfortable" icon="mdi-dots-vertical" size="small"
+                         title="更多" variant="text" @click.stop/>
+                </template>
+                <v-list density="comfortable" min-width="180">
+                  <v-list-item v-for="act in overflowOf(aniActions(s, item))" :key="act.key"
+                               :base-color="act.danger ? 'error' : undefined" :prepend-icon="act.icon"
+                               :title="act.title" @click="act.run()"/>
+                </v-list>
+              </v-menu>
             </template>
           </v-data-table>
         </div>
       </v-card>
 
       <div v-else class="m3-grid">
-        <AniCard v-for="(a, i) in s.ani.filtered" :key="a.id" :item="a" :select-mode="s.selectMode.value"
-                 :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"
-                 @cover="s.on.cover" @del="s.on.del" @edit="s.on.edit" @playlist="s.on.playlist"
-                 @preview="s.on.preview" @rate="s.on.rate" @toggle="s.on.toggle"/>
+        <AniCard v-for="(a, i) in s.ani.filtered" :key="a.id" :item="a" :s="s" :select-mode="s.selectMode.value"
+                 :selected="!!a.id && s.ani.selected.has(a.id)" :style="{'--i': i}" class="ani-in"/>
       </div>
     </template>
 

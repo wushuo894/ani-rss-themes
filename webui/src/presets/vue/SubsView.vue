@@ -6,6 +6,7 @@ import {useAniScreen} from '@/composables/useAniScreen'
 import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
+import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
 
 /**
  * 文档式列表：一行一条，靠细线分栏，不用卡片也不用阴影。
@@ -107,14 +108,19 @@ function openBgm(a: Ani) {
             <span v-if="!a.enable" class="off">停用</span>
 
             <div class="actions">
-              <v-btn v-if="s.prefs.showPlaylist" density="comfortable" icon="mdi-play" size="small"
-                     title="视频列表" variant="text" @click.stop="s.on.playlist(a)"/>
-              <v-btn density="comfortable" icon="mdi-eye-outline" size="small" title="预览匹配"
-                     variant="text" @click.stop="s.on.preview(a)"/>
-              <v-btn density="comfortable" icon="mdi-pencil-outline" size="small" title="编辑"
-                     variant="text" @click.stop="s.on.edit(a)"/>
-              <v-btn color="error" density="comfortable" icon="mdi-delete-outline" size="small"
-                     title="删除" variant="text" @click.stop="s.on.del(a)"/>
+              <v-btn v-for="act in compactOf(aniActions(s, a))" :key="act.key" :icon="act.icon"
+                     :title="act.title" density="comfortable" size="small" variant="text" @click.stop="act.run()"/>
+              <v-menu location="bottom end">
+                <template #activator="{props: menu}">
+                  <v-btn v-bind="menu" density="comfortable" icon="mdi-dots-vertical" size="small"
+                         title="更多" variant="text" @click.stop/>
+                </template>
+                <v-list density="comfortable" min-width="180">
+                  <v-list-item v-for="act in overflowOf(aniActions(s, a))" :key="act.key"
+                               :base-color="act.danger ? 'error' : undefined" :prepend-icon="act.icon"
+                               :title="act.title" @click="act.run()"/>
+                </v-list>
+              </v-menu>
             </div>
           </div>
         </div>

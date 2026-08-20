@@ -5,6 +5,7 @@ import {formatEpisodes, fromNow} from '@shared/format'
 import {useAniScreen} from '@/composables/useAniScreen'
 import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
+import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
 
 /**
@@ -101,17 +102,21 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
                 </div>
 
                 <div class="acts">
-                  <v-btn v-if="s.prefs.showPlaylist" density="comfortable" icon="mdi-play" size="small"
-                         title="视频列表" variant="text" @click.stop="s.on.playlist(a)"/>
-                  <v-btn density="comfortable" icon="mdi-image-edit-outline" size="small" title="更换封面"
-                         variant="text" @click.stop="s.on.cover(a)"/>
-                  <v-btn density="comfortable" icon="mdi-eye-outline" size="small" title="预览匹配"
-                         variant="text" @click.stop="s.on.preview(a)"/>
+                  <v-btn v-for="act in compactOf(aniActions(s, a))" :key="act.key" :icon="act.icon"
+                         :title="act.title" density="comfortable" size="small" variant="text"
+                         @click.stop="act.run()"/>
                   <v-spacer/>
-                  <v-btn density="comfortable" icon="mdi-pencil-outline" size="small" title="编辑"
-                         variant="text" @click.stop="s.on.edit(a)"/>
-                  <v-btn color="error" density="comfortable" icon="mdi-delete-outline" size="small"
-                         title="删除" variant="text" @click.stop="s.on.del(a)"/>
+                  <v-menu location="bottom end">
+                    <template #activator="{props: menu}">
+                      <v-btn v-bind="menu" density="comfortable" icon="mdi-dots-horizontal" size="small"
+                             title="更多" variant="text" @click.stop/>
+                    </template>
+                    <v-list density="comfortable" min-width="180">
+                      <v-list-item v-for="act in overflowOf(aniActions(s, a))" :key="act.key"
+                                   :base-color="act.danger ? 'error' : undefined" :prepend-icon="act.icon"
+                                   :title="act.title" @click="act.run()"/>
+                    </v-list>
+                  </v-menu>
                 </div>
               </div>
             </article>
