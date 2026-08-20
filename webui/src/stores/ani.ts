@@ -72,7 +72,10 @@ export const useAniStore = defineStore('ani', () => {
     }
 
     const add = (ani: Ani) => withReload(() => api.addAni(ani), '添加成功')
-    const update = (ani: Ani, move = false) => withReload(() => api.setAni(move, ani), '已保存')
+    /* okMsg 可覆盖：预览面板改「不下载」也走这里，那里说「已禁止下载 3 集」比「已保存」有用，
+       各弹各的会连着冒两个提示 */
+    const update = (ani: Ani, move = false, okMsg = '已保存') =>
+        withReload(() => api.setAni(move, ani), okMsg)
     const remove = (ids: string[], deleteFiles: boolean) =>
         withReload(() => api.deleteAni(deleteFiles, ids), `已删除 ${ids.length} 项`)
     const refreshOne = (ani: Ani) => withReload(() => api.refreshAni(ani), '已刷新')
