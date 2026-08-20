@@ -61,8 +61,11 @@ async function verify() {
     <!-- 捐赠卡：一枚徽章 + 解锁清单。原来这里只有一行小字，看不出这是个「去支持」的入口 -->
     <div class="afdian mb-5">
       <a class="afdian-badge" href="https://ifdian.net/a/wushuo894" rel="noopener" target="_blank">
-        <v-icon icon="mdi-lightning-bolt" size="22"/>
-        <span>在爱发电支持我</span>
+        <v-icon icon="mdi-lightning-bolt" size="26"/>
+        <span>
+          <b>为我发电</b>
+          <em>在爱发电赞助我</em>
+        </span>
       </a>
       <div class="afdian-unlock">
         <div class="text-subtitle-2 mb-2">捐赠后解锁</div>
@@ -150,9 +153,9 @@ async function verify() {
 .afdian-badge {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
-    height: 56px;
-    padding: 0 20px;
+    gap: 11px;
+    height: 64px;
+    padding: 0 22px;
     border-radius: 10px;
     background: linear-gradient(100deg, #8366bd, #875ed7);
     color: #fff;
@@ -162,6 +165,26 @@ async function verify() {
     text-decoration: none;
     box-shadow: 0 6px 18px -10px #875ed7;
     transition: transform .18s cubic-bezier(.2, .7, .3, 1), box-shadow .18s;
+}
+
+/* 两行：上面是口号、下面是说明，和上游那枚官方徽章一个排法 */
+.afdian-badge span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.afdian-badge b {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* 副标题不压透明度：11.5px 属于小字，要 4.5:1，压到 92% 就只剩 4.15 了。
+   层级靠字号和字重拉开就够 */
+.afdian-badge em {
+    font-size: 11.5px;
+    font-style: normal;
+    font-weight: 400;
 }
 
 .afdian-badge:hover {

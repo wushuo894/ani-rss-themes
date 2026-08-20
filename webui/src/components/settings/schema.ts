@@ -25,7 +25,15 @@ export interface FieldDef {
     when?: (c: Config) => boolean
     /** 渲染但置灰 */
     disabledWhen?: (c: Config) => boolean
+    /** 返回非空字符串时，在控件下面挂一条警告（值本身合法但很可能不是用户想要的） */
+    warn?: (c: Config) => string | false | undefined
 }
+
+/* 保存位置这类模板里必须至少有一个 ${...} 占位符，否则所有番剧会全下到同一个目录，
+   而且这事要等下载完才发现。上游 Download.vue 用的就是这条正则。 */
+const hasPlaceholder = (v?: string) => /\$\{[A-Za-z]+}/.test(v ?? '')
+const templateWarn = (key: 'downloadPathTemplate' | 'ovaDownloadPathTemplate' | 'renameTemplate', label: string) =>
+    (c: Config) => !hasPlaceholder(c[key]) && `${label}里没有 \${...} 占位符，所有剧集会落到同一个位置`
 
 export interface SectionDef {
     title: string
@@ -86,8 +94,14 @@ export const DOWNLOAD_SECTIONS: SectionDef[] = [
     {
         title: '保存位置',
         fields: [
-            {key: 'downloadPathTemplate', label: '保存位置', type: 'text'},
-            {key: 'ovaDownloadPathTemplate', label: '剧场版保存位置', type: 'text'},
+            {
+                key: 'downloadPathTemplate', label: '保存位置', type: 'text',
+                warn: templateWarn('downloadPathTemplate', '保存位置'),
+            },
+            {
+                key: 'ovaDownloadPathTemplate', label: '剧场版保存位置', type: 'text',
+                warn: templateWarn('ovaDownloadPathTemplate', '剧场版保存位置'),
+            },
         ],
     },
     {

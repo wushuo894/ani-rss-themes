@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 import type {Config} from '@shared/types'
 import type {FieldDef} from './schema'
 import StringListField from '@/components/common/StringListField.vue'
@@ -19,9 +19,15 @@ const value = computed({
 })
 
 const disabled = computed(() => !!props.def.disabledWhen?.(props.config))
+const warn = computed(() => props.def.warn?.(props.config) || '')
+
+/* 密码类字段默认打码，但要能点开看一眼 —— ApiKey / token 这些粘进去之后
+   看不见内容，粘错了只能等到「测试」失败才知道 */
+const reveal = ref(false)
 </script>
 
 <template>
+  <div>
   <!-- 开关单独一行，标签在左、控件在右，比把开关塞进表单栅格里更好扫读 -->
   <div v-if="def.type === 'switch'" class="d-flex align-center py-1">
     <div class="flex-grow-1 pr-4">
@@ -96,10 +102,19 @@ const disabled = computed(() => !!props.def.disabledWhen?.(props.config))
       :label="def.label"
       :model-value="(value as string | undefined)"
       :placeholder="def.placeholder"
-      :type="def.type === 'password' ? 'password' : 'text'"
+      :append-inner-icon="def.type === 'password' ? (reveal ? 'mdi-eye-off' : 'mdi-eye') : undefined"
+      :type="def.type === 'password' && !reveal ? 'password' : 'text'"
       autocomplete="off"
       class="mb-3"
       persistent-hint
+      @click:append-inner="reveal = !reveal"
       @update:model-value="v => value = v"
   />
+
+  <!-- 值本身是合法的，只是很可能不是用户想要的 —— 不拦，只提醒 -->
+  <v-alert v-if="warn" class="mb-3 mt-n1" density="compact" icon="mdi-alert-outline"
+           type="warning" variant="tonal">
+    <span class="text-caption">{{ warn }}</span>
+  </v-alert>
+  </div>
 </template>
