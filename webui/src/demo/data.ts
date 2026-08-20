@@ -160,7 +160,21 @@ export const CONFIG = {
     host: '', port: 0,
     sortType: 'SCORE',
     rename: true, delete: false,
-    notificationConfigList: [],
+    /* 给两条渠道：空列表的话通知那一页只有一个空状态，
+       渠道编辑弹窗（以及里面「获取会话 / 获取媒体库」这两个候选选择器）根本走不到 */
+    notificationConfigList: [
+        {
+            notificationType: 'TELEGRAM', name: 'Telegram', enable: true, retry: 3, sort: 0,
+            comment: '主力通知', statusList: ['DOWNLOAD_START', 'DOWNLOAD_END', 'ERROR'],
+            telegramBotToken: '', telegramChatId: '', telegramTopicId: -1,
+            telegramFormat: 'Markdown', telegramImage: true, telegramApiHost: '',
+        },
+        {
+            notificationType: 'EMBY_REFRESH', name: 'Emby 刷新', enable: false, retry: 1, sort: 1,
+            comment: '入库后通知 Emby 扫一遍', statusList: ['DOWNLOAD_END'],
+            embyHost: '', embyApiKey: '', embyRefreshViewIds: [], embyDelayed: 10,
+        },
+    ],
     customTags: [],
     /* 捐赠那一页得有个像样的状态才看得出组件长什么样。给「试用中」——
        它把徽章、解锁清单、状态条、订单号输入全都渲染出来，覆盖面最广。
@@ -277,3 +291,48 @@ export function sourceGroups(key: string) {
         },
     }))
 }
+
+/*
+ * 视频列表。演示站原来这个接口直接回空数组 —— 于是「视频列表」「播放」「外部播放器」
+ * 「字幕选择」这一整条线在演示站上一次都没被走到过，等于没验证。
+ *
+ * 前两集故意各带两条外挂字幕（简/繁），好让「多条字幕先选一条」那个弹窗露出来；
+ * 后面几集只有一条，走默认路径。地址是假的，点播放会停在播放器的加载失败上，
+ * 但列表、菜单、选择这几步都是真的。
+ */
+export function playList(ani: Ani) {
+    const n = Math.min(ani.currentEpisodeNumber ?? 4, 6)
+    const base = `/downloads/${ani.title ?? '演示番剧'}/Season ${ani.season ?? 1}`
+    return Array.from({length: n}, (_, i) => {
+        const ep = i + 1
+        const name = `[${ani.subgroup ?? '字幕组'}] ${ani.title ?? ''} - ${String(ep).padStart(2, '0')} [1080p].mkv`
+        const subs = i < 2
+            ? [{name: '简体中文', url: `${base}/${ep}.chs.ass`, type: 'ass'},
+                {name: '繁體中文', url: `${base}/${ep}.cht.ass`, type: 'ass'}]
+            : [{name: '简体中文', url: `${base}/${ep}.chs.ass`, type: 'ass'}]
+        return {
+            title: `第 ${ep} 集`,
+            name,
+            filename: `${base}/${name}`,
+            episode: ep,
+            extName: 'mkv',
+            lastModify: Date.now() - (n - i) * 864e5,
+            formatSize: `${(1.1 + i * 0.2).toFixed(2)} GB`,
+            subtitles: subs,
+        }
+    })
+}
+
+/** Telegram 会话候选：多给几个，「只取第一个」那种写法才会露馅 */
+export const TG_CHATS = [
+    {id: 123456789, firstName: '演示', lastName: '用户', username: 'demo_user', type: 'private'},
+    {id: -1001234567890, firstName: '', lastName: '', username: 'ani_rss_group', type: 'supergroup'},
+    {id: -1009876543210, firstName: '', lastName: '', username: 'ani_notify', type: 'channel'},
+]
+
+/** Emby 媒体库候选 */
+export const EMBY_VIEWS = [
+    {id: 'f137a2dd21bbc1b99aa5c0f6bf02a805', name: '动漫'},
+    {id: '767bffe4f11c93ef34b805451a696a4e', name: '电影'},
+    {id: 'a656b907eb3a73532e40e44b968d0225', name: '电视剧'},
+]

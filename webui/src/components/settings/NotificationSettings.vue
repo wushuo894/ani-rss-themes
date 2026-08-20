@@ -83,7 +83,7 @@ const typeIcon = (t?: string) => N_TYPES.find(x => x.value === t)?.icon || 'mdi-
       </v-card-text>
     </v-card>
 
-    <NotificationEditDialog v-if="editing" :config="config" :item="editing.item" @close="editing = null"/>
+    <NotificationEditDialog v-if="editing" :item="editing.item" @close="editing = null"/>
   </div>
 </template>
 

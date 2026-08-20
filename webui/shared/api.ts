@@ -156,16 +156,38 @@ export const clearLogs = () => http.post<void>('api/clearLogs')
 
 export const testNotification = (c: NotificationConfig) => http.post<void>('api/testNotification', c)
 export const newNotification = () => http.post<NotificationConfig>('api/newNotification')
-export const getTgUpdates = (c: NotificationConfig) => http.post<unknown[]>('api/getTgUpdates', c)
+/** 后端 TelegramNotification.Message.Chat：给机器人发过消息的会话 */
+export interface TgChat {
+    id?: number | string
+    firstName?: string
+    lastName?: string
+    username?: string
+    type?: string
+}
+
+export const getTgUpdates = (c: NotificationConfig) => http.post<TgChat[]>('api/getTgUpdates', c)
 
 /* ==================== Emby ==================== */
 
-export const getEmbyViews = (config: Config) => http.post<EmbyViews>('api/getEmbyViews', config)
+/*
+ * 后端签名是 Result<List<EmbyViews>>，收的是 NotificationConfig 不是全局 Config ——
+ * embyHost / embyApiKey 都存在通知配置上，传全局 Config 过去后端拿不到地址，
+ * 这个按钮压根连不上 Emby。之前两处都写错了。
+ */
+export const getEmbyViews = (c: NotificationConfig) => http.post<EmbyViews[]>('api/getEmbyViews', c)
 
 /* ==================== 播放 ==================== */
 
 export const playList = (ani: Ani) => http.post<PlayItem[]>('api/playList', ani)
-/** 文件路径要 base64；上游用裸拼接，base64 里的 '+' 会被解成空格，这里走 URLSearchParams */
+/*
+ * 内封字幕（从 mkv 容器里抽出来）。
+ *
+ * 目前没有调用方，且这是**有意**的：网页播放走的是 webplayer，它在本地拆容器时
+ * 顺手就把内封轨拿到了，再让服务端抽一遍是多跑一趟。留着是因为它是后端契约的一部分，
+ * 换播放器或做「下载字幕」时就要用上 —— 别把它当成漏做的功能又补一遍 UI。
+ *
+ * 文件路径要 base64；上游用裸拼接，base64 里的 '+' 会被解成空格，这里走 URLSearchParams
+ */
 export const getSubtitles = (filename: string) =>
     http.post<PlayItemSubtitles[]>(q('api/getSubtitles', {filename: base64Encode(filename)}))
 

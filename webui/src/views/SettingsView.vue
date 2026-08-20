@@ -1,4 +1,6 @@
 <script setup lang="ts">
+/* 演示构建才有那枚左下角徽标 */
+const isDemo = __DEMO__
 import {computed, onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import * as api from '@shared/api'
@@ -192,7 +194,8 @@ async function testIpWhitelist() {
 
     <!-- 保存条常驻底部：设置项很长，翻到哪都能存 -->
     <v-sheet v-if="tab !== 'about' && tab !== 'afdian'" class="save-bar d-flex align-center ga-2 px-4 py-3" elevation="4">
-      <span class="text-caption text-medium-emphasis">改动不会自动保存</span>
+      <!-- 演示站左下角钉着一枚「演示模式」徽标，正好压在这句话上，给它让开一截 -->
+      <span :class="{'demo-gap': isDemo}" class="text-caption text-medium-emphasis">改动不会自动保存</span>
       <v-spacer/>
       <v-btn :disabled="store.saving" variant="text" @click="store.load(true)">放弃改动</v-btn>
       <v-btn :loading="store.saving" color="primary" prepend-icon="mdi-content-save" variant="flat"
@@ -239,6 +242,11 @@ async function testIpWhitelist() {
 /* 标签栏、分隔线、保存条都是固定高度，一律不参与收缩 */
 .settings-page > :not(.settings-body) {
     flex: 0 0 auto;
+}
+
+/* 徽标宽度 ≈ 128px，加 12px 左边距和一点余量 */
+.demo-gap {
+    margin-left: 152px;
 }
 
 .save-bar {

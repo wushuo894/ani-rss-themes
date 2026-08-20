@@ -2,7 +2,7 @@
 import {onMounted, ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import {useRouter} from 'vue-router'
-import type {Ani, PlayItem} from '@shared/types'
+import type {Ani, PlayItem, PlayItemSubtitles} from '@shared/types'
 import * as api from '@shared/api'
 import {toApiFile} from '@shared/http'
 import {formatTime} from '@shared/format'
@@ -33,14 +33,36 @@ const srcOf = (p: PlayItem) => (p.filename ? toApiFile(p.filename) : '')
  * 不在弹窗里塞播放器：webplayer 自带完整的播放界面（轨道选择、字幕、弹幕、Anime4K），
  * 挤在一个对话框里两边都难受，整页给它更合适。
  */
-function play(p: PlayItem) {
-  const sub = (p.subtitles || []).find(s => s.url)
+/*
+ * 外挂字幕可能不止一条（同一集常同时放简体和繁体，偶尔还有日字），
+ * 播放页一次只收一条，所以有多条时先让人选 —— 原来是闷头取第一条，
+ * 想看另一条没有任何入口。mkv 里的内封字幕不走这里，播放器自己从容器里取。
+ */
+const subs = (p: PlayItem) => (p.subtitles || []).filter(s => s.url)
+
+/** 有简体就默认简体：绝大多数人要的是这条，省一次点击 */
+function preferred(list: PlayItemSubtitles[]) {
+  const zh = list.find(s => /(简|chs|sc|zh-?hans)/i.test(`${s.name ?? ''}${s.html ?? ''}`))
+  return zh ?? list[0]
+}
+
+/** 选字幕的弹窗；null 表示没在选 */
+const choosing = ref<PlayItem | null>(null)
+
+function play(p: PlayItem, sub?: PlayItemSubtitles) {
+  const list = subs(p)
+  if (!sub && list.length > 1) {
+    choosing.value = p
+    return
+  }
+  const use = sub ?? (list.length ? preferred(list) : undefined)
+  choosing.value = null
   void router.push({
     name: 'play',
     query: {
       src: srcOf(p),
       title: `${props.item.title || ''}${p.episode ? ` E${String(p.episode).padStart(2, '0')}` : ''}`.trim(),
-      ...(sub?.url ? {suburl: toApiFile(sub.url), sublabel: sub.name || '字幕'} : {}),
+      ...(use?.url ? {suburl: toApiFile(use.url), sublabel: use.name || '字幕'} : {}),
     },
   })
 }
@@ -64,7 +86,8 @@ function play(p: PlayItem) {
           <v-list-item
               v-for="(p, i) in items"
               :key="i"
-              :subtitle="`${p.formatSize || ''} · ${formatTime(p.lastModify)}`"
+              :subtitle="`${p.formatSize || ''} · ${formatTime(p.lastModify)}`
+                         + (subs(p).length > 1 ? ` · ${subs(p).length} 条字幕` : '')"
               :title="p.title || p.name"
               @click="play(p)"
           >
@@ -86,6 +109,27 @@ function play(p: PlayItem) {
           </v-list-item>
         </v-list>
       </v-card-text>
+    </v-card>
+  </v-dialog>
+
+  <!-- 多条外挂字幕时先挑一条，播放页一次只收一条 -->
+  <v-dialog :model-value="!!choosing" max-width="420" @update:model-value="choosing = null">
+    <v-card v-if="choosing">
+      <v-card-title class="text-subtitle-1">选一条字幕</v-card-title>
+      <v-divider/>
+      <v-list density="comfortable">
+        <v-list-item v-for="(sb, i) in subs(choosing)" :key="i" :subtitle="sb.type"
+                     :title="sb.name || sb.html || `字幕 ${i + 1}`" prepend-icon="mdi-subtitles-outline"
+                     @click="play(choosing!, sb)"/>
+        <v-divider class="my-1"/>
+        <v-list-item prepend-icon="mdi-subtitles-off-outline" title="不加载字幕"
+                     @click="play(choosing!, {})"/>
+      </v-list>
+      <v-divider/>
+      <v-card-actions>
+        <v-spacer/>
+        <v-btn variant="text" @click="choosing = null">取消</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>

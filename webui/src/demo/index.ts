@@ -1,6 +1,6 @@
 import {
-    ABOUT, aniBTList, animeGardenList, CONFIG, listAni, LOGS, mikanList,
-    previewAni, sourceGroups, TORRENTS,
+    ABOUT, aniBTList, animeGardenList, CONFIG, EMBY_VIEWS, listAni, LOGS, mikanList,
+    playList, previewAni, sourceGroups, TG_CHATS, TORRENTS,
 } from './data'
 
 /**
@@ -68,7 +68,20 @@ export function installDemo(): void {
             case 'api/ping':
                 return ok(true)
             case 'api/playList':
-                return ok([])
+                return ok(playList(JSON.parse(String(init?.body ?? '{}'))))
+            /* 这两个是「拉一下 → 出候选 → 点了填进去」的按钮，
+               不给假数据的话演示站上点了永远是「没拉到」 */
+            case 'api/getTgUpdates':
+                return ok(TG_CHATS)
+            case 'api/getEmbyViews':
+                return ok(EMBY_VIEWS)
+            case 'api/testNotification':
+                return ok(null)
+            case 'api/newNotification':
+                return ok({
+                    notificationType: 'TELEGRAM', name: '新通知', enable: true,
+                    retry: 3, sort: 9, statusList: [],
+                })
             case 'api/previewAni':
                 // 预览要拿请求体里的那条订阅来编数据，才有集数、字幕组和下载位置可看
                 return ok(previewAni(JSON.parse(String(init?.body ?? '{}'))))

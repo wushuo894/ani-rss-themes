@@ -50,11 +50,17 @@ setUnauthorizedHandler(() => {
 </template>
 
 <style scoped>
+/*
+ * 演示徽标钉在左下角。它是给演示站看的提示，不该盖住页面内容 ——
+ * 有底部操作条的页面自己给徽标让出这一截宽度（见 SettingsView 的 .save-bar）。
+ */
 .demo-badge {
     position: fixed;
     left: 12px;
-    bottom: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     z-index: 9999;
     pointer-events: none;
+    opacity: .82;
 }
+
 </style>

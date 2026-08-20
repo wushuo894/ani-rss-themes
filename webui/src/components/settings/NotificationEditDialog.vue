@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {computed, ref} from 'vue'
 import {useDisplay} from 'vuetify'
-import type {Config, NotificationConfig} from '@shared/types'
+import type {EmbyViews, NotificationConfig} from '@shared/types'
 import * as api from '@shared/api'
 import {useUiStore} from '@/stores/ui'
 import StringListField from '@/components/common/StringListField.vue'
 import {N_FIELDS, N_STATUS, N_TYPES, type NType} from './notificationSchema'
 
-const props = defineProps<{item: NotificationConfig; config: Config}>()
+const props = defineProps<{item: NotificationConfig}>()
 const emit = defineEmits<{close: []}>()
 
 const ui = useUiStore()
@@ -26,34 +26,48 @@ function set(k: string, v: unknown) {
   (props.item as Record<string, unknown>)[k] = v
 }
 
-/** Telegram：拉取最近会话，省得用户自己去查 chat id */
+/*
+ * 「拉一下 → 列出候选 → 点一下填进去」。
+ *
+ * 这两处原来都只是把拉回来的东西说一嘴就完了：Telegram 直接取第一个会话（机器人
+ * 有多个会话时会静默填错一个），Emby 干脆只弹一条 toast 把 id 念出来让人手抄回去 ——
+ * 和「让人自己去网站上复制 RSS 地址」是同一类退步：数据都拉到了，就是不让选。
+ */
+const tgChats = ref<api.TgChat[]>([])
+const embyViews = ref<EmbyViews[]>([])
+
+const chatLabel = (c: api.TgChat) =>
+    [c.username && `@${c.username}`, [c.firstName, c.lastName].filter(Boolean).join(' ')]
+        .filter(Boolean).join(' · ') || String(c.id ?? '')
+
 async function fetchTgChats() {
   busy.value = 'tg'
   try {
-    const chats = await api.getTgUpdates(props.item)
-    if (!chats?.length) return ui.warn('没拉到会话，先给机器人发一条消息再试')
-    // 后端返回的是 Chat 列表，取第一个填进去；多个时提示用户自行选择
-    const first = chats[0] as {id?: number | string; title?: string; username?: string}
-    if (first?.id !== undefined) {
-      set('telegramChatId', String(first.id))
-      ui.success(`已填入：${first.title || first.username || first.id}`)
-    }
+    tgChats.value = await api.getTgUpdates(props.item) ?? []
+    if (!tgChats.value.length) ui.warn('没拉到会话，先给机器人发一条消息再试')
   } finally {
     busy.value = ''
   }
 }
 
-/** Emby：拉取媒体库列表 */
 async function fetchEmbyViews() {
   busy.value = 'emby'
   try {
-    const views = await api.getEmbyViews(props.config)
-    const items = (views as {items?: {id?: string; name?: string}[]})?.items || []
-    if (!items.length) return ui.warn('没有取到媒体库')
-    ui.info(`可用媒体库：${items.map(v => `${v.name}(${v.id})`).join('、')}`)
+    // 传 item 不是 config：embyHost / embyApiKey 存在通知配置上
+    embyViews.value = await api.getEmbyViews(props.item) ?? []
+    if (!embyViews.value.length) ui.warn('没有取到媒体库，检查地址和密钥')
   } finally {
     busy.value = ''
   }
+}
+
+/** 媒体库是多选，勾进 embyRefreshViewIds；留空 = 全部刷新 */
+const pickedViews = computed(() => (get('embyRefreshViewIds') as string[] | undefined) ?? [])
+
+function toggleView(id?: string) {
+  if (!id) return
+  const cur = pickedViews.value
+  set('embyRefreshViewIds', cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id])
 }
 
 async function test() {
@@ -139,15 +153,34 @@ async function test() {
                         persistent-hint @update:model-value="v => set(f.key, v)"/>
         </template>
 
-        <!-- 类型专属的辅助按钮 -->
-        <v-btn v-if="item.notificationType === 'TELEGRAM'" :loading="busy === 'tg'" prepend-icon="mdi-refresh"
-               variant="tonal" @click="fetchTgChats">
-          获取会话 ID
-        </v-btn>
-        <v-btn v-if="item.notificationType === 'EMBY_REFRESH'" :loading="busy === 'emby'" prepend-icon="mdi-refresh"
-               variant="tonal" @click="fetchEmbyViews">
-          获取媒体库
-        </v-btn>
+        <!-- 类型专属的辅助按钮：拉回来的东西直接摆成可点的候选，点了就填进上面的字段 -->
+        <template v-if="item.notificationType === 'TELEGRAM'">
+          <v-btn :loading="busy === 'tg'" prepend-icon="mdi-refresh" variant="tonal" @click="fetchTgChats">
+            获取会话 ID
+          </v-btn>
+          <div v-if="tgChats.length" class="d-flex flex-wrap ga-2 mt-3">
+            <v-chip v-for="c in tgChats" :key="String(c.id)"
+                    :color="String(get('telegramChatId') ?? '') === String(c.id) ? 'primary' : undefined"
+                    size="small" variant="tonal" @click="set('telegramChatId', String(c.id))">
+              {{ chatLabel(c) }}
+              <span class="text-caption text-medium-emphasis ml-1">{{ c.type }}</span>
+            </v-chip>
+          </div>
+        </template>
+
+        <template v-if="item.notificationType === 'EMBY_REFRESH'">
+          <v-btn :loading="busy === 'emby'" prepend-icon="mdi-refresh" variant="tonal" @click="fetchEmbyViews">
+            获取媒体库
+          </v-btn>
+          <div v-if="embyViews.length" class="d-flex flex-wrap ga-2 mt-3">
+            <v-chip v-for="v in embyViews" :key="v.id"
+                    :color="pickedViews.includes(v.id ?? '') ? 'primary' : undefined"
+                    :prepend-icon="pickedViews.includes(v.id ?? '') ? 'mdi-check' : undefined"
+                    size="small" variant="tonal" @click="toggleView(v.id)">
+              {{ v.name }}
+            </v-chip>
+          </div>
+        </template>
       </v-card-text>
 
       <v-divider/>
