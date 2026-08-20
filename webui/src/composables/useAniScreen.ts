@@ -50,6 +50,22 @@ export function useAniScreen() {
         exitSelect()
     }
 
+    /**
+     * 导出选中的订阅为 ani.v2.json —— 和「导入订阅」是一对，上游管理面板里就有这一项。
+     * 直接把订阅对象序列化下来，不经过后端：导入那边收的也是同一个数组。
+     */
+    function exportSelected() {
+        const list = selectedAnis.value
+        if (!list.length) return
+        const url = URL.createObjectURL(new Blob([JSON.stringify(list)], {type: 'application/json'}))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'ani.v2.json'
+        a.click()
+        URL.revokeObjectURL(url)
+        exitSelect()
+    }
+
     /** 卡片/行统一往这里丢事件，省得每款界面各写一遍 v-on */
     const on = {
         edit: (a: Ani) => (editing.value = a),
@@ -65,7 +81,7 @@ export function useAniScreen() {
         ani, prefs,
         editing, adding, deleting, playlistOf, coverOf, ratingOf, previewOf, importing, collecting,
         selectMode, selectedIds, selectedAnis, grouped,
-        exitSelect, toggleSelectMode, batch, on,
+        exitSelect, toggleSelectMode, batch, exportSelected, on,
     }
 }
 

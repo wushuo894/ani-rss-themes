@@ -2,11 +2,12 @@
 import {computed, ref, watch} from 'vue'
 import {useDisplay} from 'vuetify'
 import type {
-  AniBTGroup, AnimeGardenGroup, GroupRegexRegexItem, MikanGroup, MikanSeason,
+  AniBTGroup, AniBTItem, AnimeGardenGroup, AnimeGardenItem, GroupRegexRegexItem,
+  MikanGroup, MikanItem, MikanSeason,
 } from '@shared/types'
 import * as api from '@shared/api'
 import {proxyImage} from '@shared/http'
-import {fromNow} from '@shared/format'
+import {formatSize, formatTime, fromNow} from '@shared/format'
 import {useAniStore} from '@/stores/ani'
 import {useUiStore} from '@/stores/ui'
 
@@ -52,6 +53,17 @@ interface Group {
   tags?: string[]
   /** 匹配规则候选，选中一组会拼成 {{字幕组}}:正则 */
   regexList: GroupRegexRegexItem[][]
+  /** 这个组最近发过的资源。订之前看一眼命名和体积，比订完再来预览省事 */
+  items: Res[]
+}
+
+/** 三家的资源项字段名不同，取出来的就这几样 */
+interface Res {
+  title: string
+  size: string
+  time: string
+  magnet?: string
+  torrent?: string
 }
 
 const SOURCES = {
@@ -93,6 +105,17 @@ function mapGroups(list: (MikanGroup | AniBTGroup | AnimeGardenGroup)[]): Group[
           || (it.lastUpdatedAt ? `最近更新 ${fromNow(new Date(it.lastUpdatedAt).getTime())}` : ''),
       tags: it.groupRegex?.tags,
       regexList: it.groupRegex?.regexList ?? [],
+      items: (it.items ?? []).slice(0, 8).map(r => {
+        const x = r as MikanItem & AniBTItem & AnimeGardenItem
+        const t = x.createdAt ?? x.publishedAt
+        return {
+          title: x.title || '',
+          size: x.formatSize || (x.size ? formatSize(x.size) : ''),
+          time: t ? formatTime(new Date(t).getTime()) : '',
+          magnet: x.magnet,
+          torrent: x.torrent,
+        }
+      }),
     }
   }).filter(g => g.rss)
 }
@@ -165,6 +188,28 @@ async function toggleItem(it: Item) {
     if (!groups.value[it.key].length) ui.warn('这部番还没有可用的字幕组 RSS')
   } finally {
     groupLoading.value = false
+  }
+}
+
+/** 展开中的字幕组（看它最近发了什么），一次只开一个 */
+const openRss = ref('')
+
+async function copyMagnet(magnet?: string) {
+  if (!magnet) return
+  try {
+    await navigator.clipboard.writeText(magnet)
+    ui.success('磁力链接已复制')
+  } catch {
+    // http 页面下 clipboard API 不可用（安全上下文限制），退回到老办法
+    const el = document.createElement('textarea')
+    el.value = magnet
+    el.style.position = 'fixed'
+    el.style.opacity = '0'
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    ui.success('磁力链接已复制')
   }
 }
 
@@ -332,7 +377,8 @@ function search() {
                   <v-progress-circular indeterminate size="22" width="2"/>
                 </div>
                 <template v-else>
-                  <div v-for="g in groups[it.key] || []" :key="g.rss" class="group">
+                  <div v-for="g in groups[it.key] || []" :key="g.rss">
+                  <div class="group">
                     <v-checkbox-btn :model-value="inBasket(g)" density="compact"
                                     @update:model-value="toggleBasket(it, g)"/>
                     <div class="group-meta">
@@ -346,6 +392,27 @@ function search() {
                            @click="openMatch(it, g)">
                       添加
                     </v-btn>
+                    <!-- 展开看这个组最近发了什么：命名、体积、发布时间，
+                         订之前扫一眼就知道这个组合不合适 -->
+                    <v-btn v-if="g.items.length" :icon="openRss === g.rss ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                           :title="openRss === g.rss ? '收起最近资源' : '看最近资源'" size="small" variant="text"
+                           @click="openRss = openRss === g.rss ? '' : g.rss"/>
+                  </div>
+
+                  <v-expand-transition>
+                    <div v-if="openRss === g.rss" class="res">
+                      <div v-for="(r, ri) in g.items" :key="ri" class="res-row">
+                        <div class="res-meta">
+                          <div class="res-title">{{ r.title }}</div>
+                          <div class="res-sub">{{ [r.size, r.time].filter(Boolean).join(' · ') }}</div>
+                        </div>
+                        <v-btn v-if="r.magnet" icon="mdi-magnet" size="x-small" title="复制磁力链接"
+                               variant="text" @click="copyMagnet(r.magnet)"/>
+                        <v-btn v-if="r.torrent" :href="r.torrent" icon="mdi-download-outline" rel="noopener"
+                               size="x-small" target="_blank" title="下载种子" variant="text"/>
+                      </div>
+                    </div>
+                  </v-expand-transition>
                   </div>
                   <a v-if="it.link" :href="it.link" class="group-link" rel="noopener" target="_blank">
                     在 {{ meta.name }} 打开
@@ -571,7 +638,8 @@ function search() {
     border-radius: 10px;
 }
 
-.group + .group {
+.groups > template + div,
+.groups > div + div {
     margin-top: 6px;
 }
 
@@ -603,6 +671,44 @@ function search() {
     flex-wrap: wrap;
     gap: 4px;
     margin-top: 6px;
+}
+
+/* 资源列表：缩进一格挂在字幕组下面，视觉上从属关系一眼看得出来 */
+.res {
+    margin: 4px 0 8px 34px;
+    padding-left: 12px;
+    border-left: 2px solid rgba(var(--v-theme-primary), .3);
+}
+
+.res-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 0;
+}
+
+.res-row + .res-row {
+    border-top: 1px solid rgba(var(--v-border-color), calc(var(--v-border-opacity) * .6));
+}
+
+.res-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* 种子名又长又不带空格，不截断会把整张卡撑爆 */
+.res-title {
+    font-size: 11.5px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.res-sub {
+    margin-top: 1px;
+    font-size: 10.5px;
+    color: rgba(var(--v-theme-on-surface), .6);
 }
 
 .group-link {

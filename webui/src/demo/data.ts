@@ -254,7 +254,16 @@ export function sourceGroups(key: string) {
         updateDay: WEEK[i % 7],
         status: '连载中',
         lastUpdatedAt: Date.now() - i * 86400_000,
-        items: [],
+        /* 字幕组下面那张「最近发了什么」的列表要有东西，
+           不然演示站上那个展开按钮根本不出现 */
+        items: Array.from({length: 4}, (_, k) => ({
+            title: `[${name}] ${TITLES[i % TITLES.length]} - ${String(12 - k).padStart(2, '0')} [1080p][简繁内封].mkv`,
+            magnet: `magnet:?xt=urn:btih:${'0'.repeat(32)}${i}${k}`,
+            torrent: '',
+            size: 1_100_000_000 + k * 40_000_000,
+            formatSize: `${(1.1 + k * 0.04).toFixed(2)} GB`,
+            createdAt: new Date(Date.now() - (k * 7 + i) * 86400_000).toISOString(),
+        })),
         groupRegex: {
             tags: ['1080P', i % 2 ? '简体' : '繁体'],
             regexList: versions.slice(0, 2 + (i % 2)),

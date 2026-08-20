@@ -78,6 +78,8 @@ export function base64Encode(s: string): string {
  * 这类地址用在 <img src> 上，设不了请求头，所以令牌只能走查询参数 s —— 上游如此，照办。
  */
 export function proxyImage(imgUrl: string): string {
+    // 和 toApiFile 同一个道理：已经自带内容的地址原样返回，别再套一层代理
+    if (/^(data:|blob:)/.test(imgUrl)) return imgUrl
     return toApiUrl('api/proxyImage', {imgUrl: base64Encode(imgUrl), s: getToken()})
 }
 
