@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {computed} from 'vue'
 import {useAniStore} from '@/stores/ani'
 
 /**
@@ -18,6 +19,17 @@ const STATUS = [
   {value: 'on', title: '已启用'},
   {value: 'off', title: '未启用'},
 ] as const
+
+/*
+ * 季度候选前面补一个「全部季度」，而不是靠 placeholder + clearable。
+ * placeholder 只在没选中时显示，而 v-select 没选中时框里本来就是空的 ——
+ * 结果是一个只有箭头的空框，看不出是干什么的，也没法从「某一季」退回「不筛」
+ * 除非发现右边那个小叉。补一个空值选项，和左边的状态框长得一样。
+ */
+const seasonItems = computed(() => [
+  {value: '', title: '全部季度'},
+  ...ani.seasons.map(v => ({value: v, title: v})),
+])
 </script>
 
 <template>
@@ -25,8 +37,8 @@ const STATUS = [
     <v-select v-model="ani.status" :items="STATUS" density="compact" hide-details
               style="min-width: 118px; max-width: 132px"/>
     <!-- 季度候选是后端按订阅实际的放送日期算出来的，只有一季订阅时没有可选项，直接不显示 -->
-    <v-select v-if="ani.seasons.length > 1" v-model="ani.season" :items="ani.seasons" clearable density="compact"
-              hide-details placeholder="全部季度" style="min-width: 128px; max-width: 148px"/>
+    <v-select v-if="ani.seasons.length > 1" v-model="ani.season" :items="seasonItems" density="compact"
+              hide-details style="min-width: 128px; max-width: 148px"/>
     <v-btn v-if="ani.filtering" density="comfortable" prepend-icon="mdi-filter-remove-outline" size="small"
            variant="text" @click="ani.clearFilters()">
       清除筛选

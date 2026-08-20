@@ -62,7 +62,7 @@ async function importGlobal() {
         persistent-hint
         @update:model-value="v => model = (v as string[]).filter(s => s !== '')"
     />
-    <div v-if="importKey || count" class="d-flex align-center flex-wrap ga-2 mt-2">
+    <div v-if="importKey || doc || count" class="d-flex align-center flex-wrap ga-2 mt-2">
       <v-btn v-if="importKey" :disabled="disabled" :loading="loading" prepend-icon="mdi-tray-arrow-down"
              size="small" variant="tonal" @click="importGlobal">
         导入全局
