@@ -84,6 +84,8 @@ export function previewAni(ani: {title?: string; subgroup?: string; currentEpiso
                 title: `[${g}] ${ani.title ?? '演示番剧'} - ${String(ep).padStart(2, '0')} [1080p][简繁内封].mkv`,
                 reName: `${ani.title ?? '演示番剧'} S01E${String(ep).padStart(2, '0')}.mkv`,
                 infoHash: `demo-hash-${ep}`,
+                // 「复制种子链接」这一列要有东西可复制
+                torrent: `https://example.invalid/torrent/${ep}.torrent`,
                 episode: ep,
                 formatSize: `${(0.9 + (i % 4) * 0.25).toFixed(2)} GB`,
                 length: Math.round((0.9 + (i % 4) * 0.25) * 1024 ** 3),

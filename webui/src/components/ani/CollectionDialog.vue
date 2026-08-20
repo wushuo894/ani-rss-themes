@@ -70,6 +70,45 @@ async function pick(b: BgmInfo) {
   }
 }
 
+/*
+ * 合集的标题 / TMDB 名和普通订阅一样重要：重命名模板和刮削都按它们走，
+ * 名字不对，一整季文件全落错地方。上游合集框里挂着「使用 Bangumi」「使用 TMDB」
+ * 「获取 TMDB」「下载位置」四颗，我们一颗都没有 —— 只能听天由命。
+ */
+async function useBgmName() {
+  busy.value = 'bgm'
+  try {
+    const t = await api.getBgmTitle(data.value.ani ?? {})
+    if (!t) return ui.warn('没有查到标题')
+    data.value.ani = {...data.value.ani, title: t}
+    ui.success('已使用 Bangumi 标题')
+  } finally {
+    busy.value = ''
+  }
+}
+
+async function fetchTmdb() {
+  busy.value = 'tmdb'
+  try {
+    const r = await api.getThemoviedbName(data.value.ani ?? {})
+    if (!r?.themoviedbName) return ui.warn('没有查到 TMDB 名称')
+    data.value.ani = {...data.value.ani, themoviedbName: r.themoviedbName, tmdb: r.tmdb}
+    ui.success(`已获取：${r.themoviedbName}`)
+  } finally {
+    busy.value = ''
+  }
+}
+
+async function showPath() {
+  busy.value = 'path'
+  try {
+    const r = await api.downloadPath(data.value.ani ?? {})
+    ui.info(`会下到：${r.downloadPath}`)
+  } finally {
+    busy.value = ''
+  }
+}
+
 async function doPreview() {
   if (!data.value.torrent) return ui.error('请先选择种子文件')
   busy.value = 'preview'
@@ -155,12 +194,33 @@ function reset() {
           已选条目：{{ data.bgmInfo.nameCn || data.bgmInfo.name }}
         </v-alert>
 
+        <!-- 标题和 TMDB 名决定文件最后落到哪个目录，合集一次就是一整季，错了要全挪 -->
+        <v-text-field v-model="data.ani!.title" class="mb-1" label="标题">
+          <template #append>
+            <v-btn :loading="busy === 'bgm'" size="small" variant="tonal" @click="useBgmName">用 Bgm 名</v-btn>
+            <v-btn :disabled="!data.ani?.themoviedbName || data.ani?.title === data.ani?.themoviedbName"
+                   class="ml-2" size="small" variant="tonal"
+                   @click="data.ani = {...data.ani, title: data.ani!.themoviedbName}">
+              用 TMDB 名
+            </v-btn>
+          </template>
+        </v-text-field>
+
+        <v-text-field v-model="data.ani!.themoviedbName" class="mb-1" label="TMDB">
+          <template #append>
+            <v-btn :loading="busy === 'tmdb'" size="small" variant="tonal" @click="fetchTmdb">获取</v-btn>
+          </template>
+        </v-text-field>
+
         <v-text-field v-model="data.ani!.subgroup" class="mb-3" hint="留空则由后端从种子名推断"
                       label="字幕组" persistent-hint/>
 
-        <div class="d-flex ga-2 mb-3">
+        <div class="d-flex flex-wrap ga-2 mb-3">
           <v-btn :loading="busy === 'preview'" prepend-icon="mdi-eye-outline" variant="tonal" @click="doPreview">
             预览剧集
+          </v-btn>
+          <v-btn :loading="busy === 'path'" prepend-icon="mdi-folder-outline" variant="tonal" @click="showPath">
+            下载位置
           </v-btn>
         </div>
 

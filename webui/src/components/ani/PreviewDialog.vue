@@ -95,6 +95,32 @@ async function setBlocked(block: boolean) {
   }
 }
 
+/**
+ * 复制这一条的种子链接。上游预览表里每行都有这颗，我们漏了。
+ * 用处很实在：某一集匹配规则没命中、或者只想单独补一集时，
+ * 直接把链接丢给下载器，不用为一集去改订阅规则。
+ *
+ * 没有直接用 navigator.clipboard：ani-rss 常跑在 http 的内网地址上，
+ * 那不是安全上下文，这个 API 会直接抛。
+ */
+async function copyTorrent(url?: string) {
+  if (!url) return ui.error('这一条没有种子链接')
+  try {
+    await navigator.clipboard.writeText(url)
+    ui.success('种子链接已复制')
+  } catch {
+    const el = document.createElement('textarea')
+    el.value = url
+    el.style.position = 'fixed'
+    el.style.opacity = '0'
+    document.body.appendChild(el)
+    el.select()
+    document.execCommand('copy')
+    document.body.removeChild(el)
+    ui.success('种子链接已复制')
+  }
+}
+
 async function removeTorrents() {
   const hashes = chosenHashes.value
   if (!hashes.length) return ui.error('选中的项里没有已下载的种子')
@@ -172,6 +198,7 @@ async function removeTorrents() {
               <th style="width: 84px">RSS</th>
               <th style="width: 96px">大小</th>
               <th style="width: 104px">状态</th>
+              <th style="width: 48px"/>
             </tr>
             </thead>
             <tbody>
@@ -197,6 +224,11 @@ async function removeTorrents() {
                 <v-chip v-else :color="it.hasDownloaded ? 'success' : undefined" size="x-small" variant="tonal">
                   {{ it.hasDownloaded ? '已下载' : '未下载' }}
                 </v-chip>
+              </td>
+              <td>
+                <!-- 单独补一集时直接拿链接走，不用为一集去改订阅规则 -->
+                <v-btn :disabled="!it.torrent" icon="mdi-content-copy" size="x-small"
+                       title="复制种子链接" variant="text" @click="copyTorrent(it.torrent)"/>
               </td>
             </tr>
             </tbody>

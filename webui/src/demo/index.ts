@@ -91,6 +91,17 @@ export function installDemo(): void {
                     {id: 'g2', name: 'DVD Order', typeName: 'DVD 顺序', groupCount: 2, episodeCount: 24},
                     {id: 'g3', name: 'Seasons (TMDB)', typeName: '剧集组', groupCount: 3, episodeCount: 36},
                 ])
+            /* 封面上传：真后端回的是 config/files 下的相对路径，取图时再走 api/file。
+               演示这边取图那一跳是 <img src>，拦不住，所以直接回一个内联的图。 */
+            case 'api/upload':
+                return ok('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="428">'
+                    + '<rect width="300" height="428" fill="#7c5cd6"/>'
+                    + '<text x="150" y="220" fill="#fff" font-family="sans-serif" font-size="20"'
+                    + ' text-anchor="middle">已上传</text></svg>'))
+            // 回空串表示「路径没变」，组件会保留原封面
+            case 'api/refreshCover':
+                return ok('')
             case 'api/downloadPath':
                 // 「填入默认位置」要有东西可填，不然点了跟没反应一样
                 return ok({downloadPath: '/downloads/anime/${title}/Season ${season}'})
