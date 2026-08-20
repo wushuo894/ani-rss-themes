@@ -1,22 +1,23 @@
 name: WebUI
 
-# 每次改动 WebUI 都构建一遍（早发现比早发布重要）；
-# 打 webui-v* 标签时额外产出可直接解压使用的压缩包并建 Release。
+# 改了 WebUI 就构建、打包、发版，一条龙。
+#
+# 以前发版卡在「手动打一个 webui-v* 标签」上 —— 结果一个标签都没打过，
+# 仓库里一个 Release 都没有，install.sh 取的 releases/latest/download/ 一直是 404。
+# 需要人记得做的步骤等于不会做，改成推上 main 就自动发。
 on:
   push:
-    # 这里刻意不加 paths 过滤：GitHub 对 tag 推送同样会套用 paths，
-    # 一旦打的 tag 指向的提交没碰 webui 文件，发版就会静默地不触发。
-    # 构建只要两分钟，宁可多跑几次，也不要发版时莫名其妙没反应。
     branches: [main]
-    tags: ['webui-v*']
+    paths: ['webui/**', '.github/workflows/webui.yml']
   pull_request:
     paths: ['webui/**']
   workflow_dispatch:
 
-# 同一分支的新推送取消上一次未跑完的（构建 webplayer 要几分钟，不值得排队）
+# PR 上新推送取消旧的；main 上不取消 —— 发布那步是先删旧 Release 再传新包，
+# 卡在中间被砍会留下一个「Release 没了、新包也没传」的空窗，install.sh 直接 404。
 concurrency:
   group: webui-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: write        # 建 Release 需要
@@ -26,6 +27,9 @@ jobs:
   build:
     name: 构建五款界面
     runs-on: ubuntu-latest
+    outputs:
+      presets: ${{ steps.meta.outputs.presets }}
+      version: ${{ steps.meta.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -34,6 +38,17 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: webui/package-lock.json
+
+      # 款式清单只认 ids.ts 一处：以前构建、校验、打包三处各抄了一遍同样的五个 id，
+      # 加第六款要记得改三个地方，漏掉打包那处就是「构建出来了但没进压缩包」。
+      - id: meta
+        run: |
+          set -e
+          ids=$(node --experimental-strip-types -e "import('./webui/src/presets/ids.ts').then(m => console.log(m.PRESET_IDS.join(' ')))")
+          test -n "$ids" || { echo "::error::没能从 ids.ts 读出款式清单"; exit 1; }
+          echo "presets=$ids" >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./webui/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "款式：$ids"
 
       - run: npm ci
         working-directory: webui
@@ -51,8 +66,9 @@ jobs:
       - name: 校验产物
         run: |
           set -e
-          for id in acg liquid-glass vue github material; do
+          for id in ${{ steps.meta.outputs.presets }}; do
             d="webui/dist/$id"
+            # ani-rss 是启动时扫 config/webui/index.html 才认这套前端的，缺它整个包等于没装
             test -f "$d/index.html" || { echo "::error::$d 缺少 index.html"; exit 1; }
             test -d "$d/assets"     || { echo "::error::$d 缺少 assets/"; exit 1; }
             # base 必须是相对路径，否则挂子路径反代下资源全 404
@@ -73,41 +89,65 @@ jobs:
 
   # ─────────────────────────────────────────────────────────
   # webplayer 是另一个仓库，没有 Release 可取，只能从源码构建。
-  # 只有要发版时才跑 —— 它有 30MB 的 wasm 要装，日常 CI 没必要等。
+  # 它要装 30MB 的 wasm、跑好几分钟，而它自己一个月也不见得动一次 ——
+  # 拿上游 HEAD 的 sha 当 key 把整个产物缓存起来，sha 没变就直接命中，几秒钟的事。
+  # （以前它只在打标签时才跑，现在每次推 main 都要发版，不缓存就是每次白等五分钟。）
   player:
     name: 构建 webplayer
-    if: startsWith(github.ref, 'refs/tags/webui-v')
+    if: github.ref == 'refs/heads/main'      # 产物只有发版用得上，PR 上不必跑
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.rev.outputs.sha }}
     steps:
-      - uses: actions/checkout@v4
+      # ls-remote 不用克隆就能拿到 sha，缓存命中时那个仓库一个字节都不用下
+      - id: rev
+        run: |
+          set -e
+          sha=$(git ls-remote https://github.com/zzzwannasleep/webplayer HEAD | cut -c1-7)
+          test -n "$sha" || { echo "::error::读不到 webplayer 的 HEAD"; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - id: cache
+        uses: actions/cache@v4
+        with:
+          path: staging
+          key: webplayer-${{ steps.rev.outputs.sha }}
+
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
         with:
           repository: zzzwannasleep/webplayer
           path: webplayer
 
-      - id: rev
-        run: echo "sha=$(git -C webplayer rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
-
-      - uses: actions/setup-node@v4
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: webplayer/package-lock.json
 
-      - run: npm ci
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: npm ci
         working-directory: webplayer
 
-      - run: npm run build
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: npm run build
         working-directory: webplayer
 
       # 压缩包里要带一层 player/，解压到 webui/ 就各就各位
-      - name: 套一层 player/
+      - if: steps.cache.outputs.cache-hit != 'true'
+        name: 套一层 player/
         run: |
           set -e
           test -f webplayer/dist/play.html || { echo "::error::webplayer 产物里没有 play.html"; exit 1; }
           mkdir -p staging
           cp -r webplayer/dist staging/player
+
+      # 命中缓存的那次也验一遍：坏掉的缓存比没有缓存更难查
+      - name: 校验 player/
+        run: |
+          test -f staging/player/play.html \
+            || { echo "::error::staging/player 里没有 play.html（缓存坏了？换个 key 重跑）"; exit 1; }
           du -sh staging/player
 
       - uses: actions/upload-artifact@v4
@@ -119,30 +159,36 @@ jobs:
   # ─────────────────────────────────────────────────────────
   release:
     name: 打包并发布
-    if: startsWith(github.ref, 'refs/tags/webui-v')
+    if: github.ref == 'refs/heads/main'
     needs: [build, player]
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: webui-v${{ needs.build.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-
+      # 这里不 checkout：要发的东西全在 artifact 里，发布说明是现写的
       - uses: actions/download-artifact@v4
         with:
           path: art
 
-      # 每个包都自带播放器：在线播放本来就是 ani-rss 的功能，我们只是把它自带的
-      # 播放器换成支持 ASS 特效字幕和 HDR 的那个，拆成两个包只会让人少装一个然后以为坏了。
+      # 五款各打各的包 —— 一款一个 zip，装谁下谁，不必为一款界面下五份。
+      # 但播放器不单独拆包：在线播放本来就是 ani-rss 的功能，我们只是把它自带的
+      # 播放器换成支持 ASS 特效字幕和 HDR 的那个，拆开只会让人少装一个然后以为坏了。
       # 资产名不带版本号：install 脚本用 releases/latest/download/<固定名> 取，
       # 这个地址不需要调 API，也就没有速率限制的问题。
       - name: 打压缩包
         run: |
           set -e
           mkdir -p out
-          for id in acg liquid-glass vue github material; do
+          for id in ${{ needs.build.outputs.presets }}; do
             stage="stage/$id"
             mkdir -p "$stage"
             cp -r "art/webui/$id/." "$stage/"
             cp -r art/webplayer/player "$stage/player"
-            test -f "$stage/player/play.html" || { echo "::error::$id 包里没有 player/play.html"; exit 1; }
+            # 解压后必须直接就是 config/webui/index.html，不能多套一层目录
+            test -f "$stage/index.html"           || { echo "::error::$id 包根目录没有 index.html"; exit 1; }
+            test -f "$stage/player/play.html"     || { echo "::error::$id 包里没有 player/play.html"; exit 1; }
             (cd "$stage" && zip -qr "$GITHUB_WORKSPACE/out/ani-rss-webui-$id.zip" .)
           done
           cd out && sha256sum *.zip > checksums.txt && ls -lh
@@ -150,8 +196,17 @@ jobs:
       - name: 生成发布说明
         run: |
           cat > notes.md <<EOF
-          五款界面挑一款，解压到 ani-rss 配置目录下的 \`webui/\` 即可（没有就新建一个）。
+          五款界面挑一款，解压到 ani-rss **配置目录**下的 \`webui/\` 里（没有就新建一个），
+          然后**重启 ani-rss**。程序是启动时才扫这个目录的，只刷新页面不算数。
           **每个包都自带在线播放器**，不用再单独下一个。
+
+          \`\`\`
+          config/
+          └── webui/
+              ├── index.html   ← 必须在这一层，不能多套一层目录
+              ├── assets/
+              └── player/
+          \`\`\`
 
           | 压缩包 | 长什么样 |
           |---|---|
@@ -162,6 +217,7 @@ jobs:
           | \`ani-rss-webui-material.zip\`     | Material Design 3：导航栏杆 / 底部导航 + FAB |
 
           五款是同一套功能的不同外观，**装一款就够**，装第二款会覆盖第一款。
+          想换回自带界面：清空（或删掉）\`webui/\` 目录再重启。
 
           ### 一行装好
 
@@ -175,7 +231,7 @@ jobs:
           irm https://raw.githubusercontent.com/${{ github.repository }}/main/install.ps1 | iex
           \`\`\`
 
-          脚本会问你 webui 目录在哪、装哪一款，然后自己下载解压。
+          脚本会问你配置目录在哪、装哪一款，然后自己下载解压 —— 装完还是要重启一次。
 
           ### 先在线看看
 
@@ -191,12 +247,20 @@ jobs:
           \`\`\`
 
           ---
-          webplayer 构建自 \`zzzwannasleep/webplayer@${{ needs.player.outputs.sha }}\`
+          构建自 \`${GITHUB_SHA:0:7}\`，webplayer 构建自 \`zzzwannasleep/webplayer@${{ needs.player.outputs.sha }}\`
           EOF
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            out/*.zip
-            out/checksums.txt
-          body_path: notes.md
+      # 版本号取 webui/package.json：没动版本号就把同一个 Release 原地换成最新一次构建，
+      # 动了版本号就自然多一个 Release，历史还在。
+      # 先删再建而不是 --clobber 覆盖：万一以后少打一款，光覆盖会把上一版的残留资产留在那儿。
+      - name: 发布
+        run: |
+          set -e
+          gh release delete "$TAG" --cleanup-tag --yes 2>/dev/null || true
+          # 兜底：上一次跑到一半被砍，可能留下一个没有 Release 的孤儿标签。
+          # 不清掉的话 create 会挂在那个旧提交上，--target 会被忽略，发出去的是上一版的代码。
+          gh api -X DELETE "repos/$GH_REPO/git/refs/tags/$TAG" --silent 2>/dev/null || true
+          gh release create "$TAG" out/*.zip out/checksums.txt \
+            --title "WebUI $TAG" --notes-file notes.md --latest --target "$GITHUB_SHA"
+          echo "已发布 $TAG："
+          gh release view "$TAG" --json assets --jq '.assets[].name'

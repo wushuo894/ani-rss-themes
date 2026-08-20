@@ -56,7 +56,7 @@ function Confirm {
 
 Say ''
 Say 'ani-rss 替代 WebUI 安装' 'White'
-Say '装完刷新页面即可；想还原就把 webui 目录清空。' 'DarkGray'
+Say '装完要重启一次 ani-rss；想还原就把 webui 目录清空后再重启。' 'DarkGray'
 Say ''
 
 # ── 目录 ────────────────────────────────────────────────
@@ -164,7 +164,10 @@ try {
 Say ''
 Say "装好了  $dir  ($ui)" 'Green'
 Say ''
-Say '刷新 ani-rss 页面即可。想还原：清空该目录（或删掉后把 .bak 改回来）。'
+Say '还差一步：重启 ani-rss。' 'Yellow'
+Say '程序只在启动时扫这个目录，光刷新页面不生效。' 'DarkGray'
+Say ''
+Say '想还原：清空该目录（或删掉后把 .bak 改回来），然后再重启一次。' 'DarkGray'
 Say ''
 Say '播放前建议先验一下服务端的 Range 实现：' 'Yellow'
 Say '  ani-rss 当前版本每个分段响应少一字节，会让播放器崩在解复用阶段，' 'DarkGray'

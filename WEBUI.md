@@ -92,7 +92,8 @@ irm .../install.ps1 | iex
 `{configDir}` 的确定顺序（`ConfigUtil.getConfigDir()`）：环境变量 `CONFIG` → 当前工作目录下的
 `config/` → Windows/macOS 为 `~/ani-rss`，其他系统为 `config`。
 
-刷新页面即可。想换回自带界面，把 `webui/` 清空或改名。
+**重启 ani-rss** —— 程序只在启动时扫 `config/webui/`，光刷新页面不生效。
+想换回自带界面，把 `webui/` 清空或改名，再重启一次。
 
 > qBittorrent 的替代 WebUI 要求产物根目录下有 `public/` 子目录，**ani-rss 没有这个要求**，文件直接放 `webui/` 根下。
 

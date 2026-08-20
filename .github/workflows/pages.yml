@@ -50,7 +50,8 @@ jobs:
           cp -r legacy/. site/
           mkdir -p site/webui
           cp webui/preview-index.html site/webui/index.html
-          for id in acg liquid-glass vue github material; do
+          # 款式清单跟 webui.yml 一样只认 ids.ts，别再抄第二份
+          for id in $(node --experimental-strip-types -e "import('./webui/src/presets/ids.ts').then(m => console.log(m.PRESET_IDS.join(' ')))"); do
             test -f "webui/dist/$id/index.html" || { echo "::error::webui/dist/$id 没构建出来"; exit 1; }
             cp -r "webui/dist/$id" "site/webui/$id"
           done
