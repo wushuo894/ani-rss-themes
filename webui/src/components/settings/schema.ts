@@ -244,7 +244,10 @@ export const BASIC_SECTIONS: SectionDef[] = [
             {key: 'standbyRss', label: '备用 RSS', type: 'switch'},
             {key: 'copyMasterToStandby', label: '添加订阅时复制主 RSS 到备用', type: 'switch',
                 disabledWhen: c => !c.standbyRss},
-            {key: 'coexist', label: '多字幕组共存模式', type: 'switch'},
+            /* 共存模式是「同一集留多个字幕组的版本」，靠的就是备用源；
+               总开关关着的时候上游这一项也是禁用的 */
+            {key: 'coexist', label: '多字幕组共存模式', type: 'switch',
+                disabledWhen: c => !c.standbyRss},
         ],
     },
     {

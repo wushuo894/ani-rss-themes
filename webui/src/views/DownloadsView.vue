@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {onActivated, onDeactivated, ref} from 'vue'
+import {computed, onActivated, onDeactivated, ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import type {TorrentsInfo} from '@shared/types'
 import {formatPercent, formatSize} from '@shared/format'
@@ -28,6 +28,41 @@ function stateColor(s?: string) {
   if (/paused|stopped/i.test(s)) return undefined
   return 'info'
 }
+
+/*
+ * 窄屏排序。
+ *
+ * 宽屏是表格，点表头就能排；窄屏退化成卡片，表头没了，排序也跟着没了 ——
+ * 任务一多就只能从头翻。上游那个下载弹窗本来就是卡片列表，所以它一直有排序，
+ * 我们把它补在窄屏这一侧。再点一次同一项切正反序，和上游一致。
+ */
+const SORTS = [
+  {key: 'name', label: '名称', get: (x: TorrentsInfo) => x.name ?? ''},
+  {key: 'progress', label: '进度', get: (x: TorrentsInfo) => x.progress ?? 0},
+  {key: 'size', label: '大小', get: (x: TorrentsInfo) => x.size ?? 0},
+  {key: 'state', label: '状态', get: (x: TorrentsInfo) => x.state ?? ''},
+] as const
+
+const sortKey = ref<string>('name')
+const sortAsc = ref(true)
+
+function changeSort(k: string) {
+  if (sortKey.value === k) sortAsc.value = !sortAsc.value
+  else {
+    sortKey.value = k
+    sortAsc.value = true
+  }
+}
+
+const sorted = computed(() => {
+  const s = SORTS.find(x => x.key === sortKey.value)
+  if (!s) return t.items
+  const dir = sortAsc.value ? 1 : -1
+  return [...t.items].sort((a, b) => {
+    const x = s.get(a), y = s.get(b)
+    return dir * (typeof x === 'string' ? x.localeCompare(y as string) : (x as number) - (y as number))
+  })
+})
 
 const headers = [
   {title: '名称', key: 'name'},
@@ -80,6 +115,10 @@ async function confirmRemove() {
           <div class="py-1 name-cell">
             <div class="text-body-2 ellipsis" :title="item.name">{{ item.name }}</div>
             <div class="text-caption text-medium-emphasis ellipsis" :title="item.savePath">{{ item.savePath }}</div>
+            <!-- 下载器里的标签：ani-rss 会给自己管的种子打标，混着手动加的种子时靠这个分辨 -->
+            <div v-if="item.tagList?.length" class="d-flex flex-wrap ga-1 mt-1">
+              <v-chip v-for="tag in item.tagList" :key="tag" size="x-small" variant="tonal">{{ tag }}</v-chip>
+            </div>
           </div>
         </template>
         <template #item.size="{item}">{{ item.formatSize || formatSize(item.size) }}</template>
@@ -101,7 +140,17 @@ async function confirmRemove() {
     </v-card>
 
     <div v-else>
-      <v-card v-for="(item, i) in t.items" :key="item.hash" :style="{'--i': i}" class="mb-2 ani-in"
+      <div class="d-flex align-center flex-wrap ga-2 mb-3">
+        <span class="text-caption text-medium-emphasis">排序</span>
+        <v-chip v-for="o in SORTS" :key="o.key" :append-icon="sortKey === o.key
+                  ? (sortAsc ? 'mdi-arrow-up' : 'mdi-arrow-down') : undefined"
+                :color="sortKey === o.key ? 'primary' : undefined" size="small" variant="tonal"
+                @click="changeSort(o.key)">
+          {{ o.label }}
+        </v-chip>
+      </div>
+
+      <v-card v-for="(item, i) in sorted" :key="item.hash" :style="{'--i': i}" class="mb-2 ani-in"
               variant="tonal">
         <v-card-text class="pb-2">
           <div class="text-body-2 mb-1 ellipsis" :title="item.name">{{ item.name }}</div>
@@ -113,6 +162,7 @@ async function confirmRemove() {
           <div class="d-flex align-center ga-2">
             <v-chip :color="stateColor(item.state)" size="x-small" variant="tonal">{{ item.state }}</v-chip>
             <span class="text-caption text-medium-emphasis">{{ item.formatSize || formatSize(item.size) }}</span>
+            <v-chip v-for="tag in item.tagList || []" :key="tag" size="x-small" variant="tonal">{{ tag }}</v-chip>
             <v-spacer/>
             <v-btn color="error" icon="mdi-delete-outline" size="small" variant="text" @click="removing = item"/>
           </div>

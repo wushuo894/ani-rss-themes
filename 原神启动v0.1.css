@@ -1,0 +1,163 @@
+@media (orientation: landscape) {
+  body:has(#login-page)::after{content: "";position:fixed;inset:0;z-index: -40;}
+  body:has(#login-page)::after{background: url(https://pic1.imgdb.cn/item/67ae3481d0e0a243d4fef9b4.jpg) center/cover no-repeat;}
+
+  body:has(#login-page){overflow: hidden;}
+
+  #login-page img,
+  #login-page .el-button.is-text.is-has-bg,
+  #login-page .el-input__wrapper,
+  div[style="margin-bottom: 16px;"]{
+    user-select: none;
+  }
+
+  body:has(#login-page)::before{
+    content:"";
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    width:670px;
+    height:636px;
+    background-color:#ffffff;
+    border-radius:16px;
+    z-index:-20;
+  }
+
+  #login-page img {
+    position:relative;
+    content:url(https://pic1.imgdb.cn/item/67ae11f8d0e0a243d4fef5e5.png);
+    width:170px;
+    height:100%;
+    top:-97px;
+  }
+  #login-page .el-form.el-form--default.el-form--label-right::after {
+    content: url(https://pic1.imgdb.cn/item/67ae36c0d0e0a243d4fef9be.jpg);
+    position: absolute;
+    top: 291px;
+    left: -48px;
+    width: 100%;
+    height: 100%;
+  }
+
+  #login-page .el-form.el-form--default.el-form--label-right {
+    position: relative;
+  }
+  #login-page .el-form.el-form--default.el-form--label-right::before {
+    content: "×";
+    font-size: 40px;
+    color:#C0C3C6;
+    position:absolute;
+    left:385px;
+    top:-256px;
+    z-index:10;
+  }
+
+  #login-page h2{
+    position:relative;
+    font-size: 0;
+    left:232px;
+    top:105px;
+    color:#DEBC60;
+    font-weight:500;
+  }
+  #login-page h2::before {
+    content: "忘记密码";
+    font-size: 20px;
+    letter-spacing:1px;
+  }
+
+  #login-page .el-input{
+    --el-input-focus-border-color:#DEBC60;
+    --el-input-text-color:#222222;
+    --el-input-hover-border-color:#DEBC60;
+  }
+  #login-page .el-input__wrapper{
+    border-radius:10px;
+  }
+  #login-page .el-form-item__content{
+    transform:scale(1.50);
+    left:-125px;
+    top:-109.5px;
+  }
+  #login-page .el-input.el-input--suffix{
+    top:14.5px;
+  }
+  #login-page .el-input__inner{
+    width:345px;
+    height:42px;
+  }
+  #login-page .el-input__suffix{
+    position:fixed;
+    right:10px;
+  }
+
+
+  #login-page .el-checkbox{
+    position:relative;
+    left:-166px;
+    top:-15px;
+    transform:scale(1.20);
+    font-weight:600;
+    --el-checkbox-text-color:#98999E;
+    --el-checkbox-checked-text-color:#98999E;
+    --el-checkbox-checked-bg-color:#DEBC60;
+    --el-checkbox-checked-input-border-color:#DEBC60;
+  }
+  #login-page .el-checkbox__inner{
+    top:0px;
+    border-radius:80px;
+  }
+
+
+
+  #login-page .el-button.is-text.is-has-bg{
+    position:relative;
+    min-width:548px;
+    height:66px;
+    left:-252px;
+    top:68px;
+    border-radius:12px;
+    color:#DEBC60;
+  }
+  #login-page .el-button.is-text:not(.is-disabled).is-has-bg {
+      background-color: #393b40;
+  }
+  #login-page .el-button.is-text:not(.is-disabled).is-has-bg:hover {
+      background-color: #4D4F53;
+  }
+  #login-page .el-button.is-text:not(.is-disabled).is-has-bg:active {
+    background-color: #393b40;
+  }
+
+
+  #login-page .el-button .el-icon {
+    display: none;
+  }
+  #login-page .el-button span {
+    font-size: 0;
+  }
+  #login-page .el-button::before {
+    content: "点击登录";
+    position:relative;
+    font-size: 22px;
+    font-weight:600;
+    letter-spacing:4px;
+    z-index:10;
+  }
+
+  #link[style="margin-bottom: 16px;"]{
+    opacity: 0;
+  }
+
+
+  /* 干掉谷歌那破密码工具白背景（别问，问就是网上找的） */
+  input:-webkit-autofill , textarea:-webkit-autofill, select:-webkit-autofill{
+  -webkit-text-fill-color: #222222;
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+  background-color:transparent;
+  background-image: none;
+  transition: background-color 50000s ease-in-out 0s;
+  }
+  input {background-color:transparent}
+}

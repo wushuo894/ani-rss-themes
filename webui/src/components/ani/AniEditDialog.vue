@@ -3,6 +3,7 @@ import {computed, ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import type {Ani} from '@shared/types'
 import {useAniStore} from '@/stores/ani'
+import {useConfigStore} from '@/stores/config'
 import * as api from '@shared/api'
 import type {TmdbGroup} from '@shared/api'
 import {useUiStore} from '@/stores/ui'
@@ -19,6 +20,9 @@ const emit = defineEmits<{close: []; submit: [Ani]}>()
 
 const ani = useAniStore()
 const ui = useUiStore()
+const config = useConfigStore()
+/* 备用 RSS 那一栏要知道全局开关开没开；已经加载过就直接返回，不会重复请求 */
+void config.load()
 const {mobile} = useDisplay()
 
 /** 深拷贝一份改，取消时原对象不受影响 */
@@ -68,9 +72,12 @@ const SOURCES: {id: SourceId; name: string; icon: string}[] = [
 
 const browsing = ref(false)
 const browseSource = ref<SourceId>('mikan')
+/** 挑回来的 RSS 是换主源，还是追加成一条备用源 */
+const browseTarget = ref<'main' | 'standby'>('main')
 
-function browse(id: SourceId) {
+function browse(id: SourceId, target: 'main' | 'standby' = 'main') {
   browseSource.value = id
+  browseTarget.value = target
   browsing.value = true
 }
 
@@ -82,13 +89,42 @@ function browse(id: SourceId) {
  * 而这些规则是「或」的关系，等于把过滤条件一点点放宽到形同虚设。
  */
 function onPicked(v: {url: string; bgmUrl?: string; subgroup?: string; match: string[]}) {
-  form.value.url = v.url
-  if (v.bgmUrl) form.value.bgmUrl = v.bgmUrl
   const sub = v.subgroup ?? ''
+  if (v.bgmUrl) form.value.bgmUrl = v.bgmUrl
+  mergeMatch(sub, v.match)
+
+  if (browseTarget.value === 'standby') {
+    form.value.standbyRssList = [...(form.value.standbyRssList ?? []), newStandby(v.url, sub)]
+    ui.success(`已加一条备用：${sub || '所选字幕组'}`)
+    return
+  }
+
+  form.value.url = v.url
   form.value.subgroup = sub
-  const kept = (form.value.match ?? []).filter(m => !m.startsWith(`{{${sub}}}:`))
-  form.value.match = [...kept, ...v.match]
   ui.success(`已换成 ${sub || '所选字幕组'} 的 RSS`)
+}
+
+/** 换/加一个字幕组时，先把这个组的旧规则清掉再追加，别越积越松 */
+function mergeMatch(sub: string, match: string[]) {
+  const kept = (form.value.match ?? []).filter(m => !m.startsWith(`{{${sub}}}:`))
+  form.value.match = [...kept, ...match]
+}
+
+/* ── 备用 RSS ── */
+
+/*
+ * 偏移默认跟主源走，不是 0 —— 上游 plus() 就是 `offset: props.ani.offset`。
+ * 备用源播的是同一部番，主源要偏移几集，备用源多半也要；默认 0 等于每加一条都得手改。
+ */
+const newStandby = (url = '', label = '') => ({label, url, offset: form.value.offset ?? 0})
+
+/** 备用源是按顺序往下试的，所以顺序本身是配置项，得能调 */
+function moveStandby(i: number, d: -1 | 1) {
+  const list = form.value.standbyRssList
+  if (!list) return
+  const j = i + d
+  if (j < 0 || j >= list.length) return
+  ;[list[i], list[j]] = [list[j], list[i]]
 }
 
 /* ── TMDB ── */
@@ -334,19 +370,42 @@ async function fillDownloadPath() {
 
               <v-col cols="12">
                 <div class="text-caption text-medium-emphasis mb-2">备用 RSS</div>
-                <div v-if="!form.standbyRssList?.length" class="text-caption text-disabled mb-2">未配置</div>
-                <div v-for="(s, i) in form.standbyRssList || []" :key="i" class="d-flex ga-3 mb-3">
-                  <v-text-field v-model="s.label" density="compact" hide-details label="名称" style="max-width: 180px"/>
+
+                <!-- 主源抽了或字幕组咕了才会走到备用源，全局开关关着的话这一栏配了也不生效 -->
+                <v-alert v-if="config.loaded && !config.config.standbyRss" class="mb-3" density="compact"
+                         icon="mdi-alert-outline" type="warning" variant="tonal">
+                  <span class="text-caption">备用 RSS 总开关没开，这里配了也不会用上 —— 去「设置 → RSS」打开。</span>
+                </v-alert>
+
+                <!-- 和主 RSS 一样的三颗：挑一个组直接追加成备用源，顺带把它的匹配规则也带过来。
+                     上游备用订阅弹窗里就有这三颗，缺了就只能自己去站上找地址粘回来。 -->
+                <div class="d-flex flex-wrap align-center ga-2 mb-3">
+                  <v-btn prepend-icon="mdi-plus" size="small" variant="tonal"
+                         @click="form.standbyRssList = [...(form.standbyRssList || []), newStandby()]">
+                    手填一条
+                  </v-btn>
+                  <span class="text-caption text-medium-emphasis mx-1">或从番剧站挑：</span>
+                  <v-btn v-for="src in SOURCES" :key="src.id" :prepend-icon="src.icon"
+                         size="small" variant="tonal" @click="browse(src.id, 'standby')">
+                    {{ src.name }}
+                  </v-btn>
+                </div>
+
+                <div v-if="!form.standbyRssList?.length" class="text-caption text-disabled">未配置</div>
+                <div v-for="(s, i) in form.standbyRssList || []" :key="i" class="d-flex align-center ga-3 mb-3">
+                  <v-text-field v-model="s.label" density="compact" hide-details placeholder="未知字幕组"
+                                label="名称" style="max-width: 180px"/>
                   <v-text-field v-model="s.url" density="compact" hide-details label="地址"/>
                   <v-text-field v-model.number="s.offset" density="compact" hide-details label="偏移"
                                 style="max-width: 90px" type="number"/>
-                  <v-btn color="error" icon="mdi-close" size="small" variant="text"
-                         @click="form.standbyRssList!.splice(i, 1)"/>
+                  <!-- 顺序 = 优先级，上游给了上下移；没有的话想调顺序只能删了重加 -->
+                  <v-btn :disabled="i === 0" density="comfortable" icon="mdi-arrow-up" size="small"
+                         title="上移" variant="text" @click="moveStandby(i, -1)"/>
+                  <v-btn :disabled="i === (form.standbyRssList?.length ?? 0) - 1" density="comfortable"
+                         icon="mdi-arrow-down" size="small" title="下移" variant="text" @click="moveStandby(i, 1)"/>
+                  <v-btn color="error" density="comfortable" icon="mdi-close" size="small" title="删除"
+                         variant="text" @click="form.standbyRssList!.splice(i, 1)"/>
                 </div>
-                <v-btn prepend-icon="mdi-plus" size="small" variant="tonal"
-                       @click="form.standbyRssList = [...(form.standbyRssList || []), {label: '', url: '', offset: 0}]">
-                  添加备用 RSS
-                </v-btn>
               </v-col>
 
               <v-col cols="6" md="3">

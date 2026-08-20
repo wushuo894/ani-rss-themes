@@ -60,7 +60,10 @@ function makeAni(b: typeof BANGUMI[number], i: number): Ani {
         // 摸鱼检测的开关，默认开 —— 它不是「已停更」，别拿它当状态用
         procrastinating: true,
         lastDownloadTime: Date.now() - idleDays * 864e5 - rnd(id + 'f', 20) * 3600_000,
-        standbyRssList: i % 5 === 0 ? [{label: '备用源', url: 'https://example.invalid/rss', offset: 0}] : [],
+        standbyRssList: i % 5 === 0
+            ? [{label: '桜都字幕组', url: 'https://example.invalid/rss?sub=sakurato', offset: 0},
+                {label: 'ANi', url: 'https://example.invalid/rss?sub=ani', offset: 0}]
+            : [],
     } as unknown as Ani
 }
 
@@ -121,6 +124,10 @@ export const TORRENTS: TorrentsInfo[] = ANI_LIST.slice(0, 5).map((a, i) => ({
     progress: [1, 0.62, 0.31, 1, 0.08][i],
     size: 1_200_000_000 + i * 300_000_000,
     state: (i === 0 || i === 3 ? 'uploading' : 'downloading') as TorrentsInfo['state'],
+    /* 真实下载器里 ani-rss 会给自己管的种子打标，混着手动加的种子时靠这个分辨。
+       演示站不给标签的话，那一栏永远是空的，看不出它长什么样 */
+    tagList: i === 4 ? [] : ['ani-rss', a.subgroup ?? ''].filter(Boolean),
+    savePath: `/downloads/${a.title}/Season ${a.season ?? 1}`,
 } as unknown as TorrentsInfo))
 
 /* 日志里的番剧名跟着真实数据走 —— 写死的名字和列表里对不上，一眼就露馅 */

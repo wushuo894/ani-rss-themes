@@ -8,7 +8,10 @@ export const useLogsStore = defineStore('logs', () => {
     const items = ref<Log[]>([])
     const loading = ref(false)
     const keyword = ref('')
-    const level = ref<string>('')
+    /* 级别和类名都是多选：上游级别是 checkbox 组、类名是 multiple select。
+       单选筛不出「只看 WARN 和 ERROR」这种最常用的组合。空数组 = 不筛 */
+    const level = ref<string[]>([])
+    const loggerNames = ref<string[]>([])
     let timer: number | null = null
 
     async function reload() {
@@ -41,15 +44,25 @@ export const useLogsStore = defineStore('logs', () => {
         await reload()
     }
 
-    const levels = computed(() => [...new Set(items.value.map(l => l.level).filter(Boolean))] as string[])
+    const uniq = (pick: (l: Log) => string | undefined) =>
+        [...new Set(items.value.map(pick).filter(Boolean))].sort() as string[]
+
+    const levels = computed(() => uniq(l => l.level))
+    /** 类名候选：日志里出现过的才列出来，列全部包名没意义 */
+    const allLoggers = computed(() => uniq(l => l.loggerName))
 
     const filtered = computed(() => {
         const k = keyword.value.trim().toLowerCase()
+        const lv = level.value, ln = loggerNames.value
         return items.value.filter(l =>
-            (!level.value || l.level === level.value) &&
+            (!lv.length || (l.level ? lv.includes(l.level) : false)) &&
+            (!ln.length || (l.loggerName ? ln.includes(l.loggerName) : false)) &&
             (!k || (l.message || '').toLowerCase().includes(k)),
         )
     })
 
-    return {items, loading, keyword, level, levels, filtered, reload, startPolling, stopPolling, clear}
+    return {
+        items, loading, keyword, level, levels, loggerNames, allLoggers, filtered,
+        reload, startPolling, stopPolling, clear,
+    }
 })
