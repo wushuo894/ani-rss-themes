@@ -1,49 +1,29 @@
 import type {About, Ani, Config, Log, TorrentsInfo} from '@shared/types'
+import BANGUMI from './bangumi.json'
 
 /**
- * 演示用假数据。只给 GitHub Pages 的预览构建用（VITE_DEMO=1），
+ * 演示数据。只给 GitHub Pages 的预览构建用（VITE_DEMO=1），
  * 正式产物里这个文件不会被打包 —— main.ts 里的引用在 __DEMO__ 为 false 时被摇掉。
  *
- * 番剧名用的是公有领域或纯虚构的名字，不蹭具体作品。
+ * 番剧本身是真的：bangumi.json 是 tools/fetch-demo-data.mjs 从 Bangumi 的公开日历
+ * 抓下来的当季番，真标题、真封面、真评分、真的按星期分布。
+ * 原来这里是一批编出来的名字加现画的渐变海报 —— 一眼假，而且试不出真用起来是什么样：
+ * 真实番剧名有长有短、有中日混排、有一串括号后缀，卡片会被撑成什么样，编的名字试不出来。
+ *
+ * 订阅状态那部分仍然是编的（字幕组、进度、上次下载时间、RSS 地址）——
+ * 那些属于每个人自己的 ani-rss，公开日历里没有，也不该去碰用户的实例。
+ * 编的部分一律由番剧 id 派生，刷新页面不会跳。
  */
 
 const WEEK = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
 const SUBGROUPS = ['喵萌奶茶屋', '桜都字幕组', 'LoliHouse', 'Lilith-Raws', 'ANi', '北宇治字幕组']
 
-const TITLES = [
-    '春日的十七个夏天', '机械之心与铁皮猫', '深海邮差', '拾荒者与月亮', '雨季观测记录',
-    '第七号温室', '午夜快递员', '山与海的通信', '灯塔守夜人', '纸飞机计划',
-    '橘子色的黄昏', '暴风雨后的图书馆', '空转的旋转木马', '第二次告别',
-    '云上的邮局', '冬眠的收音机', '会走路的房子', '两个人的天文台', '铁轨尽头的花店',
-    '第九次搬家', '不打烊的修理铺', '荒原上的信号塔',
-]
-
-/* 每天几部：真实的追番表本来就不均匀，平均分到七天的话海报墙看着像个日历 */
-const PER_DAY = [4, 2, 3, 5, 3, 3, 2]
-
-let seq = 0
-const nextId = () => `demo-${++seq}`
-
-/** 用 id 派生一个稳定的伪随机数，免得每次刷新数据都在跳 */
+/** 用种子派生一个稳定的伪随机数，免得每次刷新数据都在跳 */
 function rnd(seed: string, max: number): number {
     let h = 0
     for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) & 0xffff
     return h % max
-}
-
-/** 现画一张海报当封面：不联网、不打包图片，颜色由序号派生所以每张都不一样 */
-function poster(i: number): string {
-    const hue = (i * 47) % 360
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="428">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-<stop offset="0" stop-color="hsl(${hue} 70% 62%)"/>
-<stop offset="1" stop-color="hsl(${(hue + 60) % 360} 65% 42%)"/></linearGradient></defs>
-<rect width="300" height="428" fill="url(#g)"/>
-<circle cx="150" cy="168" r="54" fill="rgba(255,255,255,.28)"/>
-<rect x="60" y="300" width="180" height="10" rx="5" fill="rgba(255,255,255,.42)"/>
-<rect x="90" y="326" width="120" height="10" rx="5" fill="rgba(255,255,255,.28)"/></svg>`
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
 /* 每 8 部里挑一部当「很久没更新」的：总览上的「疑似停更」是真会出现的状态，
@@ -51,34 +31,38 @@ function poster(i: number): string {
    停更判定要求「没下完」，所以这几部的进度也一并压到总集数以下。 */
 const STALE = (i: number) => i % 8 === 3
 
-function makeAni(title: string, i: number): Ani {
-    const id = nextId()
-    const total = 12 + rnd(id + 'a', 3)
+function makeAni(b: typeof BANGUMI[number], i: number): Ani {
+    const id = String(b.id)
+    // 公开日历不给总集数（全是 0），按常见的季番长度派生一个
+    const total = b.eps || [12, 13, 24][rnd(id + 'a', 3)]
     const cur = STALE(i) ? Math.max(1, total - 4) : rnd(id + 'b', total + 1)
     const idleDays = STALE(i) ? 18 + rnd(id + 'e', 26) : rnd(id + 'e', 3)
     return {
         id,
-        title,
-        jpTitle: '',
-        subgroup: SUBGROUPS[i % SUBGROUPS.length],
-        season: 1 + rnd(id + 'c', 2),
+        title: b.title,
+        jpTitle: b.jp,
+        subgroup: SUBGROUPS[rnd(id + 'g', SUBGROUPS.length)],
+        season: 1,
         currentEpisodeNumber: cur,
         totalEpisodeNumber: total,
         enable: i % 7 !== 3,
-        ova: i % 9 === 5,
-        score: Number((6.5 + rnd(id + 'd', 30) / 10).toFixed(1)),
-        cover: poster(i),
+        ova: i % 17 === 5,
+        // 评分是真的；日历里偶尔为 0（新番还没人打分），那就不显示
+        score: b.score || 0,
+        // 封面是 bgm 的公开图床，直接给完整地址：toApiFile 会原样返回带协议的地址
+        cover: b.cover,
+        image: b.cover,
         pinyin: '', pinyinInitials: '',
-        themoviedbName: title,
-        bgmUrl: '',
+        themoviedbName: b.title,
+        bgmUrl: `https://bgm.tv/subject/${b.id}`,
         // 摸鱼检测的开关，默认开 —— 它不是「已停更」，别拿它当状态用
         procrastinating: true,
         lastDownloadTime: Date.now() - idleDays * 864e5 - rnd(id + 'f', 20) * 3600_000,
-        standbyRssList: i % 5 === 0 ? ['https://example.invalid/rss'] : [],
+        standbyRssList: i % 5 === 0 ? [{label: '备用源', url: 'https://example.invalid/rss', offset: 0}] : [],
     } as unknown as Ani
 }
 
-export const ANI_LIST = TITLES.map(makeAni)
+export const ANI_LIST: Ani[] = BANGUMI.map(makeAni)
 
 /**
  * previewAni 的返回。
@@ -111,14 +95,8 @@ export function previewAni(ani: {title?: string; subgroup?: string; currentEpiso
     }
 }
 
-/** 第 i 部排在周几（0=周一）。按 PER_DAY 依次铺满 */
-const dayOf = (() => {
-    const map: number[] = []
-    PER_DAY.forEach((n, d) => {
-        for (let k = 0; k < n; k++) map.push(d)
-    })
-    return (i: number) => map[i % map.length]
-})()
+/** 第 i 部排在周几（0=周一）。用日历里真实的播出日，不再自己摊平 —— 真实分布本来就不均匀 */
+const dayOf = (i: number) => (BANGUMI[i]?.weekday ?? 1) - 1
 
 /** listAni 的返回：按星期分组，今天排在最前 —— 与后端行为一致 */
 export function listAni() {
@@ -141,11 +119,18 @@ export const TORRENTS: TorrentsInfo[] = ANI_LIST.slice(0, 5).map((a, i) => ({
     state: (i === 0 || i === 3 ? 'uploading' : 'downloading') as TorrentsInfo['state'],
 } as unknown as TorrentsInfo))
 
+/* 日志里的番剧名跟着真实数据走 —— 写死的名字和列表里对不上，一眼就露馅 */
 export const LOGS: Log[] = [
     {level: 'INFO', loggerName: 'ani.rss.Demo', threadName: 'main', message: '演示模式：这些日志是内置的假数据'},
     {level: 'INFO', loggerName: 'ani.rss.task.RssTask', threadName: 'rss-1', message: '订阅刷新完成，新增 2 条待下载'},
-    {level: 'WARN', loggerName: 'ani.rss.task.RssTask', threadName: 'rss-1', message: '「深海邮差」本周没有匹配到新剧集'},
-    {level: 'INFO', loggerName: 'ani.rss.download.Qbittorrent', threadName: 'dl-2', message: '下载完成：拾荒者与月亮 - 07'},
+    {
+        level: 'WARN', loggerName: 'ani.rss.task.RssTask', threadName: 'rss-1',
+        message: `「${ANI_LIST[2]?.title ?? '演示番剧'}」本周没有匹配到新剧集`,
+    },
+    {
+        level: 'INFO', loggerName: 'ani.rss.download.Qbittorrent', threadName: 'dl-2',
+        message: `下载完成：${ANI_LIST[3]?.title ?? '演示番剧'} - 07`,
+    },
     {level: 'ERROR', loggerName: 'ani.rss.Demo', threadName: 'main', message: '演示模式下所有写操作都不会真的执行'},
 ]
 
@@ -173,8 +158,9 @@ export const ABOUT: About = {
 
 /* ────────── 番剧浏览器（Mikan / AniBT / AnimeGarden）的假数据 ────────── */
 
-/** 三家的返回结构不一样，但演示要的东西一样：按星期分的番剧 + 每部番的字幕组 */
-const browseItems = (i: number) => TITLES.slice(i * 3, i * 3 + 3 + (i % 2))
+/* 三家的返回结构不一样，但演示要的东西一样：按星期分的番剧 + 每部番的字幕组。
+   番剧浏览器里也用真数据 —— 那一屏就是「这一季有什么」，摆一堆编的名字等于没做 */
+const byWeekday = (w: number) => BANGUMI.filter(b => b.weekday === w + 1)
 
 export function mikanList() {
     const y = new Date().getFullYear()
@@ -186,17 +172,18 @@ export function mikanList() {
         ],
         weeks: WEEK.map((w, i) => ({
             weekLabel: w,
-            items: browseItems(i).map((t, k) => ({
-                bgmId: `${100000 + i * 10 + k}`,
-                cover: poster(i * 5 + k),
-                url: `https://mikanani.me/Home/Bangumi/${i}${k}`,
-                exists: (i + k) % 5 === 0,
-                score: Number((6.8 + rnd(t, 25) / 10).toFixed(1)),
-                title: t,
-                bgmUrl: `https://bgm.tv/subject/${100000 + i * 10 + k}`,
+            items: byWeekday(i).map(b => ({
+                bgmId: String(b.id),
+                cover: b.cover,
+                url: `https://mikanani.me/Home/Bangumi/${b.id}`,
+                // 已经在订阅列表里的标成「已订阅」，和真实行为一致
+                exists: b.id % 5 === 0,
+                score: b.score,
+                title: b.title,
+                bgmUrl: `https://bgm.tv/subject/${b.id}`,
             })),
         })),
-        totalItem: TITLES.length,
+        totalItem: BANGUMI.length,
     }
 }
 
@@ -209,14 +196,14 @@ export function aniBTList() {
         byWeekday: WEEK.map((w, i) => ({
             weekday: i + 1,
             weekdayLabel: w,
-            animes: browseItems(i).map((t, k) => ({
-                animeId: `a${i}${k}`,
-                bgmId: `${200000 + i * 10 + k}`,
-                cover: poster(i * 7 + k),
-                rating: Number((6.5 + rnd(t, 30) / 10).toFixed(1)),
-                title: {chinese: t, primary: t, romaji: '', english: ''},
-                exists: (i + k) % 6 === 0,
-                rssReleaseCount: 3 + rnd(t, 20),
+            animes: byWeekday(i).map(b => ({
+                animeId: String(b.id),
+                bgmId: String(b.id),
+                cover: b.cover,
+                rating: b.score,
+                title: {chinese: b.title, primary: b.jp || b.title, romaji: '', english: ''},
+                exists: b.id % 6 === 0,
+                rssReleaseCount: 3 + rnd(String(b.id), 20),
             })),
         })),
     }
@@ -225,12 +212,12 @@ export function aniBTList() {
 export function animeGardenList() {
     return WEEK.map((w, i) => ({
         weekLabel: w,
-        subjects: browseItems(i).map((t, k) => ({
-            id: `${300000 + i * 10 + k}`,
-            name: t,
-            cover: poster(i * 11 + k),
-            score: Number((6.2 + rnd(t, 35) / 10).toFixed(1)),
-            exists: (i + k) % 7 === 0,
+        subjects: byWeekday(i).map(b => ({
+            id: String(b.id),
+            name: b.title,
+            cover: b.cover,
+            score: b.score,
+            exists: b.id % 7 === 0,
             weekLabel: w,
         })),
     }))
@@ -257,7 +244,7 @@ export function sourceGroups(key: string) {
         /* 字幕组下面那张「最近发了什么」的列表要有东西，
            不然演示站上那个展开按钮根本不出现 */
         items: Array.from({length: 4}, (_, k) => ({
-            title: `[${name}] ${TITLES[i % TITLES.length]} - ${String(12 - k).padStart(2, '0')} [1080p][简繁内封].mkv`,
+            title: `[${name}] ${BANGUMI[(i * 7 + k) % BANGUMI.length].title} - ${String(12 - k).padStart(2, '0')} [1080p][简繁内封].mkv`,
             magnet: `magnet:?xt=urn:btih:${'0'.repeat(32)}${i}${k}`,
             torrent: '',
             size: 1_100_000_000 + k * 40_000_000,

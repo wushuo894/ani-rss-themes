@@ -74,6 +74,14 @@ const SOURCES = {
 
 const meta = computed(() => SOURCES[props.source])
 
+/*
+ * 封面走 api/proxyImage：番剧源给的是站外地址，直连会碰上防盗链和 CORS，
+ * 后端那一跳还能顺带走代理。
+ * 演示构建例外 —— 演示是靠替换 fetch 伪造后端的，而 <img src> 不走 fetch，
+ * 拦不住，只能让地址直接用。
+ */
+const coverOf = (url?: string) => (!url ? '' : __DEMO__ ? url : proxyImage(url))
+
 /* ── 状态 ── */
 const loading = ref(false)
 const weeks = ref<Week[]>([])
@@ -349,7 +357,7 @@ function search() {
           <div v-for="it in shownItems" :key="it.key" :class="{open: openKey === it.key}" class="tile">
             <button class="tile-head" type="button" @click="toggleItem(it)">
               <div class="cover">
-                <v-img v-if="it.cover" :src="proxyImage(it.cover)" cover>
+                <v-img v-if="it.cover" :src="coverOf(it.cover)" cover>
                   <template #placeholder>
                     <div class="cover-ph">
                       <v-icon icon="mdi-image-outline" size="20"/>

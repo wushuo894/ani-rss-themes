@@ -85,9 +85,11 @@ export function proxyImage(imgUrl: string): string {
 
 /** 文件下载地址，同样用查询参数带令牌 */
 export function toApiFile(filename: string): string {
-    // 已经是自带内容的地址就原样返回：<img src> 不走 fetch，演示站没法在传输层伪造图片，
-    // 只能让假数据直接给出内联的 data: URI。这个判断对真实环境是死代码 —— 后端给的是路径。
-    if (/^(data:|blob:)/.test(filename)) return filename
+    /* 已经是一个完整地址就原样返回，不再套一层 api/file。
+       后端给的 cover 永远是服务器上的本地路径（Windows 下还带盘符），不可能长成 URL，
+       所以这个判断在真实环境里是死代码。演示站需要它：<img src> 不走 fetch，
+       拦不住，只能让数据直接给出能用的地址 —— 内联的 data: URI 或 bgm 图床的 https 地址。 */
+    if (/^(data:|blob:|https?:)/i.test(filename)) return filename
     return toApiUrl('api/file', {filename: base64Encode(filename), s: getToken()})
 }
 

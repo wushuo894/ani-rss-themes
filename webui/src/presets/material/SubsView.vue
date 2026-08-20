@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import {computed} from 'vue'
 import {useDisplay} from 'vuetify'
 import {formatEpisodes, fromNow} from '@shared/format'
 import {useAniScreen} from '@/composables/useAniScreen'
@@ -15,6 +16,8 @@ import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
 const s = useAniScreen()
 const {mobile} = useDisplay()
 
+const isGrid = computed(() => s.prefs.viewMode === 'grid')
+
 const headers = [
   {title: '标题', key: 'title'},
   {title: '字幕组', key: 'subgroup'},
@@ -27,13 +30,18 @@ const headers = [
 
 <template>
   <div class="pa-4 pb-16">
-    <div class="d-flex align-center flex-wrap ga-2 mb-4">
-      <!-- M3 的分段按钮是小圆角矩形，不是药丸；药丸是 FAB 和 chip 的形状 -->
-      <v-btn-toggle v-model="s.prefs.viewMode" density="comfortable" divided mandatory rounded="lg"
-                    variant="outlined">
-        <v-btn prepend-icon="mdi-view-grid-outline" value="grid">网格</v-btn>
-        <v-btn prepend-icon="mdi-view-list-outline" value="list">列表</v-btn>
-      </v-btn-toggle>
+    <div class="d-flex align-center flex-wrap ga-3 mb-4">
+      <!--
+        一颗按钮来回切，不用 v-btn-toggle 的分段按钮。
+        分段按钮里两段是贴着的（M3 规范就是共用一条边），两个都带文字时看着就是挤成一坨；
+        撑开间距又不再是分段按钮了。视图模式只有两种，本来也不需要「同时看见两个选项」——
+        按钮上写的是「点了会变成什么」。
+      -->
+      <v-btn :prepend-icon="isGrid ? 'mdi-view-list-outline' : 'mdi-view-grid-outline'"
+             density="comfortable" rounded="lg" variant="outlined"
+             @click="s.prefs.viewMode = isGrid ? 'list' : 'grid'">
+        {{ isGrid ? '切换到列表' : '切换到网格' }}
+      </v-btn>
 
       <v-spacer/>
 
