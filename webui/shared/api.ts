@@ -124,7 +124,23 @@ export const getCollectionSubgroup = (info: CollectionInfo) => http.post<string>
 /* ==================== TMDB ==================== */
 
 export const getThemoviedbName = (ani: Ani) => http.post<ThemoviedbVO>('api/getThemoviedbName', ani)
-export const getThemoviedbGroup = (ani: Ani) => http.post<unknown>('api/getThemoviedbGroup', ani)
+
+/**
+ * TMDB 的剧集组。
+ * 类型不在 types.ts 里 —— 那份是从 ani-rss 自己的实体生成的，
+ * 而 TmdbGroup 来自外部库 wushuo.tmdb.api，生成器扫不到，只能在这儿照着字段写一份。
+ */
+export interface TmdbGroup {
+    id?: string
+    name?: string
+    /** 分组方式：播出顺序 / DVD 顺序 / 剧集组…… */
+    typeName?: string
+    groupCount?: number
+    episodeCount?: number
+}
+
+/** 需要 ani.tmdb.id，没有先点「获取」拿到 TMDB 信息 */
+export const getThemoviedbGroup = (ani: Ani) => http.post<TmdbGroup[]>('api/getThemoviedbGroup', ani)
 
 /* ==================== 下载器 ==================== */
 

@@ -84,6 +84,15 @@ export function installDemo(): void {
             case 'api/aniBTGroup':
             case 'api/animeGardenGroup':
                 return ok(sourceGroups(url))
+            case 'api/getThemoviedbGroup':
+                // 剧集组挑错了整季集数会错位，演示里给三种典型分法看得出区别
+                return ok([
+                    {id: 'g1', name: 'Original Air Date', typeName: '播出顺序', groupCount: 1, episodeCount: 24},
+                    {id: 'g2', name: 'DVD Order', typeName: 'DVD 顺序', groupCount: 2, episodeCount: 24},
+                    {id: 'g3', name: 'Seasons (TMDB)', typeName: '剧集组', groupCount: 3, episodeCount: 36},
+                ])
+            case 'api/getThemoviedbName':
+                return ok({themoviedbName: '演示番剧 (2026)', tmdb: {id: '123456'}})
             case 'api/rssToAni':
                 // 浏览器挑完字幕组会走这一步，回一条订阅让确认框有东西可显示
                 return ok(listAni().weekList[0].items[0])

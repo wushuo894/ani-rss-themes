@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import type {Ani} from '@shared/types'
 import {useAniStore} from '@/stores/ani'
 import * as api from '@shared/api'
+import type {TmdbGroup} from '@shared/api'
 import {useUiStore} from '@/stores/ui'
 import StringListField from '@/components/common/StringListField.vue'
 
@@ -80,6 +81,52 @@ async function pickBgmTitle() {
   }
 }
 
+/*
+ * TMDB 剧集组。
+ *
+ * 原来这儿是个让人手打组 id 的输入框 —— 那串 id 只有 themoviedb.org 的页面地址里有，
+ * 谁会去翻。上游是弹一张列表让人挑，每条带「按什么分的、几组、几集」，
+ * 挑错组会导致整季集数对不上，这三个数就是用来分辨的。
+ *
+ * 前置条件是 ani.tmdb.id —— 接口第一行就 Assert.notBlank(tmdb.getId())，
+ * 所以没取过 TMDB 时先提示去点「获取」，别让人对着一个空列表猜。
+ */
+const groups = ref<TmdbGroup[]>([])
+const groupOpen = ref(false)
+
+const tmdbId = computed(() => {
+  const t = form.value.tmdb
+  return t && typeof t === 'object' ? String((t as {id?: string}).id ?? '') : ''
+})
+
+const tmdbGroupId = computed({
+  get: () => {
+    const t = form.value.tmdb
+    return t && typeof t === 'object' ? String((t as {tmdbGroupId?: string}).tmdbGroupId ?? '') : ''
+  },
+  set: (v: string) => {
+    form.value.tmdb = {...(form.value.tmdb as object || {}), tmdbGroupId: v}
+  },
+})
+
+async function openGroups() {
+  if (!tmdbId.value) return ui.warn('先点 TMDB 那一栏的「获取」，拿到条目之后才能列剧集组')
+  groupOpen.value = true
+  busy.value = 'group'
+  try {
+    groups.value = await api.getThemoviedbGroup(form.value)
+    if (!groups.value.length) ui.info('这个条目没有剧集组，按默认播出顺序算集数')
+  } finally {
+    busy.value = ''
+  }
+}
+
+function pickGroup(g: TmdbGroup) {
+  tmdbGroupId.value = g.id ?? ''
+  groupOpen.value = false
+  ui.success(`已选择剧集组：${g.name ?? g.id}`)
+}
+
 async function showDownloadPath() {
   busy.value = 'path'
   try {
@@ -133,11 +180,14 @@ async function showDownloadPath() {
                 </v-text-field>
               </v-col>
               <v-col cols="12" md="4">
-                <v-text-field
-                    :model-value="form.tmdb && typeof form.tmdb === 'object' ? (form.tmdb as any).tmdbGroupId : ''"
-                    label="剧集组"
-                    @update:model-value="v => { form.tmdb = {...(form.tmdb as object || {}), tmdbGroupId: v} }"
-                />
+                <v-text-field v-model="tmdbGroupId" label="剧集组" placeholder="默认播出顺序"
+                              persistent-hint hint="集数对不上时换一个">
+                  <template #append>
+                    <v-btn :loading="busy === 'group'" size="small" variant="tonal" @click="openGroups">
+                      选择
+                    </v-btn>
+                  </template>
+                </v-text-field>
               </v-col>
 
               <v-col cols="12">
@@ -309,4 +359,73 @@ async function showDownloadPath() {
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <!-- 剧集组列表：每条带「按什么分的 / 几组 / 几集」，挑错组整季集数就会错位 -->
+  <v-dialog v-model="groupOpen" max-width="480" scrollable>
+    <v-card>
+      <v-card-title class="pt-4">选择剧集组</v-card-title>
+      <v-card-subtitle class="pb-4">TMDB #{{ tmdbId }}</v-card-subtitle>
+      <v-divider/>
+      <v-card-text style="max-height: 60vh">
+        <div v-if="busy === 'group'" class="d-flex justify-center py-8">
+          <v-progress-circular indeterminate/>
+        </div>
+        <v-empty-state v-else-if="!groups.length" icon="mdi-format-list-numbered"
+                       text="这个条目只有默认的播出顺序" title="没有剧集组"/>
+        <div v-else class="d-flex flex-column ga-3">
+          <div v-for="g in groups" :key="g.id" :class="{picked: g.id === tmdbGroupId}" class="grp"
+               @click="pickGroup(g)">
+            <div class="d-flex align-center ga-2">
+              <a :href="`https://www.themoviedb.org/tv/${tmdbId}/episode_group/${g.id}`" class="grp-name"
+                 rel="noopener" target="_blank" @click.stop>{{ g.name }}</a>
+              <v-spacer/>
+              <v-chip v-if="g.id === tmdbGroupId" color="primary" size="x-small" variant="flat">已选择</v-chip>
+            </div>
+            <div class="d-flex flex-wrap ga-2 mt-2">
+              <v-chip color="success" size="x-small" variant="tonal">{{ g.typeName }}</v-chip>
+              <v-chip size="x-small" variant="tonal">{{ g.groupCount }} 组</v-chip>
+              <v-chip size="x-small" variant="tonal">{{ g.episodeCount }} 集</v-chip>
+            </div>
+          </div>
+        </div>
+      </v-card-text>
+      <v-divider/>
+      <v-card-actions class="pa-3">
+        <v-btn variant="text" @click="tmdbGroupId = ''; groupOpen = false">用默认顺序</v-btn>
+        <v-spacer/>
+        <v-btn variant="text" @click="groupOpen = false">取消</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
+
+<style scoped>
+.grp {
+    padding: 12px 14px;
+    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color .18s, background-color .18s;
+}
+
+.grp:hover {
+    border-color: rgba(var(--v-theme-primary), .5);
+    background: rgba(var(--v-theme-primary), .05);
+}
+
+.grp.picked {
+    border-color: rgb(var(--v-theme-primary));
+    background: rgba(var(--v-theme-primary), .08);
+}
+
+.grp-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgb(var(--v-theme-primary));
+    text-decoration: none;
+}
+
+.grp-name:hover {
+    text-decoration: underline;
+}
+</style>
