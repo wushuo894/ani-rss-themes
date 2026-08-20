@@ -36,11 +36,24 @@ export function getBaseUrl(): string {
     return `${protocol}//${host}${dir}`
 }
 
-/** 拼一个带查询参数的接口地址 */
+/**
+ * 拼一个带查询参数的接口地址。
+ *
+ * path 里可以自带查询串（api.ts 的 q() 就是这么拼的），必须先把它拆出来 ——
+ * `url.pathname += 'api/stop?status=0'` 会把问号转义成 %3F 塞进**路径**，
+ * 拼出 /api/stop%3Fstatus=0：路由匹配不上，参数也永远读不到。
+ * 而下一行 `url.search = ...` 又会把仅有的查询串清掉。
+ * 这两下叠在一起，18 个走 q() 的接口（删订阅、批量启停、批量刮削、改订阅、
+ * 搜番、删种、停止/重启……）的参数全都送不到后端。
+ */
 export function toApiUrl(path: string, params: Record<string, string> = {}): string {
+    const [pathname, query = ''] = path.split('?')
     const url = new URL(getBaseUrl())
-    url.pathname += path
-    url.search = new URLSearchParams(params).toString()
+    url.pathname += pathname
+    const search = new URLSearchParams(query)
+    // 显式传进来的覆盖 path 里自带的同名参数
+    for (const [k, v] of Object.entries(params)) search.set(k, v)
+    url.search = search.toString()
     return url.toString()
 }
 
@@ -98,8 +111,13 @@ export function setErrorHandler(fn: (msg: string) => void): void {
 }
 
 export class ApiError extends Error {
-    constructor(public code: number, message: string) {
+    readonly code: number
+
+    // 不用 `constructor(public code, ...)` 这种参数属性：Node 的 --experimental-strip-types
+    // 是纯剥类型、不做降级，遇到参数属性直接报错，这个模块就没法在 Node 里跑测试了
+    constructor(code: number, message: string) {
         super(message)
+        this.code = code
         this.name = 'ApiError'
     }
 }

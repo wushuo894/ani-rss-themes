@@ -53,9 +53,11 @@ jobs:
       - run: npm ci
         working-directory: webui
 
-      # 主题的 scope() 有括号配对和 @media 递归，写错不会报错只会生成坏 CSS
-      - name: 主题自检
-        run: npm run test:themes
+      # 两类「不会报错、只会悄悄坏掉」的东西：
+      #  - 主题的 scope() 有括号配对和 @media 递归，写错只会生成坏 CSS
+      #  - 接口 URL 拼接，问号被转义进路径的话按钮照点、请求照发，就是参数到不了后端
+      - name: 自检
+        run: npm test
         working-directory: webui
 
       # build:all 里已经串了 vue-tsc，类型错误会让构建直接失败

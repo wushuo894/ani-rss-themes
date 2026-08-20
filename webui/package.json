@@ -9,7 +9,9 @@
     "build:all": "node --experimental-strip-types tools/build-all.mjs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
-    "test:themes": "node --experimental-strip-types shared/themes/apply.test.ts"
+    "test:themes": "node --experimental-strip-types shared/themes/apply.test.ts",
+    "test:api": "node --experimental-strip-types shared/http.test.ts",
+    "test": "npm run test:themes && npm run test:api"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
