@@ -203,6 +203,12 @@
             .grid {
                 grid-template-columns: minmax(0, 1fr);
             }
+
+            /* 窄屏里 iframe 按手机宽度渲染，取景框也跟着立起来，
+               不然一屏 16:9 只能看见顶栏加一行 */
+            .shot, .card.wide .shot {
+                aspect-ratio: 4 / 5;
+            }
         }
 
         .card {
@@ -415,12 +421,16 @@
 
         .cmds {
             display: grid;
+            /* minmax(0,1fr) 而不是默认的 auto —— 默认那个按内容最宽处撑，
+               一行 curl 在手机上就能把整页顶出一条横向滚动条 */
+            grid-template-columns: minmax(0, 1fr);
             gap: 12px;
         }
 
         .cmd {
             display: flex;
             align-items: center;
+            min-width: 0;
             gap: 12px;
             padding: 12px 12px 12px 16px;
             border: 1px solid var(--line);
@@ -466,6 +476,18 @@
         .copy[data-done] {
             color: var(--accent);
             border-color: var(--accent);
+        }
+
+        @media (max-width: 560px) {
+            /* 手机上 84px 的标签占掉四分之一行宽，让它自己占一行 */
+            .cmd {
+                flex-wrap: wrap;
+            }
+
+            .cmd b {
+                flex: 1 0 100%;
+                width: auto;
+            }
         }
 
         .note {
@@ -672,13 +694,20 @@
        窄屏和「省流量」模式下干脆不建，留骨架图 —— 手机上没人为了看缩略图愿意下 5 MB。 */
     (function () {
         const boxes = [...document.querySelectorAll('.shot')]
-        const W = 1440   // iframe 内部按这个宽度渲染，再缩到卡片宽度
+        // iframe 内部按这个宽度渲染，再整体缩到卡片宽度。窄屏上给它手机的宽度 ——
+        // 硬塞 1440 再缩到 0.27 只剩一团糊，而这五款本来就是同一套响应式代码，
+        // 手机上正好让它把自己的手机版布局摆出来。
+        const narrow = matchMedia('(max-width: 720px)').matches
+        // 至少给它一个手机的宽度，同时不小于卡片本身 —— 取 max 是为了永远只缩不放，
+        // 放大出来的界面又糊又肿，比骨架图还难看
+        const wOf = box => narrow ? Math.max(430, box.clientWidth) : 1440
+        const H = narrow ? 820 : 900
 
-        // 骨架图始终留着垫在下面：iframe 起来之前、以及起不来的时候，卡片都不该是空的
-        const cheap = matchMedia('(max-width: 720px)').matches || navigator.connection?.saveData
-        if (cheap) return
+        // 「省流量」模式下不建 iframe，留骨架图垫着。
+        // 骨架图任何时候都垫在下面：iframe 起来之前、以及起不来的时候，卡片都不该是空的
+        if (navigator.connection?.saveData) return
 
-        const fit = (box, f) => f.style.transform = 'scale(' + box.clientWidth / W + ')'
+        const fit = (box, f) => f.style.transform = 'scale(' + box.clientWidth / wOf(box) + ')'
 
         const queue = []
         let busy = false
@@ -693,6 +722,8 @@
             f.tabIndex = -1
             f.setAttribute('aria-hidden', 'true')
             f.setAttribute('scrolling', 'no')
+            f.style.width = wOf(box) + 'px'
+            f.style.height = H + 'px'
             fit(box, f)
             new ResizeObserver(() => fit(box, f)).observe(box)
             // 应用挂载要一小会儿，早了会拍到空白；load 之后再等一拍才淡入
