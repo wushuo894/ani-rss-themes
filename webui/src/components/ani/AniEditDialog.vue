@@ -90,15 +90,18 @@ function browse(id: SourceId, target: 'main' | 'standby' = 'main') {
  */
 function onPicked(v: {url: string; bgmUrl?: string; subgroup?: string; match: string[]}) {
   const sub = v.subgroup ?? ''
-  if (v.bgmUrl) form.value.bgmUrl = v.bgmUrl
   mergeMatch(sub, v.match)
 
   if (browseTarget.value === 'standby') {
+    /* 这里不动 bgmUrl —— 上游备用订阅的回调只取 {subgroup, match, url}。
+       在番剧站上挑备用源时很容易点到相邻的另一部番，跟着把整条订阅的 bgmUrl
+       改掉，评分和刮削就全指到别的番去了，而且界面上没有任何提示。 */
     form.value.standbyRssList = [...(form.value.standbyRssList ?? []), newStandby(v.url, sub)]
     ui.success(`已加一条备用：${sub || '所选字幕组'}`)
     return
   }
 
+  if (v.bgmUrl) form.value.bgmUrl = v.bgmUrl
   form.value.url = v.url
   form.value.subgroup = sub
   ui.success(`已换成 ${sub || '所选字幕组'} 的 RSS`)

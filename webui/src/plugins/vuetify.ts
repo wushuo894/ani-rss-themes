@@ -2,6 +2,7 @@ import 'vuetify/styles'
 import {h} from 'vue'
 import {createVuetify, type IconProps, type IconSet, type ThemeDefinition} from 'vuetify'
 import {aliases} from 'vuetify/iconsets/mdi'
+import {zhHans} from 'vuetify/locale'
 import {mdi as svgSet} from 'vuetify/iconsets/mdi-svg'
 import PATHS from 'virtual:mdi-paths'
 import {dark, defaults, light} from '@preset/defaults'
@@ -94,6 +95,11 @@ const readable = (t: ThemeDefinition): ThemeDefinition =>
 
 export default createVuetify({
     icons: {defaultSet: 'mdi', aliases, sets: {mdi: named}},
+
+    /* 组件自带的那些文案（数据表分页的「Items per page」「1-5 of 5」、
+       文件选择器、分页器的无障碍标签）默认是英文，整页中文里就它几处是英文。
+       只挂中文一种语言，不带 fallback 的英文包一起打进去。 */
+    locale: {locale: 'zhHans', messages: {zhHans}},
 
     theme: {
         // 初值随便给一个，真正的取值在 stores/prefs.ts 里按 localStorage + 系统偏好定
