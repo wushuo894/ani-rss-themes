@@ -6,23 +6,47 @@
     <title>ani-rss WebUI 预览</title>
     <meta name="description" content="ani-rss 替代 WebUI 的在线预览：五款界面各点开就能试，数据是内置的假数据"/>
     <style>
+        /* ─────────────────────────────────────────────────────────────
+           这个页面只有一个任务：让人一眼看见五款长什么样。
+           所以卡片里放的不是截图、也不是手画的示意图，是把真界面本身
+           用 iframe 装进来按比例缩小 —— 界面改了它自动跟着变，不会过期，
+           也不用往仓库里塞几张迟早对不上的 png。
+           ───────────────────────────────────────────────────────────── */
         :root {
-            --bg: #0d1117;
-            --panel: #161b22;
-            --line: #272e38;
-            --fg: #e6edf3;
-            --dim: #9aa6b2;
+            color-scheme: dark;
+            --bg: #0a0c10;
+            --bg-2: #0f1218;
+            --panel: #12161d;
+            --panel-2: #171c25;
+            --line: #232a35;
+            --line-2: #2e3745;
+            --fg: #eef2f7;
+            --dim: #a3aebd;
             --accent: #42d392;
+            --accent-2: #6ea8ff;
+            --accent-ink: #06281b;
+            --glow-1: rgba(66, 211, 146, .16);
+            --glow-2: rgba(110, 168, 255, .14);
+            --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 18px 40px -18px rgba(0, 0, 0, .85);
         }
 
         @media (prefers-color-scheme: light) {
             :root {
-                --bg: #f6f8fa;
+                color-scheme: light;
+                --bg: #f7f8fa;
+                --bg-2: #eef1f6;
                 --panel: #ffffff;
-                --line: #d8dee4;
-                --fg: #1f2328;
-                --dim: #656d76;
-                --accent: #1a7f37;
+                --panel-2: #f4f6f9;
+                --line: #dfe4ec;
+                --line-2: #cbd3df;
+                --fg: #10151c;
+                --dim: #5a6472;
+                --accent: #10794f;
+                --accent-2: #2a5fd0;
+                --accent-ink: #ffffff;
+                --glow-1: rgba(16, 121, 79, .10);
+                --glow-2: rgba(42, 95, 208, .10);
+                --shadow: 0 1px 2px rgba(16, 21, 28, .06), 0 16px 36px -18px rgba(16, 21, 28, .28);
             }
         }
 
@@ -30,256 +54,667 @@
             box-sizing: border-box;
         }
 
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
+
         body {
             margin: 0;
-            padding: 40px 20px 72px;
+            min-height: 100%;
             background: var(--bg);
             color: var(--fg);
-            font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+            font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+            "Microsoft YaHei", "Noto Sans SC", sans-serif;
+            /* 两团很淡的光晕吊住页面顶部，不用图片。fixed 让它不跟着滚 */
+            background-image: radial-gradient(1100px 620px at 12% -8%, var(--glow-1), transparent 62%),
+            radial-gradient(900px 560px at 88% -14%, var(--glow-2), transparent 60%);
+            background-attachment: fixed;
+            background-repeat: no-repeat;
         }
 
         .wrap {
-            max-width: 1100px;
+            max-width: 1180px;
             margin: 0 auto;
+            padding: 28px 20px 80px;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        /* ── 顶部 ─────────────────────────────────────────────── */
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 64px;
+        }
+
+        .back, .ghlink {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 13px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--panel);
+            color: var(--dim);
+            font-size: 13.5px;
+            text-decoration: none;
+            transition: color .16s, border-color .16s, background .16s;
+        }
+
+        .back:hover, .ghlink:hover {
+            color: var(--fg);
+            border-color: var(--line-2);
+            background: var(--panel-2);
+        }
+
+        .ghlink svg {
+            width: 15px;
+            height: 15px;
+            fill: currentColor;
+        }
+
+        /* ── 大标题 ───────────────────────────────────────────── */
+        .hero {
+            max-width: 760px;
+            margin-bottom: 44px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding: 5px 12px 5px 8px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--panel);
+            color: var(--dim);
+            font-size: 12.5px;
+            letter-spacing: .01em;
+        }
+
+        .eyebrow b {
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--accent);
+            color: var(--accent-ink);
+            font-size: 11.5px;
+            font-weight: 700;
         }
 
         h1 {
-            margin: 0 0 8px;
-            font-size: 30px;
-            letter-spacing: -.02em;
+            margin: 0 0 18px;
+            font-size: clamp(34px, 6.2vw, 58px);
+            line-height: 1.08;
+            letter-spacing: -.03em;
+            font-weight: 800;
+        }
+
+        h1 span {
+            background: linear-gradient(96deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
         .lede {
+            margin: 0;
             color: var(--dim);
-            margin: 0 0 6px;
+            font-size: clamp(15px, 1.7vw, 17.5px);
+            line-height: 1.7;
         }
 
-        .back {
-            display: inline-block;
-            margin-bottom: 28px;
-            color: var(--accent);
-            text-decoration: none;
+        .facts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 26px;
         }
 
-        .back:hover {
-            text-decoration: underline;
+        .facts span {
+            padding: 6px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+            color: var(--dim);
+            font-size: 13px;
         }
 
+        .facts span b {
+            color: var(--fg);
+            font-weight: 650;
+        }
+
+        /* ── 五张卡 ───────────────────────────────────────────── */
+        /* 两列，第一张横跨两列。5 张在两列里本来会剩一个洞，
+           让第一张占满一行正好填平 —— 顺带给它一个「主推」的分量。 */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 18px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        @media (max-width: 720px) {
+            .grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
         }
 
         .card {
+            grid-column: span 1;
             display: flex;
             flex-direction: column;
-            background: var(--panel);
             border: 1px solid var(--line);
-            border-radius: 12px;
-            overflow: hidden;
+            border-radius: 16px;
+            background: var(--panel);
+            box-shadow: var(--shadow);
             text-decoration: none;
             color: inherit;
-            transition: transform .18s, border-color .18s;
+            overflow: hidden;
+            transition: transform .22s cubic-bezier(.2, .7, .3, 1), border-color .22s, box-shadow .22s;
+        }
+
+        .card.wide {
+            grid-column: 1 / -1;
         }
 
         .card:hover {
-            transform: translateY(-3px);
-            border-color: var(--accent);
+            transform: translateY(-4px);
+            border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 26px 54px -20px rgba(0, 0, 0, .7);
         }
 
-        /* 缩略图全部用 CSS 画：预览站不该为了几张截图多下几百 KB */
-        .thumb {
-            height: 132px;
-            position: relative;
+        .card:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        /* 假的浏览器边框：一眼认出「这是一整个界面」，不是一张配图 */
+        .chrome {
             display: flex;
-            align-items: flex-end;
-            padding: 10px;
-            gap: 6px;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--line);
+            background: var(--panel-2);
         }
 
-        .thumb i {
-            display: block;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, .75);
+        .dots {
+            display: flex;
+            gap: 5px;
+            flex: 0 0 auto;
         }
 
-        .t-acg {
-            background: linear-gradient(135deg, #4a7fe8, #b06ab3 55%, #ff9ebb);
-        }
-
-        .t-acg i {
-            width: 22%;
-            height: 74%;
-            border-radius: 8px;
-        }
-
-        .t-glass {
-            background: linear-gradient(135deg, #5e5ce6, #ff6eb4 60%, #50c8ff);
-        }
-
-        .t-glass i {
-            width: 100%;
-            height: 34%;
-            border-radius: 14px;
-            backdrop-filter: blur(4px);
-        }
-
-        .t-vue {
-            background: radial-gradient(80% 90% at 50% 0, #42d392, #35495e 70%);
-            align-items: stretch;
-            flex-direction: column;
-            justify-content: flex-end;
-        }
-
-        .t-vue i {
+        .dots i {
+            width: 8px;
             height: 8px;
-            width: 100%;
+            border-radius: 50%;
+            background: var(--line-2);
         }
 
-        .t-vue i:nth-child(2) {
-            width: 72%;
+        .addr {
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 2px 10px;
+            border-radius: 999px;
+            background: var(--bg-2);
+            color: var(--dim);
+            font: 11.5px/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .t-vue i:nth-child(3) {
-            width: 84%;
+        .open {
+            flex: 0 0 auto;
+            color: var(--dim);
+            font-size: 12px;
+            transition: color .18s, transform .18s;
         }
 
-        .t-github {
-            background: linear-gradient(180deg, #161b22 0 34%, #0d1117 34%);
-            flex-direction: column;
-            align-items: stretch;
-            justify-content: flex-end;
+        .card:hover .open {
+            color: var(--accent);
+            transform: translateX(2px);
         }
 
-        .t-github i {
-            height: 10px;
-            width: 100%;
-            background: rgba(255, 255, 255, .22);
+        /* 缩略图容器：定死宽高比，里面的 iframe 按 1440 宽渲染再缩到容器宽度，
+           下面裁掉 —— 仪表盘从上往下看本来就最好看 */
+        .shot {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: var(--bg-2);
         }
 
-        .t-github i:first-child {
-            background: #3fb950;
-            width: 40%;
+        .card.wide .shot {
+            aspect-ratio: 21 / 8;
         }
 
-        .t-material {
-            background: linear-gradient(135deg, #6750a4, #d0bcff);
+        .shot iframe {
+            position: absolute;
+            inset: 0;
+            width: 1440px;
+            height: 900px;
+            border: 0;
+            transform-origin: 0 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity .55s ease;
         }
 
-        .t-material i {
-            width: 30%;
-            height: 60%;
-            border-radius: 16px;
+        .shot iframe.on {
+            opacity: 1;
         }
 
-        .body {
-            padding: 14px 16px 18px;
+        /* iframe 起来之前（以及窄屏上根本不起）垫的骨架：
+           一根导航条 + 三块内容，用各款自己的颜色染一下，不是随便一团渐变 */
+        .ph {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: 22% 1fr;
+            gap: 8px;
+            padding: 10px;
+            background: linear-gradient(135deg, var(--a), var(--b));
+        }
+
+        .ph b {
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .16);
+        }
+
+        .ph div {
+            display: grid;
+            grid-template-rows: 22% 1fr 1fr;
+            gap: 8px;
+        }
+
+        .ph i {
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .3);
+        }
+
+        .ph i:nth-child(2) {
+            background: rgba(255, 255, 255, .2);
+        }
+
+        .ph i:nth-child(3) {
+            background: rgba(255, 255, 255, .13);
+        }
+
+        .meta {
+            padding: 15px 17px 17px;
             border-top: 1px solid var(--line);
         }
 
         .name {
-            font-weight: 650;
-            font-size: 17px;
-            margin-bottom: 4px;
+            display: flex;
+            align-items: baseline;
+            gap: 9px;
+            margin-bottom: 5px;
+            font-size: 17.5px;
+            font-weight: 700;
+            letter-spacing: -.01em;
+        }
+
+        .name em {
+            font: 400 12px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            color: var(--dim);
         }
 
         .desc {
+            margin: 0;
             color: var(--dim);
             font-size: 13.5px;
         }
 
-        .tag {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 2px 8px;
-            font-size: 12px;
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .tags span {
+            padding: 3px 9px;
             border: 1px solid var(--line);
             border-radius: 999px;
             color: var(--dim);
+            font-size: 12px;
+        }
+
+        /* ── 安装 ─────────────────────────────────────────────── */
+        h2 {
+            margin: 68px 0 6px;
+            font-size: 22px;
+            letter-spacing: -.02em;
+        }
+
+        .sub {
+            margin: 0 0 22px;
+            color: var(--dim);
+            font-size: 14px;
+        }
+
+        .cmds {
+            display: grid;
+            gap: 12px;
+        }
+
+        .cmd {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 12px 12px 16px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--panel);
+        }
+
+        .cmd b {
+            flex: 0 0 auto;
+            width: 84px;
+            color: var(--dim);
+            font-size: 12.5px;
+            font-weight: 600;
+        }
+
+        .cmd code {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow-x: auto;
+            white-space: nowrap;
+            font: 12.5px/1.7 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            color: var(--fg);
+        }
+
+        .copy {
+            flex: 0 0 auto;
+            padding: 6px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel-2);
+            color: var(--dim);
+            font: inherit;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: color .16s, border-color .16s;
+        }
+
+        .copy:hover {
+            color: var(--fg);
+            border-color: var(--line-2);
+        }
+
+        .copy[data-done] {
+            color: var(--accent);
+            border-color: var(--accent);
         }
 
         .note {
-            margin-top: 34px;
-            padding: 16px 18px;
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 14px 16px;
             border: 1px solid var(--line);
-            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+            border-radius: 10px;
             background: var(--panel);
             color: var(--dim);
             font-size: 13.5px;
         }
 
-        code {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            background: rgba(128, 128, 128, .16);
-            padding: 2px 6px;
+        .note strong {
+            color: var(--fg);
+        }
+
+        .note code {
+            padding: 1px 6px;
             border-radius: 5px;
-            font-size: 12.5px;
-            word-break: break-all;
+            background: var(--bg-2);
+            font: 12.5px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        footer {
+            margin-top: 56px;
+            padding-top: 22px;
+            border-top: 1px solid var(--line);
+            color: var(--dim);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--dim);
+            text-decoration: none;
+            border-bottom: 1px solid var(--line-2);
+        }
+
+        footer a:hover {
+            color: var(--fg);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
         }
     </style>
 </head>
 <body>
 <div class="wrap">
-    <a class="back" href="../">← 回主题预览</a>
-    <h1>WebUI 预览</h1>
-    <p class="lede">五款界面，同一套功能。点开就能试，数据是内置的假数据，改什么都不会保存。</p>
-    <p class="lede">窄屏也能看 —— 这五款是同一套响应式代码，不是另做的手机版。</p>
+    <div class="top">
+        <a class="back" href="../">← 回主题预览</a>
+        <a class="ghlink" href="https://github.com/zzzwannasleep/ani-rss-themes" rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.19c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/>
+            </svg>
+            源码
+        </a>
+    </div>
 
-    <div class="grid" style="margin-top: 26px">
-        <a class="card" href="acg/">
-            <div class="thumb t-acg"><i></i><i></i><i></i><i></i></div>
-            <div class="body">
-                <div class="name">二次元</div>
-                <div class="desc">壁纸打底的海报墙，外壳半透明浮在图上，窄屏走底部导航</div>
-                <span class="tag">海报墙 · 每次刷新换壁纸</span>
+    <header class="hero">
+        <p class="eyebrow"><b>五款</b> 同一套功能，只是长得不同</p>
+        <h1>给 ani-rss<br/>换一张<span>好看的脸</span></h1>
+        <p class="lede">下面每张卡里跑的都是真界面，不是截图 —— 点开就能翻页、开关、改设置。
+            数据是内置的假数据，随便折腾，不连你的任何东西。</p>
+        <div class="facts">
+            <span><b>5</b> 款皮肤</span>
+            <span>同一套<b>响应式</b>代码，不是另做的手机版</span>
+            <span>装一款就够，<b>约 14 MB</b>（含在线播放器）</span>
+        </div>
+    </header>
+
+    <!-- data-a / data-b 是骨架图的两个渐变色，取各款自己的主色 -->
+    <div class="grid" id="grid">
+        <a class="card wide" href="acg/" style="--a:#4a7fe8;--b:#b06ab3">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/acg/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="acg/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">二次元 <em>acg</em></div>
+                <p class="desc">随机壁纸打底的海报墙，外壳半透明浮在图上；窄屏收成底部导航。只提供深色 ——
+                    随机照片托不住深色文字。</p>
+                <div class="tags"><span>海报墙</span><span>每次刷新换壁纸</span><span>玻璃药丸</span></div>
             </div>
         </a>
 
-        <a class="card" href="liquid-glass/">
-            <div class="thumb t-glass"><i></i></div>
-            <div class="body">
-                <div class="name">液态玻璃</div>
-                <div class="desc">导航是一枚悬浮的玻璃胶囊，内容是一张张横躺的大圆角卡</div>
-                <span class="tag">悬浮岛 · 按下回弹</span>
+        <a class="card" href="liquid-glass/" style="--a:#5e5ce6;--b:#50c8ff">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/liquid-glass/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="liquid-glass/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">液态玻璃 <em>liquid-glass</em></div>
+                <p class="desc">导航是一枚悬浮的玻璃胶囊，内容是一张张横躺的大圆角卡，按下去会回弹。</p>
+                <div class="tags"><span>悬浮岛</span><span>按下回弹</span></div>
             </div>
         </a>
 
-        <a class="card" href="vue/">
-            <div class="thumb t-vue"><i></i><i></i><i></i></div>
-            <div class="body">
-                <div class="name">Vue 文档</div>
-                <div class="desc">文档站的路子：左侧分组导航 + 居中正文，靠细线分栏不靠阴影</div>
-                <span class="tag">分组侧栏 · 信息密度适中</span>
+        <a class="card" href="vue/" style="--a:#42d392;--b:#35495e">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/vue/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="vue/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">Vue 文档 <em>vue</em></div>
+                <p class="desc">文档站的路子：左侧分组导航 + 居中正文，靠细线分栏不靠阴影。信息密度最舒服的一款。</p>
+                <div class="tags"><span>分组侧栏</span><span>细线分栏</span></div>
             </div>
         </a>
 
-        <a class="card" href="github/">
-            <div class="thumb t-github"><i></i><i></i><i></i><i></i></div>
-            <div class="body">
-                <div class="name">GitHub</div>
-                <div class="desc">Primer 的路子：深色顶栏 + 一排 tab，内容是一张带边框的清单</div>
-                <span class="tag">无侧栏 · 打开就干活</span>
+        <a class="card" href="github/" style="--a:#2d333b;--b:#0d1117">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/github/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="github/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">GitHub <em>github</em></div>
+                <p class="desc">Primer 的路子：深色顶栏 + 一排 tab，内容是一张带边框的清单。没有侧栏，打开就干活。</p>
+                <div class="tags"><span>无侧栏</span><span>顶栏固定深色</span></div>
             </div>
         </a>
 
-        <a class="card" href="material/">
-            <div class="thumb t-material"><i></i><i></i></div>
-            <div class="body">
-                <div class="name">Material Design 3</div>
-                <div class="desc">宽屏导航栏杆 + 窄屏底部导航，扩展 FAB 常驻右下</div>
-                <span class="tag">M3 响应式导航 · FAB</span>
+        <a class="card" href="material/" style="--a:#6750a4;--b:#d0bcff">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/material/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="material/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">Material Design 3 <em>material</em></div>
+                <p class="desc">宽屏走导航栏杆、窄屏切底部导航，扩展 FAB 常驻右下。最接近安卓原生的一款。</p>
+                <div class="tags"><span>M3 响应式导航</span><span>FAB</span></div>
             </div>
         </a>
+    </div>
+
+    <h2>装到自己的 ani-rss 上</h2>
+    <p class="sub">脚本会问装哪一款、装到哪个目录，在线播放器一并装好。</p>
+
+    <div class="cmds">
+        <div class="cmd">
+            <b>Linux / NAS</b>
+            <code>curl -fsSL https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.sh | bash</code>
+            <button class="copy" type="button">复制</button>
+        </div>
+        <div class="cmd">
+            <b>Windows</b>
+            <code>irm https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.ps1 | iex</code>
+            <button class="copy" type="button">复制</button>
+        </div>
     </div>
 
     <div class="note">
-        <p style="margin-top:0"><strong>装到自己的 ani-rss 上</strong>（Linux / macOS / NAS）：</p>
-        <p><code>curl -fsSL https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.sh | bash</code></p>
-        <p>Windows PowerShell：<code>irm https://raw.githubusercontent.com/zzzwannasleep/ani-rss-themes/main/install.ps1 | iex</code></p>
-        <p style="margin-bottom:0">脚本会问装哪一款、装到哪个目录，在线播放器一并装好。装完刷新 ani-rss 页面即可，
-            想还原就把 <code>webui</code> 目录清空。</p>
+        <span aria-hidden="true">⚠️</span>
+        <p style="margin:0"><strong>装完要重启 ani-rss，光刷新页面不生效。</strong>
+            程序只在启动时扫一次配置目录下的 <code>webui/</code>，而且 <code>index.html</code> 必须直接躺在这一层，
+            多套一层目录会被当成空文件夹、静默用回自带界面。想还原：清空该目录再重启。</p>
     </div>
+
+    <footer>
+        五款是同一套代码的不同外观，装一款就够，装第二款会覆盖第一款 ——
+        <a href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest" rel="noopener">下载压缩包</a> ·
+        <a href="https://github.com/zzzwannasleep/ani-rss-themes" rel="noopener">源码与说明</a> ·
+        <a href="../">旧版主题（给自带界面换肤的 CSS）</a>
+    </footer>
 </div>
+
+<script>
+    /* 缩略图里跑的是真界面。为了不让五个 Vue 应用同时开跑，做两件事：
+       1) 滚到跟前才建 iframe；2) 一次只建一个，等它 load 完再放下一个。
+       窄屏和「省流量」模式下干脆不建，留骨架图 —— 手机上没人为了看缩略图愿意下 5 MB。 */
+    (function () {
+        const boxes = [...document.querySelectorAll('.shot')]
+        const W = 1440   // iframe 内部按这个宽度渲染，再缩到卡片宽度
+
+        // 骨架图始终留着垫在下面：iframe 起来之前、以及起不来的时候，卡片都不该是空的
+        const cheap = matchMedia('(max-width: 720px)').matches || navigator.connection?.saveData
+        if (cheap) return
+
+        const fit = (box, f) => f.style.transform = 'scale(' + box.clientWidth / W + ')'
+
+        const queue = []
+        let busy = false
+
+        function pump() {
+            if (busy || !queue.length) return
+            busy = true
+            const box = queue.shift()
+            const f = document.createElement('iframe')
+            f.src = box.dataset.src
+            f.loading = 'lazy'
+            f.tabIndex = -1
+            f.setAttribute('aria-hidden', 'true')
+            f.setAttribute('scrolling', 'no')
+            fit(box, f)
+            new ResizeObserver(() => fit(box, f)).observe(box)
+            // 应用挂载要一小会儿，早了会拍到空白；load 之后再等一拍才淡入
+            f.addEventListener('load', () => {
+                setTimeout(() => f.classList.add('on'), 450)
+                setTimeout(() => { busy = false; pump() }, 900)
+            }, {once: true})
+            // 万一某一款卡住了，别把后面几张一起拖死
+            setTimeout(() => { if (busy) { busy = false; pump() } }, 8000)
+            box.appendChild(f)
+        }
+
+        const io = new IntersectionObserver((es) => {
+            for (const e of es) {
+                if (!e.isIntersecting) continue
+                io.unobserve(e.target)
+                queue.push(e.target)
+                pump()
+            }
+        }, {rootMargin: '300px'})
+        boxes.forEach(b => io.observe(b))
+    })()
+
+    document.querySelectorAll('.copy').forEach(btn => btn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(btn.previousElementSibling.textContent.trim())
+            btn.textContent = '已复制'
+            btn.dataset.done = '1'
+            setTimeout(() => { btn.textContent = '复制'; delete btn.dataset.done }, 1600)
+        } catch {
+            btn.textContent = '手动复制'
+            setTimeout(() => btn.textContent = '复制', 1600)
+        }
+    }))
+</script>
 </body>
 </html>
