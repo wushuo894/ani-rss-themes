@@ -117,6 +117,11 @@ async function doStop(status: number) {
       <a class="text-medium-emphasis" href="https://github.com/wushuo894/ani-rss" rel="noopener" target="_blank">
         GitHub
       </a>
+      <!-- 上游关于页给了四个入口，我们之前只留了两个 -->
+      <a class="text-medium-emphasis" href="https://docs.wushuo.top/history" rel="noopener" target="_blank">
+        更新历史
+      </a>
+      <a class="text-medium-emphasis" href="https://t.me/ani_rss" rel="noopener" target="_blank">TG 群</a>
     </div>
 
     <v-dialog :model-value="confirmStop !== null" max-width="400" @update:model-value="confirmStop = null">

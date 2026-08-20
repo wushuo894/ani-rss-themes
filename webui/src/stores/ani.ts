@@ -19,6 +19,14 @@ export const useAniStore = defineStore('ani', () => {
     const raw = ref<ListAni>({})
     const loading = ref(false)
     const keyword = ref('')
+    /*
+     * 上游批量管理页有「全部 / 已启用 / 未启用」和季度两个下拉，主列表顶栏也有启用状态那个。
+     * 我们之前只有关键词 —— 订阅上百条以后，「哪些被我停用了」只能一条条翻。
+     * 空值 = 不筛。
+     */
+    const status = ref<'all' | 'on' | 'off'>('all')
+    /** 季度，形如 2026-07；候选来自后端的 releaseDateList，之前一直没人用 */
+    const season = ref('')
     /** 选中的订阅 id，批量操作用 */
     const selected = ref<Set<string>>(new Set())
 
@@ -34,22 +42,40 @@ export const useAniStore = defineStore('ani', () => {
     /** 拍平成一维，网格/列表视图用 */
     const all = computed<Ani[]>(() => (raw.value.weekList || []).flatMap(w => w.items || []))
 
-    const filtered = computed<Ani[]>(() => {
+    /* 三个筛选条件合成一个判定，列表视图和按星期分组共用 —— 各写各的迟早会漂。
+       季度只比到年月：后端给的候选就是 yyyy-MM，订阅上存的是完整日期 */
+    const pass = computed(() => {
         const k = keyword.value.trim().toLowerCase()
-        if (!k) return all.value
-        return all.value.filter(a => matches(a, k))
+        const st = status.value, se = season.value
+        return (a: Ani) =>
+            (!k || matches(a, k)) &&
+            (st === 'all' || (st === 'on' ? !!a.enable : !a.enable)) &&
+            (!se || (a.releaseDate || '').replace(/-\d{2}$/, '') === se)
     })
+
+    const filtered = computed<Ani[]>(() => all.value.filter(pass.value))
 
     /** 按星期分组，保留后端给的顺序（后端已按今天排在最前处理过） */
     const byWeek = computed(() => {
-        const k = keyword.value.trim().toLowerCase()
         return (raw.value.weekList || [])
             .map(w => ({
                 label: w.weekLabel || '',
-                items: (w.items || []).filter(a => !k || matches(a, k)),
+                items: (w.items || []).filter(pass.value),
             }))
             .filter(w => w.items.length)
     })
+
+    /** 季度候选：后端算好的，直接用 */
+    const seasons = computed<string[]>(() => raw.value.releaseDateList || [])
+
+    /** 有没有在筛 —— 界面上要据此给「清除筛选」和空状态换文案 */
+    const filtering = computed(() => !!keyword.value.trim() || status.value !== 'all' || !!season.value)
+
+    function clearFilters() {
+        keyword.value = ''
+        status.value = 'all'
+        season.value = ''
+    }
 
     const total = computed(() => raw.value.total ?? all.value.length)
     const enabledCount = computed(() => all.value.filter(a => a.enable).length)
@@ -88,9 +114,9 @@ export const useAniStore = defineStore('ani', () => {
         withReload(() => api.updateTotalEpisodeNumber(force, ids), '已更新总集数')
 
     return {
-        raw, loading, keyword, selected,
-        all, filtered, byWeek, total, enabledCount,
-        reload, toggleSelect, clearSelection, selectAll,
+        raw, loading, keyword, status, season, selected,
+        all, filtered, byWeek, total, enabledCount, seasons, filtering,
+        reload, toggleSelect, clearSelection, selectAll, clearFilters,
         add, update, remove, refreshOne, refreshAll, setEnabled, batchScrape, updateEpisodes,
     }
 })

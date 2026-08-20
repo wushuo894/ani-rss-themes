@@ -6,6 +6,7 @@ import AniPosterCard from '@/components/ani/AniPosterCard.vue'
 import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
+import AniFilterBar from '@/components/ani/AniFilterBar.vue'
 
 /**
  * 海报墙：卡片给到最大，星期做成顶部的快捷跳转条。
@@ -54,6 +55,7 @@ function jump(label: string) {
       </v-btn>
       <v-btn v-else icon="mdi-file-import-outline" title="导入订阅" variant="tonal"
              @click="s.importing.value = true"/>
+      <AniFilterBar/>
       <v-spacer/>
       <v-btn :active="s.selectMode.value"
              :icon="mobile ? (s.selectMode.value ? 'mdi-close' : 'mdi-checkbox-multiple-marked-outline') : undefined"
@@ -75,8 +77,8 @@ function jump(label: string) {
 
       <v-empty-state
           v-if="!s.ani.filtered.length"
-          :text="s.ani.keyword ? '换个关键词试试，支持拼音和首字母' : '还没有订阅，点上面添加一个'"
-          :title="s.ani.keyword ? '没有匹配的订阅' : '空空如也'"
+          :text="s.ani.filtering ? '换个关键词或放宽筛选条件试试，搜索支持拼音和首字母' : '还没有订阅，点上面添加一个'"
+          :title="s.ani.filtering ? '没有匹配的订阅' : '空空如也'"
           icon="mdi-television-off"
       />
 

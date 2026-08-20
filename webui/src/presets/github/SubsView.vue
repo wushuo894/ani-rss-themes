@@ -7,6 +7,7 @@ import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
 import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
+import AniFilterBar from '@/components/ani/AniFilterBar.vue'
 
 /**
  * 仓库清单的排法：一张带边框的容器，顶部一条筛选栏，里面全是等高的行。
@@ -48,6 +49,7 @@ const desc = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.ti
              variant="outlined" @click="s.importing.value = true">
         <template v-if="!mobile">导入</template>
       </v-btn>
+      <AniFilterBar/>
       <v-spacer/>
       <v-btn :active="s.selectMode.value"
              :icon="mobile ? (s.selectMode.value ? 'mdi-close' : 'mdi-checkbox-multiple-marked-outline') : undefined"
@@ -82,8 +84,8 @@ const desc = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.ti
 
         <v-empty-state
             v-if="!s.ani.filtered.length"
-            :text="s.ani.keyword ? '换个关键词试试，支持拼音和首字母' : '还没有订阅'"
-            :title="s.ani.keyword ? '没有匹配的订阅' : '空空如也'"
+            :text="s.ani.filtering ? '换个关键词或放宽筛选条件试试，搜索支持拼音和首字母' : '还没有订阅'"
+            :title="s.ani.filtering ? '没有匹配的订阅' : '空空如也'"
             icon="mdi-television-off"
         />
 

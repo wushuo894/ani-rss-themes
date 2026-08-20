@@ -7,6 +7,7 @@ import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
 import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
+import AniFilterBar from '@/components/ani/AniFilterBar.vue'
 
 /**
  * 横躺的大玻璃板：左边一张海报，右边信息和操作。
@@ -29,6 +30,7 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
              @click="s.ani.refreshAll()"/>
       <v-btn icon="mdi-package-variant-closed" title="合集下载" variant="tonal" @click="s.collecting.value = true"/>
       <v-btn icon="mdi-file-import-outline" title="导入订阅" variant="tonal" @click="s.importing.value = true"/>
+      <AniFilterBar/>
       <v-spacer/>
       <v-btn :active="s.selectMode.value"
              :icon="s.selectMode.value ? 'mdi-close' : 'mdi-checkbox-multiple-marked-outline'"
@@ -46,8 +48,8 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
 
       <v-empty-state
           v-if="!s.ani.filtered.length"
-          :text="s.ani.keyword ? '换个关键词试试，支持拼音和首字母' : '还没有订阅'"
-          :title="s.ani.keyword ? '没有匹配的订阅' : '空空如也'"
+          :text="s.ani.filtering ? '换个关键词或放宽筛选条件试试，搜索支持拼音和首字母' : '还没有订阅'"
+          :title="s.ani.filtering ? '没有匹配的订阅' : '空空如也'"
           icon="mdi-television-off"
       />
 

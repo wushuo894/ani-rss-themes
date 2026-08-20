@@ -6,6 +6,7 @@ import {useAniScreen} from '@/composables/useAniScreen'
 import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
+import AniFilterBar from '@/components/ani/AniFilterBar.vue'
 import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
 
 /**
@@ -34,6 +35,7 @@ function openBgm(a: Ani) {
     <header class="page-head">
       <h1 class="h1">订阅</h1>
       <span class="count">{{ s.ani.filtered.length }} 条</span>
+      <AniFilterBar/>
       <v-spacer/>
       <v-btn color="primary" prepend-icon="mdi-plus" @click="s.adding.value = true">添加订阅</v-btn>
       <v-btn :loading="s.ani.loading" prepend-icon="mdi-refresh" variant="outlined"
@@ -66,8 +68,8 @@ function openBgm(a: Ani) {
 
       <v-empty-state
           v-if="!s.ani.filtered.length"
-          :text="s.ani.keyword ? '换个关键词试试，支持拼音和首字母' : '还没有订阅，点右上角添加一个'"
-          :title="s.ani.keyword ? '没有匹配的订阅' : '空空如也'"
+          :text="s.ani.filtering ? '换个关键词或放宽筛选条件试试，搜索支持拼音和首字母' : '还没有订阅，点右上角添加一个'"
+          :title="s.ani.filtering ? '没有匹配的订阅' : '空空如也'"
           icon="mdi-television-off"
       />
 
