@@ -190,8 +190,13 @@ async function showDownloadPath() {
                 </v-text-field>
               </v-col>
 
-              <v-col cols="12">
+              <v-col cols="12" md="8">
                 <v-text-field v-model="form.bgmUrl" label="BgmUrl"/>
+              </v-col>
+              <v-col cols="12" md="4">
+                <!-- 字幕组名是可以改的：RSS 解析猜错时这一栏没法改，卡片上就一直挂着
+                     「未知字幕组」，重命名模板里的 ${subgroup} 也跟着错 -->
+                <v-text-field v-model="form.subgroup" label="字幕组" placeholder="未知字幕组"/>
               </v-col>
               <v-col cols="12">
                 <v-textarea v-model="form.url" auto-grow label="主 RSS" rows="2"/>
