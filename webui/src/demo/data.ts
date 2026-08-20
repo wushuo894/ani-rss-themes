@@ -53,7 +53,9 @@ function makeAni(b: typeof BANGUMI[number], i: number): Ani {
         cover: b.cover,
         image: b.cover,
         pinyin: '', pinyinInitials: '',
-        themoviedbName: b.title,
+        /* 真实的 themoviedbName 长这样：「XXX (2026) [tmdbid=287028]」，和标题不一样。
+           照抄标题的话列表第二行就是第一行的复读，看着像渲染坏了 */
+        themoviedbName: `${b.jp || b.title} (${new Date().getFullYear()}) [tmdbid=${b.id}]`,
         bgmUrl: `https://bgm.tv/subject/${b.id}`,
         // 摸鱼检测的开关，默认开 —— 它不是「已停更」，别拿它当状态用
         procrastinating: true,
