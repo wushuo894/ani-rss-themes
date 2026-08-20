@@ -311,6 +311,18 @@
             opacity: 1;
         }
 
+        /* 底部收一层渐隐：缩略图是从上往下裁的，不淡出的话末尾那行内容像被刀切了一半 */
+        .shot::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 60px;
+            background: linear-gradient(to top, var(--panel), transparent);
+            pointer-events: none;
+        }
+
         /* iframe 起来之前（以及窄屏上根本不起）垫的骨架：
            一根导航条 + 三块内容，用各款自己的颜色染一下，不是随便一团渐变 */
         .ph {
@@ -684,12 +696,14 @@
             fit(box, f)
             new ResizeObserver(() => fit(box, f)).observe(box)
             // 应用挂载要一小会儿，早了会拍到空白；load 之后再等一拍才淡入
-            f.addEventListener('load', () => {
-                setTimeout(() => f.classList.add('on'), 450)
-                setTimeout(() => { busy = false; pump() }, 900)
-            }, {once: true})
-            // 万一某一款卡住了，别把后面几张一起拖死
-            setTimeout(() => { if (busy) { busy = false; pump() } }, 8000)
+            const show = () => f.classList.add('on')
+            let advanced = false
+            const next = () => { if (advanced) return; advanced = true; busy = false; pump() }
+            f.addEventListener('load', () => { setTimeout(show, 400); setTimeout(next, 900) }, {once: true})
+            // 二次元那款要等一张远端随机壁纸，load 可能迟迟不来 ——
+            // 不能拿它当唯一的信号，否则那张卡永远停在骨架图上，后面几张也一起卡住
+            setTimeout(show, 3000)
+            setTimeout(next, 6000)
             box.appendChild(f)
         }
 
