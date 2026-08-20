@@ -31,6 +31,10 @@ function rnd(seed: string, max: number): number {
    停更判定要求「没下完」，所以这几部的进度也一并压到总集数以下。 */
 const STALE = (i: number) => i % 8 === 3
 
+/** 演示用的三个季度，跟着当前年份走，免得过一年就成了「历史数据」 */
+const Y = new Date().getFullYear()
+const SEASONS = [`${Y}-01`, `${Y}-04`, `${Y}-07`]
+
 function makeAni(b: typeof BANGUMI[number], i: number): Ani {
     const id = String(b.id)
     // 公开日历不给总集数（全是 0），按常见的季番长度派生一个
@@ -57,6 +61,9 @@ function makeAni(b: typeof BANGUMI[number], i: number): Ani {
            照抄标题的话列表第二行就是第一行的复读，看着像渲染坏了 */
         themoviedbName: `${b.jp || b.title} (${new Date().getFullYear()}) [tmdbid=${b.id}]`,
         bgmUrl: `https://bgm.tv/subject/${b.id}`,
+        /* 放送日期。真实数据里是完整日期，季度筛选只比到年月 ——
+           全塞进同一季的话那个下拉根本不会出现，等于没测到 */
+        releaseDate: `${SEASONS[i % SEASONS.length]}-${String((i % 27) + 1).padStart(2, '0')}`,
         // 摸鱼检测的开关，默认开 —— 它不是「已停更」，别拿它当状态用
         procrastinating: true,
         lastDownloadTime: Date.now() - idleDays * 864e5 - rnd(id + 'f', 20) * 3600_000,
@@ -111,6 +118,8 @@ export function listAni() {
     const order = Array.from({length: 7}, (_, i) => (today === 0 ? 6 : today - 1 + i) % 7)
     return {
         total: ANI_LIST.length,
+        /* 后端会把订阅里出现过的季度算成候选给前端，季度筛选的下拉就吃这个字段 */
+        releaseDateList: [...SEASONS].reverse(),
         weekList: order.map((w, idx) => ({
             weekLabel: WEEK[w] + (idx === 0 ? '（今天）' : ''),
             items: ANI_LIST.filter((_, i) => dayOf(i) === w),
