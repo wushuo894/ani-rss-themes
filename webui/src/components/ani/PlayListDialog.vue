@@ -46,6 +46,13 @@ function preferred(list: PlayItemSubtitles[]) {
   return zh ?? list[0]
 }
 
+/** 丢给本机播放器时带上的字幕：支持 sub 的那几个（Infuse / PotPlayer / VLC）用得到 */
+function subUrl(p: PlayItem) {
+  const list = subs(p)
+  const s = list.length ? preferred(list) : undefined
+  return s?.url ? toApiFile(s.url) : undefined
+}
+
 /** 选字幕的弹窗；null 表示没在选 */
 const choosing = ref<PlayItem | null>(null)
 
@@ -99,7 +106,7 @@ function play(p: PlayItem, sub?: PlayItemSubtitles) {
 
             <template #append>
               <div class="d-flex align-center ga-1" @click.stop>
-                <ExternalPlayerMenu :name="p.name" :src="srcOf(p)" icon-only/>
+                <ExternalPlayerMenu :name="p.name" :src="srcOf(p)" :sub="subUrl(p)" icon-only/>
                 <v-btn :href="srcOf(p)" icon="mdi-download" size="small" target="_blank" title="下载"
                        variant="text"/>
                 <v-btn color="primary" icon="mdi-play" size="small" title="播放" variant="text"

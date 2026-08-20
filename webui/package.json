@@ -11,7 +11,8 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "test:themes": "node --experimental-strip-types shared/themes/apply.test.ts",
     "test:api": "node --experimental-strip-types shared/http.test.ts",
-    "test": "npm run test:themes && npm run test:api"
+    "test": "npm run test:themes && npm run test:api && npm run test:players",
+    "test:players": "node --experimental-strip-types shared/externalPlayers.test.ts"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",

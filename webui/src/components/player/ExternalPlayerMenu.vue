@@ -1,36 +1,21 @@
 <script setup lang="ts">
 import {computed} from 'vue'
+import {externalPlayers} from '@shared/externalPlayers'
 
 /**
- * 交给本机播放器打开。
- *
- * 网页播放走 webplayer（本地拆容器 → fMP4 → MSE），mkv 与 ASS 特效字幕都能放，
- * 所以这里不再是唯一出路，而是三种情况下的备选：
- *   1. 没部署 webplayer（webui/player/ 不存在）
- *   2. 想用本机播放器的硬件解码 —— 大码率 4K 在浏览器里解会吃力
- *   3. 手机上想丢给已经装好的播放器接着看
- *
- * 这些 scheme 与上游 ani-rss 保持一致，装了哪个就点哪个；没装的点了不会有反应。
- * 地址里带着 ?s=<令牌>，本机播放器凭它取流。
+ * 「用本机播放器打开」的菜单。
+ * 地址怎么拼见 @shared/externalPlayers —— 那是纯函数，有断言测试盯着，
+ * 因为这类拼串错了界面上完全看不出来，只有装了对应 App 的人点下去才知道。
  */
-const props = defineProps<{src: string; name?: string; iconOnly?: boolean}>()
+const props = defineProps<{
+  src: string
+  name?: string
+  /** 外挂字幕地址；支持的播放器会一并带过去 */
+  sub?: string
+  iconOnly?: boolean
+}>()
 
-const enc = (s: string) => encodeURIComponent(s)
-
-const players = computed(() => {
-  const url = props.src
-  const name = props.name || ''
-  return [
-    {label: 'PotPlayer', icon: 'mdi-play-circle-outline', url: `potplayer://${url}`},
-    {label: 'VLC', icon: 'mdi-cone', url: `vlc://${url}`},
-    {label: 'IINA', icon: 'mdi-apple', url: `iina://weblink?url=${enc(url)}&mpv_force-media-title=${enc(name)}`},
-    {label: 'MPV', icon: 'mdi-movie-open-outline', url: `mpvplay://${url}&mpv_force-media-title=${enc(name)}`},
-    {label: 'Infuse', icon: 'mdi-television-classic', url: `infuse://x-callback-url/play?url=${url}&filename=${enc(name)}`},
-    {label: '弹弹 Play', icon: 'mdi-comment-multiple-outline', url: `ddplay:${enc(url)}|filePath=${enc(name)}`},
-    {label: 'AnimacX', icon: 'mdi-animation-play-outline', url: `anix://openVideo/${enc(url)}`},
-    {label: 'SenPlayer', icon: 'mdi-play-box-outline', url: `SenPlayer://x-callback-url/play?url=${url}&name=${enc(name)}`},
-  ]
-})
+const players = computed(() => externalPlayers(props.src, props.name, props.sub))
 
 function open(url: string) {
   window.open(url, '_self')
@@ -61,6 +46,10 @@ function open(url: string) {
           :title="p.label"
           @click="open(p.url)"
       />
+      <v-divider class="my-1"/>
+      <v-list-item class="text-caption text-medium-emphasis" density="compact">
+        没装的点了不会有反应
+      </v-list-item>
     </v-list>
   </v-menu>
 </template>

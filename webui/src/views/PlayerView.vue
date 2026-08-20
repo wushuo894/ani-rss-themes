@@ -11,11 +11,13 @@ const ready = ref<boolean | null>(null)
 
 const src = computed(() => String(route.query.src || ''))
 const title = computed(() => String(route.query.title || ''))
+/* 转本机播放器时把同一条字幕一起带过去，不然换个播放器就没字幕了 */
+const suburl = computed(() => (route.query.suburl ? String(route.query.suburl) : undefined))
 
 const playUrl = computed(() => buildPlayUrl({
   url: src.value,
   title: title.value,
-  suburl: route.query.suburl ? String(route.query.suburl) : undefined,
+  suburl: suburl.value,
   sublabel: route.query.sublabel ? String(route.query.sublabel) : undefined,
 }))
 
@@ -36,7 +38,7 @@ function back() {
       <v-btn icon="mdi-arrow-left" size="small" variant="text" @click="back"/>
       <div class="title text-truncate">{{ title || '播放' }}</div>
       <v-spacer/>
-      <ExternalPlayerMenu v-if="src" :name="title" :src="src"/>
+      <ExternalPlayerMenu v-if="src" :name="title" :src="src" :sub="suburl"/>
     </div>
 
     <div v-if="ready === null" class="hint">
