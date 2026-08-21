@@ -1,0 +1,98 @@
+/*
+ * 经典 Macintosh 这款的动作语言：也是没有。
+ *
+ * 和 win98 同样的理由 —— 1991 年的机器画不起动画，窗要么在要么不在，
+ * 按钮的反馈只有「整块反白」。所以时长全归零，位移和缩放全部关掉。
+ * 保留的只有焦点框：那是键盘可达性的底线，不是装饰。
+ *
+ * 两款的动作语言一样，观感却完全不同：win98 的反馈是「立体边框翻个面」（有厚度），
+ * 这一款是「黑白对调」（没有厚度，只有 1 位色）。同一套变量，两种手感。
+ */
+:root {
+    --m-dur: 0ms;
+    --m-dur-slow: 0ms;
+    --m-ease: linear;
+    --m-ease-out: linear;
+    --m-rise: 0px;
+    --m-scale: 1;
+    --m-stagger: 0ms;
+    --m-lift: 0px;
+    --m-lift-shadow: none;
+    --m-press: 1;
+
+    /*
+     * 外壳自己画的那些东西（菜单栏、标题栏、标签、名牌）用的一套颜色。
+     *
+     * 和皮肤（shared/themes/registry.ts 里的 macintosh）是各写一份的，不是漏抽公共：
+     * 皮肤要能单独套到别的八款外壳上，这个外壳也要能配别的皮肤 —— 两边都得自带一份，
+     * 少了哪一份对方都会缺色。
+     */
+    --mac-ink: #000000;
+    --mac-paper: #ffffff;
+    --mac-face: #dddddd;
+    --mac-face-2: #eeeeee;
+    --mac-shade: #999999;
+
+    /* 桌面那片 50% 网点：黑白棋盘格缩到 2px，看上去就是当年那片中灰 */
+    --mac-desk: repeating-conic-gradient(#8f8f8f 0% 25%, #b4b4b4 0% 50%) 0 0 / 2px 2px;
+    /* 标题栏的横条纹：1px 黑线隔 1px 白 */
+    --mac-stripe: repeating-linear-gradient(0deg, #000000 0 1px, #ffffff 1px 2px);
+    /* 硬投影：没有模糊，就是往右下挪几像素的一块黑 */
+    --mac-drop: 3px 3px 0 rgba(0, 0, 0, .5);
+    --mac-edge: 0 0 0 1px var(--mac-ink);
+}
+
+/* 键盘焦点是一圈 2px 黑框，画在内容里侧 —— 当年 Mac 的焦点提示就是加粗一圈边 */
+:focus-visible {
+    outline: 2px solid var(--mac-ink);
+    outline-offset: -3px;
+}
+
+/*
+ * 关掉页面本身的滚动条。
+ *
+ * Vuetify 的 reset 给 html 写死了 overflow-y: scroll（内容长短变化时页面不会左右跳）。
+ * 这一款整个应用是一扇钉死的窗、页面永远不滚，于是右边常年杵着一条拖不动的滚动条 ——
+ * 既吃掉一截宽度，又像是坏了。
+ *
+ * 类挂在 <html> 上、由外壳的生命周期开关（见 Shell.vue）：登录页和播放页不在这个外壳里，
+ * 而 CSS 一旦注入就撤不回去，写成无条件的 html {} 会把那两页的滚动一起锁死。
+ */
+html.mac-root {
+    overflow-y: hidden;
+}
+
+/*
+ * 演示角标要避开窗户的硬投影和底边。
+ *
+ * App.vue 把它钉在左下角 12px，只有窄屏才抬到 96px —— 那条规则是照
+ * 「底部导航只在手机上出现」写的，而这一款任何宽度下窗户都贴着底边。
+ *
+ * 类名写两遍把权重顶到 (0,3,0)：App.vue 那条带 scoped 属性，是 (0,2,0)，
+ * 打平就要赌两张样式表谁在后面 —— 而外壳的 CSS 在异步分块里，顺序是构建器说了算。
+ */
+.v-application .demo-badge.demo-badge {
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+/*
+ * ── 界面字：12px 点阵 ──
+ *
+ * Chicago 是苹果的字，不能带；也没有任何一款带中文的 Chicago 替代品。
+ * 所以用和 win98 同一份 12px 点阵中西文（选型见 src/fonts/README.md），
+ * 靠皮肤里那条「错开一像素再描一遍」把标题栏、菜单、按钮加粗到 Chicago 的厚度 ——
+ * 那正是当年点阵字加粗的做法，描出来仍然是实心像素，一点不糊。
+ *
+ * 字体族名在皮肤的字体栈里点名（registry.ts），两边靠 "Ark Pixel 12px" 这个名字对上。
+ * 别款外壳配 macintosh 皮肤时它解析不到，自动回落到后面的系统字体，不会变成方块。
+ *
+ * font-display: block 而不是 swap：这一款所有字号都按点阵字的 12px 网格定死，
+ * 先用系统字体顶上再换过来，行高和字宽会整页跳一次。字在本地，block 的 3 秒兜底几乎用不上。
+ */
+@font-face {
+    font-family: 'Ark Pixel 12px';
+    src: url('../../fonts/ark-pixel-12px-zh_cn.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+}

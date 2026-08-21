@@ -159,7 +159,9 @@ async function confirmRemove() {
                                height="6" rounded/>
             <span class="text-caption">{{ formatPercent(item.progress) }}</span>
           </div>
-          <div class="d-flex align-center ga-2">
+          <!-- 要能换行：状态、体积、标签、删除四样在 360px 上排不下一行，
+               不换行的话 flex 会把 chip 压到比里面的字还窄，字漫出圆角框外 -->
+          <div class="d-flex align-center flex-wrap ga-2">
             <v-chip :color="stateColor(item.state)" size="x-small" variant="tonal">{{ item.state }}</v-chip>
             <span class="text-caption text-medium-emphasis">{{ item.formatSize || formatSize(item.size) }}</span>
             <v-chip v-for="tag in item.tagList || []" :key="tag" size="x-small" variant="tonal">{{ tag }}</v-chip>

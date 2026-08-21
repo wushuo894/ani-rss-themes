@@ -369,7 +369,7 @@ function go(to: string) {
 .w98-tb-close {
     align-items: center;
     padding-bottom: 0;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1;
 }
@@ -385,7 +385,7 @@ function go(to: string) {
     }
 
     .w98-tb-close {
-        font-size: 13px;
+        font-size: 12px;
     }
 }
 
@@ -418,7 +418,7 @@ function go(to: string) {
 @media (max-width: 599.98px), (pointer: coarse) {
     .w98-menu {
         padding: 0 14px;
-        font-size: 14px;
+        font-size: 12px;
     }
 }
 
@@ -467,7 +467,7 @@ function go(to: string) {
 
 @media (max-width: 599.98px), (pointer: coarse) {
     .w98-dropdown {
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .w98-dropdown li {
@@ -530,7 +530,7 @@ function go(to: string) {
 
 .w98-tree-num {
     flex: 0 0 auto;
-    font-size: 11px;
+    font-size: 12px;
     opacity: .75;
 }
 
@@ -581,7 +581,7 @@ function go(to: string) {
 @media (max-width: 599.98px), (pointer: coarse) {
     .w98-input {
         height: 36px;
-        font-size: 14px;
+        font-size: 12px;
     }
 }
 
@@ -700,7 +700,7 @@ function go(to: string) {
         min-width: 36px;
         min-height: 36px;
         padding: 0 10px;
-        font-size: 13px;
+        font-size: 12px;
     }
 
     /* 托盘那颗只有一个 14px 的图标，撑不满 36 —— 图标居中，热区兜住 */
@@ -737,7 +737,7 @@ function go(to: string) {
     padding: 8px 3px;
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    font-size: 15px;
+    font-size: 24px;
     font-weight: 700;
     letter-spacing: 1px;
 }

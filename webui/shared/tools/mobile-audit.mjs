@@ -191,6 +191,10 @@ const run = async expression => {
 }
 await send('Page.enable')
 await send('Runtime.enable')
+/* 九款轮流从同一个地址发出去，文件名带哈希不会撞，但 index.html 会 ——
+   关掉缓存，免得第二款拿到第一款的那份 */
+await send('Network.enable')
+await send('Network.setCacheDisabled', {cacheDisabled: true})
 
 const PROBE = await readFile(join(HERE, 'mobile-audit-probe.js'), 'utf8')
 const ACTIONS = await readFile(join(HERE, 'mobile-audit-actions.js'), 'utf8')
@@ -205,6 +209,19 @@ for (const preset of presets) {
         /* 报一下进度：六款 × 三个宽度 × 十三条路由要跑十几分钟，
            不出声的话看起来跟卡死了一样，人就会去按 Ctrl-C */
         console.log(`· ${preset} @${w}px …`)
+        /*
+         * 先回 about:blank 再进去 —— 这一步不能省。
+         *
+         * Page.navigate 到一个只有**片段**不同的地址（上一轮停在 #/login，这里要去 #/），
+         * 浏览器当成同文档跳转：不重新加载，只改 hash。而每一款是靠 `root` 换目录发出去的，
+         * 文档不重载 = 换的那一款根本没被打开 —— 一次跑九款，量的是同一款九遍，
+         * 而且九次全绿。这种「假绿」比报错危险得多：它看着像做过了。
+         *
+         * 先跳去 about:blank，地址就不再是「只有片段不同」，下一跳必然是真加载。
+         * （一款一款分开跑时碰不到这个坑，所以它藏了很久。）
+         */
+        await send('Page.navigate', {url: 'about:blank'})
+        await sleep(120)
         await send('Page.navigate', {url: `http://127.0.0.1:${PORT}/#/`})
         await sleep(1600)
         for (const [name, hash] of ROUTES) {
@@ -225,6 +242,7 @@ for (const preset of presets) {
                 ...r.overflow.map(x => `溢出 ${x.l}..${x.rr}：${x.el}`),
                 ...r.tap.map(x => `小目标 ${x.w}×${x.h}：${x.el}`),
                 ...r.clipped.map(x => `文字放不下：「${x.text}」要 ${x.need}px，只有 ${x.room}px —— ${x.el}`),
+                ...(r.offgrid ?? []).map(x => `字号不在点阵网格上：${x.fs}px（必须是 12 的整数倍）—— ${x.el}`),
                 ...r.overlap.map(x => `叠压 ${x.ox}×${x.oy}：${x.a} × ${x.b}`),
             ].filter(Boolean)
             if (!hits.length) continue

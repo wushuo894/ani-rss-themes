@@ -146,7 +146,15 @@ function levelColor(l?: string) {
     height: 100%;
     overflow-y: auto;
     padding: 8px 12px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /*
+     * 等宽字体走主题变量，别在这儿写死。
+     *
+     * base.css 里本来就有一条 `html[data-ani-theme] .log-box { font-family: var(--ani-font-mono) }`，
+     * 但这条是 scoped 的（带 data-v 属性，权重 0,2,0），压过那边的 0,1,1 ——
+     * 结果是九款皮肤给的 fontMono 一个都没生效，日志框永远是浏览器默认的等宽字。
+     * 直接在这里读变量最省事，缺省值还是原来那串。
+     */
+    font-family: var(--ani-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
     font-size: .8125rem;
     line-height: 1.6;
 }

@@ -91,3 +91,31 @@ html.w98-root {
         bottom: calc(74px + env(safe-area-inset-bottom, 0px));
     }
 }
+
+/*
+ * ── 界面字：12px 点阵 ──
+ *
+ * 之前这一款的字体栈是 `"MS Sans Serif", Tahoma, Verdana, "Microsoft YaHei", SimSun`，
+ * 一个字体文件都不带 —— 结果是：Windows 上落到 Tahoma（矢量，1998 年的界面不长这样），
+ * 手机上前四个一个都没有，直接落到系统默认的黑体。也就是说**手机上根本没有 Win98 的字**，
+ * 那才是「看着不对」的真正原因，跟配色和斜角都没关系。
+ *
+ * 所以老实把字带上。选型和「为什么不是 MS Sans Serif」写在 src/fonts/README.md，
+ * 一句话版：中文版 Win98 的界面字是 12px 宋体点阵，连英文数字也是宋体的点阵拉丁，
+ * 而方舟像素 12px 正好是「一格一像素」的中西文点阵，字号取 12 的整数倍就一个字都不糊。
+ *
+ * @font-face 放在预设里而不是皮肤里：皮肤是一段运行时注入的字符串，拿不到构建期的资源路径；
+ * 而且这份 537KB 没道理跟着另外八款一起发。字体族名在皮肤的字体栈里点名（registry.ts），
+ * 两边靠 "Ark Pixel 12px" 这个名字对上 —— 别款外壳配 win98 皮肤时它解析不到，
+ * 自动回落到后面的系统字体，不会变成方块。
+ *
+ * font-display: block 而不是 swap：这一款的所有字号都是按点阵字的 12px 网格定死的，
+ * 先用系统字体顶上再换过来，行高和字宽会整页跳一次。字在本地，block 的 3 秒兜底几乎用不上。
+ */
+@font-face {
+    font-family: 'Ark Pixel 12px';
+    src: url('../../fonts/ark-pixel-12px-zh_cn.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+    font-display: block;
+}

@@ -125,7 +125,7 @@ function back() {
 }
 
 .cmd {
-    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-family: var(--ani-font-mono, ui-monospace, Menlo, Consolas, monospace);
     font-size: .8125rem;
     background: rgba(128, 128, 128, .15);
     padding: 6px 8px;

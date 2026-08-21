@@ -4,10 +4,10 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>ani-rss WebUI 预览</title>
-    <meta name="description" content="ani-rss 替代 WebUI 的在线预览：六款界面各点开就能试，数据是内置的假数据"/>
+    <meta name="description" content="ani-rss 替代 WebUI 的在线预览：九款界面各点开就能试，数据是内置的假数据"/>
     <style>
         /* ─────────────────────────────────────────────────────────────
-           这个页面只有一个任务：让人一眼看见六款长什么样。
+           这个页面只有一个任务：让人一眼看见九款长什么样。
            所以卡片里放的不是截图、也不是手画的示意图，是把真界面本身
            用 iframe 装进来按比例缩小 —— 界面改了它自动跟着变，不会过期，
            也不用往仓库里塞几张迟早对不上的 png。
@@ -553,7 +553,7 @@
     </div>
 
     <header class="hero">
-        <p class="eyebrow"><b>六款</b> 同一套功能，只是长得不同</p>
+        <p class="eyebrow"><b>九款</b> 同一套功能，只是长得不同</p>
         <h1>给 ani-rss<br/>换一张<span>好看的脸</span></h1>
         <p class="lede">下面每张卡里跑的都是真界面，不是截图 —— 点开就能翻页、开关、改设置。
             数据是内置的假数据，随便折腾，不连你的任何东西。</p>
@@ -675,6 +675,63 @@
                 <div class="tags"><span>任务栏 + 开始菜单</span><span>详细信息视图</span></div>
             </div>
         </a>
+
+        <a class="card" href="argon/" style="--a:#0084ff;--b:#4da3ff">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/argon/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="argon/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">Argon <em>argon</em></div>
+                <p class="desc">博客的排法：毛玻璃顶栏 + 居中正文栏 + 右侧小挂件，每条订阅是一张会浮起来的大圆角卡。
+                    九款里位移最大、手感最软的一款。</p>
+                <div class="tags"><span>居中正文栏</span><span>悬停浮起</span></div>
+            </div>
+        </a>
+
+        <a class="card" href="macintosh/" style="--a:#000000;--b:#8f8f8f">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/macintosh/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="macintosh/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">经典 Macintosh <em>macintosh</em></div>
+                <p class="desc">只有黑和白：屏幕顶上一条苹果菜单栏，应用是一扇条纹标题栏的方窗，
+                    订阅页是 Finder 的图标视图，选中就整块反白。界面字是真的 12px 点阵。</p>
+                <div class="tags"><span>屏幕菜单栏</span><span>点阵字</span></div>
+            </div>
+        </a>
+
+        <a class="card wide" href="synology/" style="--a:#0f6ecd;--b:#14a3a3">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/synology/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="synology/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">群晖 DSM <em>synology</em></div>
+                <p class="desc">DSM 7 的桌面：壁纸打底，顶上一条深色任务栏和九宫格主菜单，
+                    应用装在一扇带左侧栏的窗里；总览是资源监控挂件，订阅页是套件中心那种左图右文的卡片。</p>
+                <div class="tags"><span>顶部任务栏</span><span>窗内左侧栏</span><span>资源监控挂件</span></div>
+            </div>
+        </a>
     </div>
 
     <h2>装到自己的 ani-rss 上</h2>
@@ -701,7 +758,7 @@
     </div>
 
     <footer>
-        六款是同一套代码的不同外观，装一款就够，装第二款会覆盖第一款 ——
+        九款是同一套代码的不同外观，装一款就够，装第二款会覆盖第一款 ——
         <a href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest" rel="noopener">下载压缩包</a> ·
         <a href="https://github.com/zzzwannasleep/ani-rss-themes" rel="noopener">源码与说明</a> ·
         <a href="../">旧版主题（给自带界面换肤的 CSS）</a>
@@ -715,7 +772,7 @@
     (function () {
         const boxes = [...document.querySelectorAll('.shot')]
         // iframe 内部按这个宽度渲染，再整体缩到卡片宽度。窄屏上给它手机的宽度 ——
-        // 硬塞 1440 再缩到 0.27 只剩一团糊，而这六款本来就是同一套响应式代码，
+        // 硬塞 1440 再缩到 0.27 只剩一团糊，而这九款本来就是同一套响应式代码，
         // 手机上正好让它把自己的手机版布局摆出来。
         const narrow = matchMedia('(max-width: 720px)').matches
         // 至少给它一个手机的宽度，同时不小于卡片本身 —— 取 max 是为了永远只缩不放，

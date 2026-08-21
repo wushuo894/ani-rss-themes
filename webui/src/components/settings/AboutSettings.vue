@@ -158,7 +158,8 @@ async function doStop(status: number) {
 .changelog {
     white-space: pre-wrap;
     word-break: break-word;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /* 走主题变量：scoped 的权重压过 base.css 那条，写死的话皮肤给的等宽字栈永远不生效 */
+    font-family: var(--ani-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
     font-size: .8125rem;
     line-height: 1.6;
     margin: 0;

@@ -1,6 +1,6 @@
 name: Pages
 
-# 预览站 = 旧主题预览（legacy/）+ 六款 WebUI 的演示构建。
+# 预览站 = 旧主题预览（legacy/）+ 九款 WebUI 的演示构建。
 #
 # 之所以改成用 Actions 发布而不是「从分支根目录发布」：仓库已经拆成 legacy/ 和 webui/
 # 两个目录，但线上必须保留 /themes/xxx.css 这个地址 —— 用户 @import 的就是它，
@@ -37,7 +37,7 @@ jobs:
       - run: npm ci
         working-directory: webui
 
-      - name: 构建六款演示版
+      - name: 构建九款演示版
         # VITE_DEMO=1：拦掉所有请求用内置假数据顶上，预览站没有后端
         run: npm run build:all -- --demo
         working-directory: webui

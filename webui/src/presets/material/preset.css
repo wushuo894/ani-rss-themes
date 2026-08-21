@@ -46,3 +46,27 @@
 .ani-lift:active::after {
     opacity: .12;
 }
+
+/*
+ * ── Roboto：这一款的字，真的带上 ──
+ *
+ * 和 vue 那款一样的毛病：皮肤的字体栈第一位写着 Roboto，却没有任何地方加载它。
+ * Roboto 只有安卓自带 —— Windows、macOS、iOS 上一个都没有，于是「Material Design 3」
+ * 在这些机器上是用 Segoe UI / PingFang 画出来的。M3 的字体规格（字重、字距、
+ * 那套 display/headline/body 的比例）全是照 Roboto 定的，换一款字就全走样了。
+ *
+ * 只带拉丁那一份（43KB，可变字重，一个文件覆盖 100~900）。中文不带 ——
+ * 中文那份要 5MB 以上，而 M3 的中文规范本来就是交给思源黑体 / PingFang 的，
+ * 字体栈里 Roboto 后面那几个就是干这个的。
+ * 字体文件里没有汉字，浏览器会自动往后找，不需要写 unicode-range。
+ *
+ * font-display: swap 而不是 block：这一款的字号是 rem，先用系统字体顶上不会错位，
+ * 顶多字宽跳一下 —— 比白屏 3 秒强。
+ */
+@font-face {
+    font-family: 'Roboto';
+    src: url('../../fonts/roboto-latin-wght.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}

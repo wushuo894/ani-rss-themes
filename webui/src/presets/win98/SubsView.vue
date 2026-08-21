@@ -259,7 +259,7 @@ function pick(a: Ani) {
 
 .lv-th i {
     margin-left: auto;
-    font-size: 9px;
+    font-size: 12px;
     font-style: normal;
 }
 
@@ -315,7 +315,7 @@ function pick(a: Ani) {
     background: var(--w98-face);
     box-shadow: var(--w98-out);
     color: var(--w98-ink);
-    font-size: 8px;
+    font-size: 12px;
     line-height: 1;
 }
 
@@ -338,7 +338,7 @@ function pick(a: Ani) {
     }
 
     .lv table {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .lv tbody td {
@@ -353,7 +353,7 @@ function pick(a: Ani) {
     .lv-more {
         width: 36px;
         height: 36px;
-        font-size: 10px;
+        font-size: 12px;
     }
 
     .col-act {
@@ -426,7 +426,7 @@ function pick(a: Ani) {
 
 @media (max-width: 599.98px), (pointer: coarse) {
     .w98-ctx {
-        font-size: 14px;
+        font-size: 12px;
     }
 
     .w98-ctx li {

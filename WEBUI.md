@@ -1,11 +1,11 @@
 # ani-rss 替代 WebUI
 
-给 [ani-rss](https://github.com/wushuo894/ani-rss) 做的六套完整前端，整个替换掉自带界面 —— 不是换肤。
+给 [ani-rss](https://github.com/wushuo894/ani-rss) 做的九套完整前端，整个替换掉自带界面 —— 不是换肤。
 
 上游在 `test` 分支（2026-08-19，commit `a79d482`）加了「备用 webui」：把文件放进 `{configDir}/webui/`，
-后端就优先从那里取静态资源。这六套就是给那个目录用的。
+后端就优先从那里取静态资源。这九套就是给那个目录用的。
 
-**👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)** —— 六款都能点开试，数据是内置的假数据。
+**👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)** —— 九款都能点开试，数据是内置的假数据。
 
 | id | 首页 | 订阅主视图 | 导航形态 | 动作语言 |
 | --- | --- | --- | --- | --- |
@@ -15,18 +15,21 @@
 | `github` GitHub | 没有首页，打开就是清单 | 带边框的清单，行内状态点 | 顶栏 + 一排 tab，无侧栏 | 没有动效，层级靠 1px 边框（Primer 就这样） |
 | `material` Material 3 | 大标题 + tonal 指标卡 + 横向轨道 | M3 卡片网格（带集数进度线），可切表格 | 导航栏杆 / 底部导航 + 扩展 FAB | M3 emphasized 曲线，反馈是 state layer 不是位移 |
 | `win98` Windows 98 | 一页「系统属性」：几个分组框 + 一格一格的进度条 | 资源管理器的详细信息视图：一行一条、点表头排序、右键出菜单 | 整个应用是一扇窗（标题栏 + 菜单栏 + 左侧窗格），底下钉一条带开始菜单的任务栏 | 一帧都没有，反馈只有「立体边框翻个面」 |
+| `argon` Argon | 博客首页：渐变横幅 + 一排数字药丸 + 文章流 | 一列大圆角宽卡，左缩略图右正文，鼠标一过整张浮起来 | 毛玻璃顶栏上一排胶囊，窄屏换汉堡抽屉；正文限宽居中 | 位移最大的一款：抬 6px、阴影铺开一倍，in-out 曲线 |
+| `macintosh` 经典 Macintosh | 「关于本机」：一个图标 + 四条斜纹计量杠 + Finder 列表 | Finder 图标视图：一格一张封面，名字压在名牌上，选中整块反白 | 屏幕顶上一条苹果菜单栏（不属于任何窗）+ 窗内一排纸片标签 | 一帧都没有，反馈只有「黑白对调」 |
+| `synology` 群晖 DSM | 资源监控挂件：健康条 + 环形表 + 数字方块 + 两块列表 | 套件中心卡片：左封面右信息，动作按钮折成 2×2 | 顶部深色任务栏 + 九宫格主菜单，窗内左侧栏；窗口按钮在右 | 后台的手感：150ms 淡入淡出，不抬起 |
 
-**不是六套配色。** 首页、订阅页、卡片形态、导航、连动效曲线都不一样；
-但底下是同一份接口层、状态层、弹窗和设置页 —— 一处修好六款同时好。
+**不是九套配色。** 首页、订阅页、卡片形态、导航、连动效曲线都不一样；
+但底下是同一份接口层、状态层、弹窗和设置页 —— 一处修好九款同时好。
 
-实现上是**一套源码 + 六个预设**：`webui/src/presets/<id>/` 各出一个外壳（`Shell.vue`）、
+实现上是**一套源码 + 九个预设**：`webui/src/presets/<id>/` 各出一个外壳（`Shell.vue`）、
 一个总览页（`DashboardView.vue`）、一个订阅页（`SubsView.vue`）、一份控件默认值（`defaults.ts`）
 和一份动作签名（`preset.css`），构建时用 `VITE_PRESET` 选一款。
-复制六份源码那种「六款」，改一个 bug 要改六次。
+复制九份源码那种「九款」，改一个 bug 要改九次。
 
 动效不是每款各写一遍：`src/styles/motion.css` 只定义**有哪些动作**（入场、悬停、按下、
 骨架屏），曲线和时长全走 CSS 变量，各款的 `preset.css` 改写变量。
-所以六款共用同一批类名，动起来却是六种手感。
+所以九款共用同一批类名，动起来却是九种手感。
 
 页面之间没有整页过渡：路由组件套在 `<keep-alive>` 里，切走再切回来不重新挂载 ——
 列表不用重新渲染、滚动位置还在、日志和下载器也不必重新拉一遍。`<transition>` 和
@@ -68,7 +71,7 @@ irm .../install.ps1 | iex
 
 ### 手动装
 
-[Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 里六个包，一款一个，**挑一个**解压到 `webui/`：
+[Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 里九个包，一款一个，**挑一个**解压到 `webui/`：
 
 | 压缩包 | 下载 | 解压后 |
 |---|---|---|
@@ -78,8 +81,11 @@ irm .../install.ps1 | iex
 | `ani-rss-webui-github.zip` | ~14 MB | ~42 MB |
 | `ani-rss-webui-material.zip` | ~14 MB | ~42 MB |
 | `ani-rss-webui-win98.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-argon.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-macintosh.zip` | ~15 MB | ~43 MB |
+| `ani-rss-webui-synology.zip` | ~14 MB | ~42 MB |
 
-界面本体只有 1.6 MB，其余全是播放器的 wasm。**每个包都自带播放器** ——
+界面本体只有 1.6 MB（`macintosh` / `win98` 多 0.5 MB，那是点阵字体），其余全是播放器的 wasm。**每个包都自带播放器** ——
 在线播放本来就是 ani-rss 的功能，我们只是把它自带的播放器换成支持 ASS 特效字幕和 HDR 的那个；
 拆成两个包只会让人少装一个，然后以为坏了。
 
@@ -104,12 +110,12 @@ irm .../install.ps1 | iex
 
 ### 装到手机主屏
 
-六款都是 PWA。手机浏览器打开后：
+九款都是 PWA。手机浏览器打开后：
 
 - **Android / Chrome**：菜单 →「添加到主屏幕」或地址栏里的安装按钮
 - **iOS / Safari**：分享 →「添加到主屏幕」
 
-装上之后没有地址栏，状态栏颜色跟着当前皮肤走，六款各是各的。
+装上之后没有地址栏，状态栏颜色跟着当前皮肤走，九款各是各的。
 Service Worker 只兜界面本身：`/api/` 一个都不缓存（订阅状态、下载进度是活数据，
 缓存一次就是骗人），带哈希的 `assets/` 走缓存优先，`index.html` 走网络优先、
 断网才退回缓存 —— 所以升级后打开就是新版，不用手动清缓存。
@@ -122,7 +128,7 @@ Service Worker 只兜界面本身：`/api/` 一个都不缓存（订阅状态、
 
 ```bash
 npm ci --prefix webui
-npm run build:all --prefix webui -- --only vue     # 不带 --only 就是六款全建
+npm run build:all --prefix webui -- --only vue     # 不带 --only 就是九款全建
 node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 ```
 
@@ -135,14 +141,15 @@ node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 cd webui
 VITE_PRESET=github VITE_API_TARGET=http://<你的 ani-rss> npm run dev
 npm run typecheck
-npm run build:all -- --demo    # 六款演示构建（假数据，Pages 预览用的就是它）
+npm run build:all -- --demo    # 九款演示构建（假数据，Pages 预览用的就是它）
 npm test                       # 主题 / 接口地址 / 外部播放器的断言
 npm run test:mobile            # 手机宽度版式体检，要先有 --demo 产物
 ```
 
-`test:mobile` 用无头 Chrome/Edge 跑六款 × 360/390/414 × 13 条路由，
+`test:mobile` 用无头 Chrome/Edge 跑九款 × 360/390/414 × 13 条路由，
 只认可判定的事实：整页横向滚动、元素伸出视口、可点元素不足 36px、
-固定元素压住按钮、控件里的短文本放不下（占位文字被截、chip 里的字漫出框外），
+固定元素压住按钮、控件里的短文本放不下（占位文字被截、chip 里的字漫出框外）、
+点阵字那两款的字号是不是都落在 12 的整数倍上（不在格上就发虚，见下面「字体」一节），
 以及订阅页上「一条订阅的八个动作」是不是一个都没丢 ——
 最后这条是拿真点击验的：图标行上看得见的 ∪「更多」菜单里点得到的，两边并起来必须齐。
 它防的是最贵也最静默的一类 bug：拿 CSS 把图标行里多出来的按钮 `display: none`，
@@ -150,8 +157,42 @@ npm run test:mobile            # 手机宽度版式体检，要先有 --demo 产
 vue-tsc 和单元测试又完全看不见 CSS，所以单开一份。
 本机没装浏览器时它直接跳过并返回 0，不会卡住别人。
 
+> 换款之前必须先跳 `about:blank`。`Page.navigate` 到一个只有**片段**不同的地址
+> （上一轮停在 `#/login`，下一轮要去 `#/`）会被当成同文档跳转：不重新加载，只改 hash。
+> 而每一款是靠换静态目录发出去的 —— 文档不重载，等于把同一款量了九遍，还九次全绿。
+> 这种「假绿」比报错危险得多，它看着像做过了。一款一款分开跑时碰不到，所以藏了很久。
+
 `VITE_PRESET` 不给默认是 `vue`。**后端地址走环境变量，不写进仓库**（也可以放进不进版本控制的
 `webui/.env.local`）—— 地址、端口这类东西一旦硬编码进去，之后就没人会去清了。
+
+## 字体是带在包里的
+
+三款界面的身份系在一款具体的字上，而那三款字**在用户机器上基本都不存在**：
+
+| 界面 | 要的字 | 不带的话实际用到的 |
+| --- | --- | --- |
+| `vue` | Inter（VitePress 的字） | 系统 UI 字体 —— 装了 Inter 的人少之又少 |
+| `material` | Roboto（M3 的字重和字距全照它定） | 系统 UI 字体 —— 只有安卓自带 Roboto |
+| `win98` / `macintosh` | 12px 点阵中西文 | 手机上是系统黑体，一点不像 1998 年 |
+
+所以这三份字随产物发，放在 `webui/src/fonts/`，`@font-face` 写在**预设**的 `preset.css` 里 ——
+只有用得上的那一款的产物里才有它，不会九个包各背一份。
+皮肤只在字体栈里点名，两边靠字体族名对上。
+
+拉丁那两份只带拉丁（各 40~50 KB，可变字重）：中文那份要 5 MB 以上，
+而 VitePress 和 M3 的中文版本来也是把汉字交给系统字体的。
+
+点阵那份 537 KB，`win98` 和 `macintosh` 共用。选它不选 98.css 那份 6 KB 的
+Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不是 MS Sans Serif** ——
+那是英文版的；中文版整套界面用的是 12px 宋体点阵，连里面的英文数字也是宋体的点阵拉丁。
+而且那份字是按 11px 设计的，中文点阵字是 12px 一格，拼在一起必有一边不在整数像素上，
+1px 宽的笔画一放大就糊成灰。方舟像素 12px 是「一格正好一个像素」，中西文同一套网格。
+
+代价是这两款的**字号只能取 12 的整数倍**，于是全站只有 12px 这一个字号 ——
+这既是硬约束，也正好是原版的样子（那个年代的界面本来就只有一个字号，
+层级靠粗体和位置分）。粗体也不用浏览器合成（合成 = 把 1px 笔画抹粗 = 发虚），
+改成「错开一像素再描一遍」，那正是当年点阵字加粗的做法。
+`npm run test:mobile` 里有一条专门查这个：字号除以 12 不是整数就报出来。
 
 ## 几个绕不开的约束
 
@@ -245,7 +286,7 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 
 ## 主题
 
-从仓库原有的 CSS 主题里挑了 6 款迁过来，在 **设置 → 基本设置 → 页面设置 → 主题** 里选：
+9 款，在 **设置 → 基本设置 → 页面设置 → 主题** 里选。前 6 款从仓库原有的 CSS 主题迁过来，后 3 款是新写的：
 
 | id | 名字 | 长什么样 |
 |---|---|---|
@@ -255,6 +296,9 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 | `github` | GitHub | Primer 配色与字栈，贡献热力图格子 |
 | `material` | Material Design 3 | Roboto，全圆角胶囊 |
 | `win98` | Windows 98 | 银灰双层斜角，靛蓝标题栏，方角滚动条，一格一格的进度条（只在浅色下成立） |
+| `argon` | Argon | 大圆角、软阴影、胶囊按钮，顶上一团很淡的主色晕染 |
+| `macintosh` | 经典 Macintosh | 只有黑白：条纹标题栏、1px 黑边、硬投影、斜纹进度条（只在浅色下成立） |
+| `synology` | 群晖 DSM | 干净的白面板、细灰边、DSM 蓝，桌面是蓝绿渐变壁纸 |
 
 原来那些 `.css` 主题文件一个没动，只是挪进了 `legacy/`，给 ani-rss 自带界面换肤照用。
 
@@ -278,25 +322,26 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 
 ```
 webui/
-├── shared/                六款共用，不含 UI 组件
+├── shared/                九款共用，不含 UI 组件
 │   ├── http.ts            传输层：Result 拆包、令牌、子路径自适应
 │   ├── api.ts             66 个端点的具名封装
 │   ├── types.ts           从 Java 实体生成
 │   ├── format.ts          体积/时间/集数格式化
 │   ├── player.ts          webplayer 接入：地址拼装与部署探测
 │   ├── vite-mdi-svg.ts    构建期插件：扫源码，只把用到的图标打进产物（省 700KB）
-│   ├── themes/            主题系统 + 6 款主题 + 自检
+│   ├── themes/            主题系统 + 9 款主题 + 自检
 │   └── tools/             类型/接口生成器、产物组装、Range 探针
 ├── src/
-│   ├── presets/<id>/      六款各自的外壳、总览页、订阅页、控件默认值、动作签名
+│   ├── fonts/             随产物发的三份字体（点阵 / Inter / Roboto），选型见那儿的 README
+│   ├── presets/<id>/      九款各自的外壳、总览页、订阅页、控件默认值、动作签名
 │   ├── styles/motion.css  动效底座：动作定义在这里，曲线由各款覆盖
-│   ├── components/        弹窗、设置项、卡片、骨架屏 —— 六款共用
-│   ├── views/             下载器/日志/设置/登录/播放 —— 六款共用
+│   ├── components/        弹窗、设置项、卡片、骨架屏 —— 九款共用
+│   ├── views/             下载器/日志/设置/登录/播放 —— 九款共用
 │   ├── stores/            订阅、下载、日志、配置、偏好
 │   ├── composables/       外壳逻辑、订阅页逻辑、主题管理
 │   └── demo/              演示模式：拦掉请求用假数据顶上（只进预览构建）
-├── preview-index.html     Pages 上的六款选择页
-└── tools/build-all.mjs    一口气构建六款
+├── preview-index.html     Pages 上的九款选择页
+└── tools/build-all.mjs    一口气构建九款
 
 legacy/                    旧的 CSS + JS 主题，给 ani-rss 自带界面换肤
 ├── themes/*.css           17 款
@@ -307,7 +352,7 @@ legacy/                    旧的 CSS + JS 主题，给 ani-rss 自带界面换�
 
 ## 预览站是怎么发布的
 
-`.github/workflows/pages.yml` 把 `legacy/` 铺回站点根、六款演示构建放进 `/webui/<id>/`。
+`.github/workflows/pages.yml` 把 `legacy/` 铺回站点根、九款演示构建放进 `/webui/<id>/`。
 
 之所以改成用 Actions 发布而不是「从分支根目录发布」：仓库拆成两半之后，
 线上必须保留 `/themes/xxx.css` 这个地址 —— 用户 `@import` 的就是它，换地址等于把已经装好的人的主题弄没。
@@ -319,4 +364,10 @@ CI 里也有一条检查：正式包里出现演示数据就直接失败。
 
 ## 许可
 
-MIT。与 ani-rss 官方无隶属关系；六款界面只是参照了各自的设计语言，与 Vue、GitHub、Google、Apple、Microsoft 均无关联。
+MIT。与 ani-rss 官方无隶属关系；九款界面只是参照了各自的设计语言，
+与 Vue、GitHub、Google、Apple、Microsoft、Synology 以及 Argon 主题作者均无关联。
+
+随产物发的三份字体各自带原始许可（`webui/src/fonts/OFL-*.txt`），都是 SIL Open Font License 1.1：
+[方舟像素字体](https://github.com/TakWolf/ark-pixel-font)（TakWolf）、
+[Inter](https://github.com/rsms/inter)（The Inter Project Authors）、
+[Roboto](https://github.com/googlefonts/roboto)（Google）。

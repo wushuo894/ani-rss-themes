@@ -122,6 +122,32 @@
             out.clipped.push({el: desc(host), text: txt, need: Math.round(own.width), room: Math.round(hr.width)})
     }
 
+    /*
+     * ⑤ 点阵字那两款：字号必须落在 12 的整数倍上。
+     *
+     * win98 和 macintosh 用的是 12px 一格的点阵字（见 src/fonts/README.md）。
+     * 字号只要不在格上，浏览器就得把 1px 宽的笔画拉成 1.08px —— 拉出来是两条灰边，
+     * 整屏字发虚。这毛病看截图分辨不出来（「有点糊」和「字体没生效」长得一样），
+     * 但量出来是确定的：computed 的 font-size 除以 12 不是整数，就是漏了一处。
+     *
+     * 只查直接含文字节点的元素：容器的 font-size 会被子元素覆盖，报出来全是噪音。
+     * v-icon 排除 —— 图标的大小就是靠 font-size 传的，它本来就不该在这个网格上。
+     */
+    out.offgrid = []
+    if (/^(win98|macintosh)$/.test(document.documentElement.getAttribute('data-ani-theme') || '')) {
+        for (var g = 0; g < all.length; g++) {
+            var ge = all[g]
+            if (!visible(ge) || ge.closest('.v-icon')) continue
+            var own = false
+            for (var ch = ge.firstChild; ch; ch = ch.nextSibling) {
+                if (ch.nodeType === 3 && ch.nodeValue.trim()) own = true
+            }
+            if (!own) continue
+            var fs = parseFloat(getComputedStyle(ge).fontSize)
+            if (Math.abs(fs / 12 - Math.round(fs / 12)) > 0.01) out.offgrid.push({el: desc(ge), fs: fs})
+        }
+    }
+
     var fixed = []
     for (var k = 0; k < all.length; k++) {
         var e = all[k], pos = getComputedStyle(e).position
@@ -162,5 +188,6 @@
     out.tap = dedup(out.tap).slice(0, 8)
     out.overlap = dedup(out.overlap).slice(0, 4)
     out.clipped = dedup(out.clipped).slice(0, 8)
+    out.offgrid = dedup(out.offgrid).slice(0, 8)
     return out
 })()

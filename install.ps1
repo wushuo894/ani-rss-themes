@@ -19,7 +19,7 @@ $Repo = 'zzzwannasleep/ani-rss-themes'
 # 可用 $env:ANIRSS_BASE 覆盖下载源（自建镜像、或本地测试）
 $Base = if ($env:ANIRSS_BASE) { $env:ANIRSS_BASE } else { "https://github.com/$Repo/releases/latest/download" }
 
-$UiIds = @('acg', 'liquid-glass', 'vue', 'github', 'material', 'win98')
+$UiIds = @('acg', 'liquid-glass', 'vue', 'github', 'material', 'win98', 'argon', 'macintosh', 'synology')
 
 # param() 后面必须换行或加分号，同一行直接跟语句 PowerShell 解析不了
 function Say {
@@ -105,7 +105,10 @@ if (-not $ui) {
     Say '  4 GitHub          深色顶栏 + tab，一张带边框的清单'
     Say '  5 Material 3      导航栏杆 / 底部导航 + 右下 FAB'
     Say '  6 Windows 98      标题栏 + 菜单栏 + 任务栏，订阅页是详细信息列表'
-    Say '  六款功能完全一样，只是长得不同。在线预览：' 'DarkGray'
+    Say '  7 Argon           博客的排法：毛玻璃顶栏 + 居中正文栏 + 右侧挂件'
+    Say '  8 经典 Macintosh  黑白两色，苹果菜单栏 + 条纹标题栏，Finder 图标视图'
+    Say '  9 群晖 DSM        顶部任务栏 + 主菜单，应用在一扇带左侧栏的窗里'
+    Say '  九款功能完全一样，只是长得不同。在线预览：' 'DarkGray'
     Say '  https://zzzwannasleep.github.io/ani-rss-themes/webui/' 'DarkGray'
     $ui = Ask '装哪一款（序号或 id）' '3'
 }
@@ -117,8 +120,11 @@ switch ($ui) {
     '4' { $ui = 'github' }
     '5' { $ui = 'material' }
     '6' { $ui = 'win98' }
+    '7' { $ui = 'argon' }
+    '8' { $ui = 'macintosh' }
+    '9' { $ui = 'synology' }
 }
-if ($ui -notin $UiIds) { Die "只能是 $($UiIds -join ' / ')（或序号 1-6），收到: $ui" }
+if ($ui -notin $UiIds) { Die "只能是 $($UiIds -join ' / ')（或序号 1-9），收到: $ui" }
 
 # ── 下载 ────────────────────────────────────────────────
 $tmp = Join-Path ([System.IO.Path]::GetTempPath()) ("anirss-" + [guid]::NewGuid().ToString('N').Substring(0, 8))

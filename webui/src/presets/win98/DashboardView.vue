@@ -238,13 +238,13 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 11px;
+    font-size: 12px;
     opacity: .8;
 }
 
 .row-time {
     flex: 0 0 auto;
-    font-size: 11px;
+    font-size: 12px;
     opacity: .8;
 }
 
@@ -252,7 +252,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
     flex: 0 0 auto;
     padding: 0 4px;
     border: 1px solid var(--w98-shade);
-    font-size: 11px;
+    font-size: 12px;
 }
 
 .empty {

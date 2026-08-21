@@ -1,0 +1,79 @@
+/*
+ * 群晖 DSM 这款的动作语言：短、直、只有淡入淡出。
+ *
+ * DSM 是个管理后台，一天要点上百下，动效必须让路 —— 它自己也是这么做的：
+ * 窗口打开是一次 150ms 的淡入 + 极小的缩放，列表项没有入场动画，
+ * 悬停只换底色不抬起。所以位移调到最小、抬起完全关掉（--m-lift: 0），
+ * 只留一点缩放当「这块能点」的提示。
+ *
+ * 和 GitHub 那款的「几乎不动」不是一回事：那边是靠 1px 边框表达层级，一帧都不给；
+ * 这边有真正的浮层（窗口、抽屉、下拉），淡入淡出必须有，否则弹窗是「啪」地出现的。
+ */
+:root {
+    --m-dur: 150ms;
+    --m-dur-slow: 220ms;
+    --m-ease: cubic-bezier(.4, 0, .2, 1);
+    --m-ease-out: cubic-bezier(0, 0, .2, 1);
+    --m-rise: 4px;
+    --m-scale: .995;
+    --m-stagger: 14ms;
+    --m-lift: 0px;
+    --m-lift-shadow: 0 2px 10px rgba(0, 0, 0, .14);
+    --m-press: .99;
+
+    /*
+     * 外壳自己画的那些东西（任务栏、窗框、侧栏）用的一套尺寸和颜色。
+     *
+     * 和皮肤（shared/themes/registry.ts 里的 synology）是各写一份的，不是漏抽公共：
+     * 皮肤要能单独套到别的八款外壳上，这个外壳也要能配别的皮肤 —— 两边都得自带一份。
+     */
+    --dsm-taskh: 40px;
+    --dsm-titleh: 44px;
+    --dsm-side: 208px;
+    --dsm-pad: 22px;
+    --dsm-radius: 8px;
+    /* 任务栏是压在壁纸上的一条深色玻璃，明暗两套主题下都是深的 —— DSM 就是这样 */
+    --dsm-task-bg: rgba(32, 35, 39, .88);
+    --dsm-task-ink: #e8eaed;
+}
+
+@media (max-width: 599.98px), (pointer: coarse) {
+    :root {
+        /* 40px 的任务栏在鼠标下刚好，手指下点不着；窗户也别再留边，390px 上一圈 22px 是白扔 44px */
+        --dsm-taskh: 48px;
+        --dsm-titleh: 48px;
+        --dsm-pad: 0px;
+        --dsm-radius: 0px;
+    }
+}
+
+/* 键盘焦点：DSM 的焦点提示是一圈蓝光晕，跟着圆角走 */
+:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), .5);
+}
+
+/*
+ * 关掉页面本身的滚动条。
+ *
+ * Vuetify 的 reset 给 html 写死了 overflow-y: scroll（内容长短变化时页面不会左右跳）。
+ * 这一款整个应用是一扇钉死的窗、页面永远不滚，于是右边常年杵着一条拖不动的滚动条 ——
+ * 既吃掉一截宽度，又像是坏了。
+ *
+ * 类挂在 <html> 上、由外壳的生命周期开关（见 Shell.vue）：登录页和播放页不在这个外壳里，
+ * 而 CSS 一旦注入就撤不回去，写成无条件的 html {} 会把那两页的滚动一起锁死。
+ */
+html.dsm-root {
+    overflow-y: hidden;
+}
+
+/*
+ * 演示角标要给任务栏让位 —— 这一款的任务栏在**顶上**，底下是空的，
+ * 所以角标反而可以贴回原来的 12px，不必像 win98 那样抬起来。
+ *
+ * 类名写两遍把权重顶到 (0,3,0)：App.vue 那条带 scoped 属性，是 (0,2,0)，
+ * 打平就要赌两张样式表谁在后面 —— 而外壳的 CSS 在异步分块里，顺序是构建器说了算。
+ */
+.v-application .demo-badge.demo-badge {
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+}

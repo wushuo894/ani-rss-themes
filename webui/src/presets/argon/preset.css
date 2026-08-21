@@ -1,0 +1,46 @@
+/*
+ * Argon 这款的动作语言：柔和、带一点点回弹，位移比别款都大。
+ *
+ * 博客主题的手感来自「卡片会浮起来」—— 鼠标一过，整张卡抬 6px、阴影铺开一倍，
+ * 这是 Argon 最好认的一个动作。曲线取 cubic-bezier(.645,.045,.355,1)（in-out 型），
+ * 起步和收尾都慢，中间快；比 Material 的 emphasized 更「圆」一点，不那么干脆。
+ */
+:root {
+    --m-dur: 260ms;
+    --m-dur-slow: 420ms;
+    --m-ease: cubic-bezier(.645, .045, .355, 1);
+    --m-ease-out: cubic-bezier(.19, 1, .22, 1);
+    --m-rise: 14px;
+    --m-scale: .98;
+    --m-stagger: 34ms;
+    --m-lift: -6px;
+    --m-lift-shadow: 0 18px 42px rgba(0, 0, 0, .14);
+    --m-press: .975;
+}
+
+/*
+ * 顶栏和小挂件都用同一组尺寸，两处必须一致 ——
+ * 内容栏的上内边距要正好等于顶栏高度，差一点就会出现「标题被顶栏压住半行」
+ * 或者「顶栏底下多一条空缝」。
+ */
+:root {
+    --ag-bar-h: 64px;
+    --ag-max: 1120px;
+    --ag-gap: 24px;
+}
+
+@media (max-width: 599.98px), (pointer: coarse) {
+    :root {
+        --ag-bar-h: 56px;
+        --ag-gap: 14px;
+    }
+}
+
+/*
+ * 键盘焦点：这一款到处是圆角，方形的默认焦点框会切进圆角里。
+ * 用 box-shadow 画一圈跟着圆角走的光晕，颜色取主色。
+ */
+:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), .34);
+}

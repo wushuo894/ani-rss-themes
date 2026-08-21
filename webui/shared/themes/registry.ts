@@ -1,10 +1,11 @@
 import type {ThemeDef} from './types'
 
 /**
- * 6 款主题。
+ * 9 款主题。
  *
- * 由仓库里的 Element Plus 主题迁移而来：带过来的是设计决策本身
+ * 前 6 款由仓库里的 Element Plus 主题迁移而来：带过来的是设计决策本身
  * （字体栈、主色、圆角尺度、背景与装饰），不是原来的选择器 —— 类名体系已经换成 Vuetify。
+ * 后 3 款（Argon / 经典 Macintosh / 群晖 DSM）照着各自的原型新写，没有对应的旧 CSS。
  *
  * 迁移后每款从 12~60KB 缩到几十行：原来要逐个覆盖 Element Plus 的上百个组件，
  * 现在 DOM 是自己的，接线统一由 base.css 完成，主题只需给出「长什么样」。
@@ -13,6 +14,70 @@ import type {ThemeDef} from './types'
 /* 常用字体栈，多款主题共用 */
 const CN = '"PingFang SC", "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei"'
 const MONO = 'ui-monospace, "JetBrains Mono", "Cascadia Mono", "Sarasa Mono SC", Consolas, monospace'
+
+/*
+ * 点阵字的排版规矩。win98 和 macintosh 两款共用 —— 它们用的是同一份 12px 点阵中西文
+ * （src/fonts/，选型理由见那儿的 README），约束也就完全一样，抄两遍迟早会漂。
+ *
+ * 核心只有一条：**字号必须落在 12 的整数倍上**。
+ * 点阵字的笔画只有 1 个像素宽，字号一旦不在它自己的网格上，浏览器就得把 1px 的黑线
+ * 拉成 1.08px —— 拉出来是两条灰边，整屏字发虚。而 Vuetify 的字号是 .75/.875/1rem 这些
+ * 倍数，根字号取多少都凑不出「全是 12 的整数倍」。
+ *
+ * 这不只是将就：1998 年前后的界面本来就只有一个字号，标题、正文、按钮、状态栏全是 8~9pt，
+ * 层级靠粗体和位置分，不靠字号。所以「只有一档」既是点阵字的硬约束，也是原版的样子。
+ *
+ * 第一版是把带字的组件挨个列出来的，结果被 test:mobile 当场抓到三处漏网
+ * （日志行、捐赠卡里的 b 和 em）—— 它们不是 Vuetify 组件，是我们自己页面里的元素，
+ * 列表永远追不上。所以改成「全都要，除了图标」：v-icon 的大小就是靠 font-size 传的，
+ * 一并改掉的话一屏图标全变成 12px 见方，除它以外没有第二个例外。
+ */
+const PIXEL_TYPO = `
+.v-application,
+.v-application *:not(.v-icon):not(.v-icon *) {
+    font-size: 12px !important;
+    letter-spacing: 0;
+}
+
+/*
+ * 行高只在根上给一次，让它往下继承。
+ * 不跟着 font-size 一起 !important 铺到每个元素：那会把「多行标题」和「单行标签」压成一样，
+ * 而这份字的上升 + 下降正好是 1600/1200 —— 12px 字配 16px 行高就是它自己的网格。
+ */
+.v-application {
+    line-height: 16px;
+}
+
+/*
+ * 点阵字没有粗体，浏览器只好自己合成一个：把笔画整体抹粗。
+ * 1px 的点阵笔画一抹就成了 1.3px 的灰条，正是「字看着糊」最主要的来源。
+ *
+ * 关掉合成，改用当年点阵字真正的加粗做法：整个字错开一个像素再描一遍。
+ * 描出来仍然是实心像素，一点不糊，而且这就是那个年代屏幕上「粗体」的样子。
+ */
+* {
+    font-synthesis: none;
+}
+
+b, strong,
+.font-weight-bold, .font-weight-medium, .font-weight-black,
+.v-card-title,
+.v-tab--selected,
+.v-table > .v-table__wrapper > table > thead > tr > th {
+    font-weight: 400;
+    text-shadow: 1px 0 0 currentColor;
+}
+
+/*
+ * 别让浏览器给点阵字做抗锯齿 —— 灰边一上，整套「一个像素就是一个像素」就没了。
+ * Firefox 没有对应开关（-moz-osx-font-smoothing 只在 macOS 上管用），
+ * 它那边会略微发灰，但字形和网格仍然是对的。
+ */
+.v-application {
+    -webkit-font-smoothing: none;
+    font-smooth: never;
+}
+`
 
 /** 二次元壁纸源（横屏 / 竖屏） */
 const ACG_PC = 'https://www.loliapi.com/acg/pc/'
@@ -230,10 +295,18 @@ body::before {
             'on-background': '#000000', 'on-surface': '#000000',
         },
         vars: {
-            /* MS Sans Serif 现在的机器上多半没有，Tahoma 是它的直系后继（Win98 自带）。
-               中文回落到宋体：那才是当年简体中文版界面上的字 */
-            font: `"MS Sans Serif", Tahoma, Verdana, "Microsoft YaHei", SimSun, sans-serif`,
-            fontMono: `"Lucida Console", "Courier New", ${MONO}`,
+            /*
+             * 12px 点阵，字体文件由 win98 那款外壳带（src/presets/win98/preset.css 里的 @font-face），
+             * 这里只负责在字体栈里点名。选型见 src/fonts/README.md —— 一句话：中文版 Win98
+             * 的界面字是 12px 宋体点阵，不是英文版那个 MS Sans Serif，连英文数字也是点阵的。
+             *
+             * 后面那串系统字体不是摆设：别款外壳配这张皮肤时点阵字不在产物里，
+             * 得有东西接住。Windows 上是 Tahoma（MS Sans Serif 的直系后继），中文回落宋体。
+             */
+            font: `"Ark Pixel 12px", "MS Sans Serif", Tahoma, Verdana, "Microsoft YaHei", SimSun, sans-serif`,
+            /* 日志也用同一份点阵字：方舟像素的数字是等宽的（每个 6px），
+               时间戳照样对得齐，而换成 Lucida Console 会在一屏里出现两种字 */
+            fontMono: `"Ark Pixel 12px", "Lucida Console", "Courier New", ${MONO}`,
             radius: '0px', radiusPill: '0px', radiusInput: '0px',
             shadow: 'none',
         },
@@ -261,6 +334,8 @@ body::before {
 
 /* 选中就是靛蓝铺满，没有半透明 */
 ::selection { background: #000080; color: #ffffff; }
+${PIXEL_TYPO}
+
 
 /*
  * ── 立体感 ──
@@ -420,6 +495,332 @@ body::before {
 ::-webkit-scrollbar-button:single-button:horizontal:increment {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M6 4 L2 1 L2 7 Z'/%3E%3C/svg%3E");
 }
+`,
+    },
+
+    {
+        id: 'argon',
+        name: 'Argon',
+        desc: '博客的样子：大圆角、软阴影、胶囊按钮，鼠标一过整张卡浮起来',
+        base: 'auto',
+        light: {
+            background: '#f5f6f7', surface: '#ffffff', 'surface-variant': '#eef0f3',
+            primary: '#0084ff', secondary: '#5a6a7a', success: '#00a06b',
+            warning: '#b06f00', error: '#d64545', info: '#3f7fd0',
+        },
+        /* 深色不是把浅色反过来，用的是 One Dark 那组灰蓝 —— Argon 的暗色模式就照它来。
+           纯黑底会让大圆角卡片的边缘整个消失：卡和背景都是黑的，只剩阴影，而阴影在黑底上看不见 */
+        dark: {
+            background: '#21252b', surface: '#282c34', 'surface-variant': '#31363f',
+            primary: '#4da3ff', secondary: '#9aa6b2', success: '#4fd396',
+            warning: '#e5c07b', error: '#e06c75', info: '#61afef',
+        },
+        vars: {
+            font: `"HarmonyOS Sans SC", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, ${CN}, sans-serif`,
+            fontMono: MONO,
+            radius: '16px', radiusPill: '999px', radiusInput: '12px',
+            shadow: '0 2px 12px rgba(0,0,0,.06)',
+        },
+        css: `
+/* 顶上一团很淡的主色晕染，往下很快化开 —— Argon 首页横幅底下那层光。
+   刻意不用 filter: blur()：那是铺满视口的固定层，每次滚动都要整屏重新栅格化 */
+body::before {
+    background-image: radial-gradient(64% 42% at 50% -8%,
+        rgba(0,132,255,.16) 0%, rgba(0,132,255,.08) 40%, transparent 74%);
+    filter: none; transform: none;
+}
+
+/*
+ * 这一款的分隔全靠「一块底色 + 大圆角 + 软阴影」，全站找不到第二根 1px 的线。
+ * 所以卡片不给边框，只给阴影；边框一上来就把柔和的边缘切成硬的，立刻不是这一款了。
+ */
+.v-card { border: none; }
+
+/* 输入框是浅灰填充块，聚焦时换成主色描边 —— Argon 的搜索框就是这样 */
+.v-field--variant-solo-filled .v-field__overlay { opacity: 1; background: rgba(128,128,128,.1); }
+.v-field--focused .v-field__overlay { background: rgba(0,132,255,.08); }
+
+/* 列表当前项：淡主色底 + 主色字，不用填满的色块 */
+.v-list-item--active { background: rgba(var(--v-theme-primary), .12); color: rgb(var(--v-theme-primary)); }
+
+/* 选中文字也跟着主色走，别用浏览器默认的那抹蓝 */
+::selection { background: rgba(0,132,255,.24); }
+`,
+    },
+
+    {
+        id: 'macintosh',
+        name: '经典 Macintosh',
+        desc: '黑白两色，条纹标题栏，方窗硬阴影，选中就整块反白（只在浅色下成立）',
+        /*
+         * 只有浅色。那个年代的 Mac 屏幕是 1 位黑白，整套观感建立在「白纸上印黑字」这一个前提上：
+         * 条纹标题栏、1px 黑边、硬投影，全是印刷的语言。反过来做成深色，
+         * 得到的是一套自己编的东西，跟麦金塔没关系了。
+         */
+        base: 'light',
+        light: {
+            /* 银灰是窗体的脸。桌面那片 50% 网点由预设自己画（见 Shell.vue），
+               别的外壳选了这张皮肤，得到的是一整片「窗户脸」而不是一片灰点 */
+            background: '#dddddd', surface: '#ffffff', 'surface-variant': '#eeeeee',
+            primary: '#000000', secondary: '#666666', success: '#005522',
+            warning: '#7a5c00', error: '#990000', info: '#000066',
+            'on-background': '#000000', 'on-surface': '#000000',
+        },
+        vars: {
+            /*
+             * Chicago 是苹果的字，不能带；也没有任何一款带中文的 Chicago 替代品。
+             * 所以用和 win98 同一份 12px 点阵（字体文件由 macintosh 那款外壳带），
+             * 靠「错开一像素再描一遍」把它加粗到 Chicago 的厚度 —— 见 PIXEL_TYPO 里那段。
+             * 两款共用一份字不是偷懒：1990 年代的屏幕字本来就都是点阵，
+             * 区别在字重和排版，不在「是不是点阵」。
+             */
+            font: `"Ark Pixel 12px", Chicago, Geneva, "MS Sans Serif", "Microsoft YaHei", SimSun, sans-serif`,
+            fontMono: `"Ark Pixel 12px", Monaco, "Courier New", ${MONO}`,
+            /* 窗和面板是方的；只有按钮是圆角矩形 —— System 7 的按钮就是这个形状 */
+            radius: '0px', radiusPill: '8px', radiusInput: '0px',
+            shadow: 'none',
+        },
+        css: `
+:root {
+    font-size: 14px;
+
+    --mac-ink: #000000;
+    --mac-paper: #ffffff;
+    --mac-face: #dddddd;
+    --mac-face-2: #eeeeee;
+    --mac-shade: #999999;
+}
+${PIXEL_TYPO}
+/* 选中是整块反白 —— System 7 没有半透明，也没有淡蓝底 */
+::selection { background: #000000; color: #ffffff; }
+
+/*
+ * ── 一切都是「白纸 + 1px 黑边」──
+ * 用 box-shadow 画边而不是 border：border 会占布局宽度，每个控件都得为它重算内边距；
+ * box-shadow 画在内容盒里，不动布局。硬投影也走同一条属性，一次写完。
+ */
+.v-card,
+.v-sheet.v-sheet--rounded,
+.v-toolbar,
+.v-navigation-drawer,
+.v-expansion-panel {
+    background: #ffffff !important;
+    box-shadow: 0 0 0 1px #000000 !important;
+}
+
+/* ── 按钮：圆角矩形，1px 黑边，按下整个反白 ── */
+.v-btn {
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: 0 0 0 1px #000000 !important;
+    text-transform: none;
+    letter-spacing: 0;
+}
+/* 图标按钮也不是圆的 —— 这一款只有一种圆角（8px 的圆角矩形）。
+   base.css 给所有主题的图标按钮兜了 50%，这一款要撤掉，
+   否则弹窗右上角那颗关闭键是全站唯一一个圆的东西 */
+.v-btn--icon { border-radius: 8px !important; }
+/* 涟漪和悬停叠层都去掉：这一款的反馈只有「反白」这一种，没有中间态 */
+.v-btn__overlay, .v-btn__underlay, .v-ripple__container { display: none !important; }
+.v-btn:active { background: #000000 !important; color: #ffffff !important; }
+/* 默认按钮多一圈边 —— System 7 就是用双线圈出「回车落在这儿」 */
+.v-btn.bg-primary { box-shadow: 0 0 0 1px #000000, 0 0 0 3px #ffffff, 0 0 0 4px #000000 !important; }
+.v-btn.bg-primary:active { background: #000000 !important; color: #ffffff !important; }
+/* 破坏性动作认得出来：底色不能变（黑白是这一款的全部），改字色 */
+.v-btn.bg-error, .v-btn.text-error { color: #990000 !important; }
+.v-btn--disabled { color: #999999 !important; }
+
+/* ── 输入框：白底黑框，聚焦时边加粗到 2px ── */
+.v-field {
+    background: #ffffff !important;
+    box-shadow: 0 0 0 1px #000000 !important;
+}
+.v-field--focused { box-shadow: 0 0 0 2px #000000 !important; }
+.v-field__overlay { display: none; }
+.v-field__outline::before, .v-field__outline::after { display: none; }
+
+/* ── 开关做成勾选框：那个年代没有开关，只有打勾的方框 ── */
+.v-switch .v-switch__track {
+    border-radius: 0;
+    opacity: 1;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 1px #000000;
+}
+.v-switch .v-switch__thumb {
+    border-radius: 0;
+    background: #000000 !important;
+    box-shadow: none;
+}
+
+/* ── 列表与菜单：高亮是反白，菜单本身是白纸 + 黑边 + 硬投影 ── */
+.v-list { background: #ffffff !important; border-radius: 0; }
+.v-overlay__content > .v-list {
+    box-shadow: 0 0 0 1px #000000, 2px 2px 0 rgba(0,0,0,.55);
+    padding: 2px;
+}
+.v-list-item { border-radius: 0 !important; }
+.v-list-item__overlay { display: none; }
+.v-list-item--active, .v-list-item:hover { background: #000000; color: #ffffff; }
+
+/* ── 标签页：一排纸片，选中的那片和下面的面板连成一体 ── */
+.v-tab.v-tab {
+    background: #dddddd;
+    box-shadow: 0 0 0 1px #000000;
+    border-radius: 6px 6px 0 0;
+    margin-right: 3px;
+    text-transform: none;
+    letter-spacing: 0;
+    min-width: 0;
+}
+.v-tab .v-tab__slider { display: none; }
+.v-tab--selected { background: #ffffff; }
+
+/*
+ * ── 进度条：黑白斜条纹 ──
+ * 当年的进度条是一条爬满 45 度斜纹的黑条。用遮罩挖出白缝，不自己画一层 currentColor 的条纹：
+ * Vuetify 给进度条上色是加一个 .bg-success 之类的类，那个类同时把 color 设成白色，
+ * 拿 currentColor 画会得到一排白条压在浅底上，等于没有进度条。遮罩不碰颜色。
+ */
+.v-progress-linear { border-radius: 0 !important; box-shadow: 0 0 0 1px #000000; }
+.v-progress-linear__determinate {
+    background: #000000 !important;
+    -webkit-mask-image: repeating-linear-gradient(45deg, #000 0 4px, rgba(0,0,0,0) 4px 7px);
+    mask-image: repeating-linear-gradient(45deg, #000 0 4px, rgba(0,0,0,0) 4px 7px);
+}
+
+/* ── 对话框 = 一扇窗：条纹标题栏 + 硬投影 ── */
+.v-dialog > .v-overlay__content > .v-card {
+    padding: 2px;
+    background: #dddddd !important;
+    box-shadow: 0 0 0 1px #000000, 3px 3px 0 rgba(0,0,0,.5) !important;
+}
+.v-dialog > .v-overlay__content > .v-card > .v-card-title {
+    padding: 4px 8px !important;
+    color: #000000;
+    text-align: center;
+    /* 标题栏的横条纹：1px 黑线隔 1px 白 */
+    background: repeating-linear-gradient(0deg, #000000 0 1px, #ffffff 1px 2px);
+    box-shadow: 0 0 0 1px #000000;
+}
+/* 标题的字要有块白底垫着，否则条纹会从字缝里穿过去，一个字都读不出来 */
+.v-dialog > .v-overlay__content > .v-card > .v-card-title > * {
+    background: #ffffff;
+    padding-inline: 6px;
+}
+
+/*
+ * 提示条（v-alert）也得是黑白的。
+ *
+ * Vuetify 的 tonal alert 会按语义色掺一块浅底 —— 在一套只有黑白的界面里，
+ * 那块土黄是全屏唯一的彩色，比它想提醒的事情还显眼。
+ * 改成白纸黑边，语义交给左边那个图标和文字本身，这也是当年提示框的样子。
+ */
+.v-alert {
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: 0 0 0 1px #000000 !important;
+}
+.v-alert__underlay { display: none; }
+
+/* 提示气泡也是白纸黑边，不是深色药丸 */
+.v-tooltip > .v-overlay__content {
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: 0 0 0 1px #000000, 2px 2px 0 rgba(0,0,0,.5);
+    border-radius: 0;
+}
+
+/*
+ * ── 滚动条 ──
+ * 白道、黑边、方块滑块，两头各一颗箭头按钮。Firefox 不认这套伪元素，
+ * 给它一对配色兜底，至少不是默认的圆角细条。
+ */
+* { scrollbar-color: #dddddd #ffffff; }
+::-webkit-scrollbar { width: 15px; height: 15px; }
+::-webkit-scrollbar-track { background: #ffffff; box-shadow: inset 0 0 0 1px #000000; }
+::-webkit-scrollbar-thumb { background: #dddddd; box-shadow: inset 0 0 0 1px #000000; }
+::-webkit-scrollbar-corner { background: #ffffff; }
+::-webkit-scrollbar-button:single-button {
+    width: 15px; height: 15px;
+    background-color: #dddddd;
+    box-shadow: inset 0 0 0 1px #000000;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 7px 7px;
+}
+::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M4 1 L7 6 L1 6 Z'/%3E%3C/svg%3E");
+}
+::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1 2 L7 2 L4 7 Z'/%3E%3C/svg%3E");
+}
+::-webkit-scrollbar-button:single-button:horizontal:decrement {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M1 4 L6 1 L6 7 Z'/%3E%3C/svg%3E");
+}
+::-webkit-scrollbar-button:single-button:horizontal:increment {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3E%3Cpath d='M7 4 L2 1 L2 7 Z'/%3E%3C/svg%3E");
+}
+`,
+    },
+
+    {
+        id: 'synology',
+        name: '群晖 DSM',
+        desc: 'DSM 7 的配色：干净的白面板、细灰边、DSM 蓝，圆角只有一点点',
+        base: 'auto',
+        light: {
+            background: '#e9edf1', surface: '#ffffff', 'surface-variant': '#f2f4f7',
+            primary: '#0f6ecd', secondary: '#5a6673', success: '#2f9e54',
+            warning: '#b57200', error: '#d0393e', info: '#3d84c6',
+        },
+        dark: {
+            background: '#1b1e22', surface: '#25282d', 'surface-variant': '#30343a',
+            primary: '#4d9ee8', secondary: '#9aa4b0', success: '#4cbf72',
+            warning: '#e0a94a', error: '#e56a6e', info: '#6fb0e8',
+        },
+        vars: {
+            /* DSM 的字栈就是这套：先系统再 Roboto，中文交给 PingFang / 微软雅黑。
+               它是个 NAS 管理后台，字体上没有任何主张，主张全在版式上 */
+            font: `-apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, ${CN}, sans-serif`,
+            fontMono: MONO,
+            /* 圆角只有一点点：DSM 的窗、卡、按钮都是 4~8px，没有胶囊也没有大圆角 */
+            radius: '8px', radiusPill: '4px', radiusInput: '4px',
+            shadow: '0 1px 3px rgba(0,0,0,.10), 0 8px 24px rgba(0,0,0,.08)',
+        },
+        css: `
+/*
+ * 桌面底图：DSM 默认那张蓝绿抽象壁纸的意思，用渐变画。
+ * 不去外网拉图 —— 这套界面装在 NAS 上，很多人的 NAS 根本不通外网，
+ * 拉不到图就是一片纯色，比自己画的渐变还难看。
+ */
+body::before {
+    background-image:
+        radial-gradient(70% 60% at 18% 12%, rgba(30,120,200,.55), transparent 70%),
+        radial-gradient(60% 55% at 86% 22%, rgba(20,160,170,.45), transparent 72%),
+        radial-gradient(80% 70% at 50% 108%, rgba(10,40,80,.55), transparent 70%),
+        linear-gradient(160deg, #14507f, #0d2b46);
+    filter: none; transform: none;
+}
+
+/* DSM 的分隔线是实打实的 1px 灰线，不是阴影 —— 后台管理界面的层级都靠线 */
+.v-card { border: 1px solid rgba(128,128,128,.24); }
+.v-toolbar { border-bottom: 1px solid rgba(128,128,128,.24); }
+
+/* 按钮是方角矩形，主按钮实心蓝，次按钮白底灰边 —— DSM 的按钮组就这两种 */
+.v-btn { text-transform: none; letter-spacing: 0; font-weight: 400; }
+.v-btn--variant-outlined { border-color: rgba(128,128,128,.44); }
+
+/* 列表当前项：淡蓝底 + 左边一条蓝杠，这是 DSM 侧栏最好认的一处 */
+.v-list-item--active {
+    background: rgba(var(--v-theme-primary), .12);
+    box-shadow: inset 3px 0 0 rgb(var(--v-theme-primary));
+    border-radius: 4px;
+}
+
+/* 输入框聚焦时是一圈蓝边，不是加粗下划线 */
+.v-field--focused { box-shadow: 0 0 0 1px rgb(var(--v-theme-primary)); }
+
+::selection { background: rgba(15,110,205,.28); }
 `,
     },
 ]
