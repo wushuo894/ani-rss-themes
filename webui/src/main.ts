@@ -31,6 +31,22 @@ const warmRoutes = () => {
     void import('@/views/SettingsView.vue')
     void import('@/views/DownloadsView.vue')
     void import('@/views/LogsView.vue')
+
+    /*
+     * 顺带把 Service Worker 装上：装到主屏之后，后端没起来或者网不好时还能把界面打开。
+     *
+     * 挂在这儿而不是自己监听 window 的 load —— 演示构建里这个模块带顶层 await
+     * （要先换掉 fetch 再挂载），异步模块的执行时机可能已经在 load 之后，
+     * 那时候再 addEventListener('load') 是永远等不到的。
+     * 空闲回调没有这个先后问题，而且预缓存那几个文件也该排在首屏后面。
+     *
+     * 只在正式产物里装：dev server 下 SW 会把模块缓存住，改一行要清一次缓存。
+     * 失败一律吞掉 —— 局域网 IP 直连是明文 http，SW 在那儿根本不可用，
+     * 网页本身是好的，不该在控制台里刷红字。
+     */
+    if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+        void navigator.serviceWorker.register('./sw.js').catch(() => {})
+    }
 }
 if ('requestIdleCallback' in window) requestIdleCallback(warmRoutes, {timeout: 4000})
 else setTimeout(warmRoutes, 2000)

@@ -30,7 +30,16 @@ import {spawn} from 'node:child_process'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const DIST = resolve(HERE, '../../dist')
-const PORT = 4173, CDP_PORT = 9222
+/*
+ * 调试端口刻意不用 9222。
+ *
+ * 9222 是 DevTools 的默认端口，本机随便一个开了远程调试的浏览器都在上面 ——
+ * Claude 的浏览器扩展就是。抢不到端口时 Chrome 不报错，只是不监听，
+ * 而 /json/list 照样连得上 —— 连上的是别人那台：体检于是跑去驱动用户正开着的浏览器，
+ * 拿到的目标是某个扩展设置页，navigate 过去也等不到我们的页面，就这么挂住不动。
+ * 换一个没人用的端口，并在连之前确认对面确实是无头的那台。
+ */
+const PORT = 4173, CDP_PORT = 9273
 /*
  * 款式清单从 ids.ts 读，不在这儿再抄一遍 —— 抄了就会漏，
  * 表现是新加的那款静悄悄没被体检过。
@@ -80,6 +89,14 @@ const TYPES = {
 let root = join(DIST, presets[0])
 const server = createServer(async (req, res) => {
     const p = decodeURIComponent(req.url.split('?')[0])
+    /*
+     * 不给 Service Worker。
+     *
+     * 六款是轮流从同一个 127.0.0.1:4173 上发出去的，装上 SW 之后它会横插进每一个请求，
+     * 量到的就不是「这套界面本身排得怎么样」了，而且每换一款都要重新装一遍，慢得离谱。
+     * 直接 404，注册会失败 —— main.ts 里那句 catch 就是为这种场合留的，页面照常。
+     */
+    if (p === '/sw.js') { res.writeHead(404); return res.end('no sw here') }
     try {
         const buf = await readFile(join(root, normalize(p)))
         res.writeHead(200, {'content-type': TYPES[extname(p)] || 'application/octet-stream'})
@@ -93,15 +110,32 @@ const server = createServer(async (req, res) => {
 })
 await new Promise(r => server.listen(PORT, '127.0.0.1', r))
 
+/*
+ * 关掉扩展和代理。
+ *
+ * 体检量的是「这套界面在 390px 上排得对不对」，不该受本机装了什么影响 ——
+ * 广告拦截插件会改 DOM，代理插件会把 127.0.0.1 也绕出去，两样都能让结论变成假的。
+ * 顺手也快很多。
+ */
 const proc = spawn(browser, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
     `--user-data-dir=${join(process.env.TEMP || '/tmp', 'ani-rss-mobile-audit')}`,
-    '--no-first-run', '--disable-gpu', '--hide-scrollbars', 'about:blank',
+    '--no-first-run', '--disable-gpu', '--hide-scrollbars',
+    '--disable-extensions', '--no-proxy-server', '--disable-background-networking',
+    '--disable-sync', '--disable-features=Translate,MediaRouter',
+    'about:blank',
 ], {stdio: 'ignore'})
 
 let target
 for (let i = 0; i < 80; i++) {
     try {
+        /* 先认人：不是无头的那台就不碰 —— 宁可报错，也不要去动用户自己开着的浏览器 */
+        const ver = await (await fetch(`http://127.0.0.1:${CDP_PORT}/json/version`)).json()
+        if (!/Headless/i.test(ver['User-Agent'] || '')) {
+            console.error(`127.0.0.1:${CDP_PORT} 上是另一台浏览器（${ver.Browser}），不是体检自己起的那台。`)
+            console.error('把占着这个端口的浏览器关掉，或者改 CDP_PORT 再来。')
+            server.close(); proc.kill(); process.exit(1)
+        }
         const list = await (await fetch(`http://127.0.0.1:${CDP_PORT}/json/list`)).json()
         target = list.find(t => t.type === 'page')
         if (target) break
@@ -110,17 +144,44 @@ for (let i = 0; i < 80; i++) {
 }
 if (!target) { console.error('无头浏览器没起来'); server.close(); proc.kill(); process.exit(1) }
 
+/*
+ * 连不上就退，别死等。
+ *
+ * 上一次跑剩下的浏览器还占着 9222 时，/json/list 拿回来的是它的目标，
+ * 而那条 WebSocket 地址早就失效 —— open 事件永远不来。
+ * 表现是进程挂着不动、一个字都不输出（stdout 重定向时是块缓冲，退出才刷），
+ * 看上去像体检特别慢，实际是永远等下去，端口也一直不放。
+ */
 const ws = new WebSocket(target.webSocketDebuggerUrl)
-await new Promise(r => ws.addEventListener('open', r, {once: true}))
+await new Promise((res, rej) => {
+    const t = setTimeout(() => rej(new Error('连不上无头浏览器的调试端口 —— 多半是上一次跑剩的进程还占着，杀掉再来')), 15000)
+    ws.addEventListener('open', () => { clearTimeout(t); res() }, {once: true})
+    ws.addEventListener('error', () => { clearTimeout(t); rej(new Error('调试端口连接出错')) }, {once: true})
+}).catch(e => { console.error(e.message); server.close(); proc.kill(); process.exit(1) })
 let seq = 0
 const pending = new Map()
 ws.addEventListener('message', e => {
     const m = JSON.parse(e.data)
     if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id) }
 })
-const send = (method, params = {}) => new Promise((res, rej) => {
+/*
+ * 每条命令都带超时。
+ *
+ * 动作那一项要在页面里点开菜单再等一会儿，用的是 awaitPromise ——
+ * 页面里的 promise 万一不落地（弹层挡住点击、定时器被节流），
+ * 这边就是无限等：进程不退、端口不放，下一次跑直接 EADDRINUSE，
+ * 而且看不出是哪一步卡的。宁可报错也不要挂着。
+ */
+const send = (method, params = {}, ms = 20000) => new Promise((res, rej) => {
     const id = ++seq
-    pending.set(id, m => m.error ? rej(new Error(`${method}: ${m.error.message}`)) : res(m.result))
+    const timer = setTimeout(() => {
+        pending.delete(id)
+        rej(new Error(`${method} 超时 ${ms}ms`))
+    }, ms)
+    pending.set(id, m => {
+        clearTimeout(timer)
+        m.error ? rej(new Error(`${method}: ${m.error.message}`)) : res(m.result)
+    })
     ws.send(JSON.stringify({id, method, params}))
 })
 const run = async expression => {
@@ -132,6 +193,7 @@ await send('Page.enable')
 await send('Runtime.enable')
 
 const PROBE = await readFile(join(HERE, 'mobile-audit-probe.js'), 'utf8')
+const ACTIONS = await readFile(join(HERE, 'mobile-audit-actions.js'), 'utf8')
 
 let bad = 0
 for (const preset of presets) {
@@ -140,16 +202,29 @@ for (const preset of presets) {
         await send('Emulation.setDeviceMetricsOverride',
             {width: w, height: 844, deviceScaleFactor: 2, mobile: true, screenWidth: w, screenHeight: 844})
         await send('Emulation.setTouchEmulationEnabled', {enabled: true, maxTouchPoints: 5})
+        /* 报一下进度：六款 × 三个宽度 × 十三条路由要跑十几分钟，
+           不出声的话看起来跟卡死了一样，人就会去按 Ctrl-C */
+        console.log(`· ${preset} @${w}px …`)
         await send('Page.navigate', {url: `http://127.0.0.1:${PORT}/#/`})
         await sleep(1600)
         for (const [name, hash] of ROUTES) {
             await run('location.hash=' + JSON.stringify(hash))
             await sleep(800)
             const r = await run(PROBE)
+            /* 订阅页额外查一遍「八个动作一个都没丢」，见 mobile-audit-actions.js */
+            /* 这一项要真点一下菜单，卡住了就当成一条问题记下来，别把整轮拖死 */
+            let acts = null
+            if (hash === '/subscriptions') {
+                try { acts = await run(ACTIONS) } catch (e) { acts = {missing: [], hadMenu: true, err: e.message} }
+            }
             const hits = [
+                ...(acts?.missing ?? []).map(t => `动作丢了：「${t}」既不在图标行上，也不在「更多」菜单里`),
+                acts && !acts.hadMenu && '这一款订阅页上找不到「更多」菜单（title 得是 更多/操作/展开操作）',
+                acts?.err && `动作检查没跑成：${acts.err}`,
                 r.doc > r.vw + 1 && `横向滚动：文档 ${r.doc} > 视口 ${r.vw}`,
                 ...r.overflow.map(x => `溢出 ${x.l}..${x.rr}：${x.el}`),
                 ...r.tap.map(x => `小目标 ${x.w}×${x.h}：${x.el}`),
+                ...r.clipped.map(x => `文字放不下：「${x.text}」要 ${x.need}px，只有 ${x.room}px —— ${x.el}`),
                 ...r.overlap.map(x => `叠压 ${x.ox}×${x.oy}：${x.a} × ${x.b}`),
             ].filter(Boolean)
             if (!hits.length) continue

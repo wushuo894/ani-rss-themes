@@ -1,5 +1,6 @@
 import {computed} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
+import {useDisplay} from 'vuetify'
 import meta from '@preset/meta'
 import {useAuthStore} from '@/stores/auth'
 import {useAniStore} from '@/stores/ani'
@@ -52,6 +53,16 @@ export function useShell() {
     /** 搜索框只在订阅页有意义 */
     const showSearch = computed(() => route.name === 'subscriptions')
 
+    /*
+     * 搜索框的占位文字，窄屏换短的。
+     *
+     * 「搜索标题 / 字幕组 / 拼音首字母」要 225px，而 390px 的顶栏只匀得出 86px ——
+     * 截出来是「搜索标题 /」，比什么都不写还费解，看着就像控件坏了。
+     * 放在这儿而不是各款自己判断：五款抄五遍，短的那句迟早只有一两款有。
+     */
+    const {xs} = useDisplay()
+    const searchHint = computed(() => (xs.value ? '搜索订阅' : '搜索标题 / 字幕组 / 拼音首字母'))
+
     const themeIcon = computed(() => ({
         light: 'mdi-weather-sunny',
         dark: 'mdi-weather-night',
@@ -67,5 +78,5 @@ export function useShell() {
         void router.replace('/login')
     }
 
-    return {meta, route, nav, isActive, title, showSearch, themeIcon, cycleTheme, logout, ani, torrents, prefs}
+    return {meta, route, nav, isActive, title, showSearch, searchHint, themeIcon, cycleTheme, logout, ani, torrents, prefs}
 }

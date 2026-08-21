@@ -50,7 +50,24 @@
         return f ? f.getBoundingClientRect().height : 0
     }
 
-    var out = {vw: VW, doc: document.documentElement.scrollWidth, overflow: [], tap: [], overlap: []}
+    /*
+     * 文字放不下：量真实文字宽度，跟它能占的宽度比。
+     *
+     * 这一类光看 scrollWidth 是量不出来的 —— placeholder 画在原生 input 上，
+     * 放不下时直接截掉，scrollWidth 一点不涨；chip 里的文字则是漫到圆角框外面，
+     * 两种都长得像「控件坏了」。所以拿 canvas 按元素自己的字体量一遍。
+     * 只查控件里的短文本，不查正文：番剧名过长省略号截断是设计，不是毛病。
+     */
+    var ctx = document.createElement('canvas').getContext('2d')
+    function textWidth(el, text) {
+        var s = getComputedStyle(el)
+        ctx.font = s.fontStyle + ' ' + s.fontWeight + ' ' + s.fontSize + '/' + s.lineHeight + ' ' + s.fontFamily
+        var w = ctx.measureText(text).width
+        var ls = parseFloat(s.letterSpacing)
+        return w + (isNaN(ls) ? 0 : ls * text.length)
+    }
+
+    var out = {vw: VW, doc: document.documentElement.scrollWidth, overflow: [], tap: [], overlap: [], clipped: []}
     var all = document.querySelectorAll('body *')
 
     for (var i = 0; i < all.length; i++) {
@@ -58,7 +75,16 @@
         if (DECOR.test(cls(el)) || !visible(el)) continue
         var r = el.getBoundingClientRect(), s = getComputedStyle(el)
 
-        if ((r.right > VW + 1 || r.left < -1) && s.position !== 'fixed'
+        /*
+         * 摸不着又没有字的装饰层不算越界。
+         *
+         * 玻璃那款的 hero-bg 就是这样：inset: -12% 的一张模糊底图，故意比容器大一圈，
+         * pointer-events: none，外面又有 overflow: hidden 兜着 —— 谁都点不到它，
+         * 也不会让页面能横拽。真正要报的是被顶出去的按钮和文字，那些摸得着。
+         */
+        var decorative = s.pointerEvents === 'none' && !(el.textContent || '').trim()
+
+        if ((r.right > VW + 1 || r.left < -1) && s.position !== 'fixed' && !decorative
             && !scrollableX(el) && !insideFixed(el))
             out.overflow.push({el: desc(el), l: Math.round(r.left), rr: Math.round(r.right)})
 
@@ -68,6 +94,32 @@
         if (clickable && !el.closest('.v-rating') && !el.querySelector('button,a[href],.v-btn')
             && (r.width < 36 || r.height < 36) && fieldHeight(el) < 36)
             out.tap.push({el: desc(el), w: Math.round(r.width), h: Math.round(r.height)})
+    }
+
+    // ① 空输入框的占位文字
+    var inputs = document.querySelectorAll('input[placeholder], textarea[placeholder]')
+    for (var p1 = 0; p1 < inputs.length; p1++) {
+        var inp = inputs[p1]
+        if (inp.value || !visible(inp)) continue
+        var room = inp.clientWidth - 2
+        var need = textWidth(inp, inp.placeholder)
+        if (room > 0 && need > room + 2)
+            out.clipped.push({el: desc(inp), text: inp.placeholder, need: Math.round(need), room: Math.round(room)})
+    }
+
+    // ② chip / 按钮 / 标签这类「本来就该整句显示」的短文本
+    var labels = document.querySelectorAll('.v-chip__content, .v-btn__content, .v-tab, .v-expansion-panel-title__overlay + *')
+    for (var p2 = 0; p2 < labels.length; p2++) {
+        var lb = labels[p2]
+        if (!visible(lb) || lb.querySelector('input, textarea')) continue
+        var txt = (lb.textContent || '').trim().replace(/\s+/g, ' ')
+        if (!txt || txt.length > 24) continue
+        var own = lb.getBoundingClientRect()
+        var host = lb.closest('.v-chip, .v-btn, .v-tab') || lb
+        var hr = host.getBoundingClientRect()
+        // 内容比外壳还宽 = 漫出圆角框；这是横向的挤压，不是省略号
+        if (own.width > hr.width + 2)
+            out.clipped.push({el: desc(host), text: txt, need: Math.round(own.width), room: Math.round(hr.width)})
     }
 
     var fixed = []
@@ -109,5 +161,6 @@
     out.overflow = dedup(out.overflow).slice(0, 8)
     out.tap = dedup(out.tap).slice(0, 8)
     out.overlap = dedup(out.overlap).slice(0, 4)
+    out.clipped = dedup(out.clipped).slice(0, 8)
     return out
 })()

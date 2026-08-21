@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
 import type {Ani} from '@shared/types'
 import {toApiFile} from '@shared/http'
 import {formatEpisodes, fromNow} from '@shared/format'
@@ -7,7 +9,7 @@ import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
 import AniFilterBar from '@/components/ani/AniFilterBar.vue'
-import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
+import {aniActions, compactOf, isTouch, overflowOf} from '@/components/ani/aniActions'
 
 /**
  * 文档式列表：一行一条，靠细线分栏，不用卡片也不用阴影。
@@ -17,6 +19,17 @@ import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
  * 两份几乎一样的模板迟早会改歪一份（之前搜索态就少了季数和更新时间）。
  */
 const s = useAniScreen()
+
+/*
+ * 一行里摆得下几颗图标按钮。
+ *
+ * 原来这是 CSS 干的：@media (max-width: 599px) 里把 .actions 的前两颗 display: none。
+ * 前两颗正好是「视频列表」和「编辑」，而「更多」菜单是按「一颗没藏」算的 ——
+ * 于是手机上这两个动作从界面上彻底消失，不是换了个地方，是点不到了。
+ * 数目交给 JS，菜单才补得回来（见 aniActions 里 compactOf 上面那段）。
+ */
+const {xs} = useDisplay()
+const room = computed(() => (xs.value ? 1 : isTouch.value ? 2 : Infinity))
 
 const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
 
@@ -110,15 +123,16 @@ function openBgm(a: Ani) {
             <span v-if="!a.enable" class="off">停用</span>
 
             <div class="actions">
-              <v-btn v-for="act in compactOf(aniActions(s, a))" :key="act.key" :icon="act.icon"
+              <v-btn v-for="act in compactOf(aniActions(s, a), room)" :key="act.key" :icon="act.icon"
                      :title="act.title" density="comfortable" size="small" variant="text" @click.stop="act.run()"/>
               <v-menu location="bottom end">
-                <template #activator="{props: menu}">
-                  <v-btn v-bind="menu" density="comfortable" icon="mdi-dots-vertical" size="small"
-                         title="更多" variant="text" @click.stop/>
+                <template #activator="{isActive, props: menu}">
+                  <v-btn v-bind="menu" :icon="isActive ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                         :title="isActive ? '收起' : '展开操作'" density="comfortable" size="small"
+                         variant="text" @click.stop/>
                 </template>
                 <v-list density="comfortable" min-width="180">
-                  <v-list-item v-for="act in overflowOf(aniActions(s, a))" :key="act.key"
+                  <v-list-item v-for="act in overflowOf(aniActions(s, a), room)" :key="act.key"
                                :base-color="act.danger ? 'error' : undefined" :prepend-icon="act.icon"
                                :title="act.title" @click="act.run()"/>
                 </v-list>
@@ -293,10 +307,5 @@ function openBgm(a: Ani) {
         padding: 10px 4px;
     }
 
-    /* 窄屏四个按钮占掉半行，收成两个最常用的 */
-    .actions .v-btn:nth-child(1),
-    .actions .v-btn:nth-child(2) {
-        display: none;
-    }
 }
 </style>

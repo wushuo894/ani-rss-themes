@@ -5,7 +5,7 @@ import {toApiFile} from '@shared/http'
 import {formatEpisodes} from '@shared/format'
 import {usePrefsStore} from '@/stores/prefs'
 import type {AniScreen} from '@/composables/useAniScreen'
-import {aniActions, compactOf, overflowOf} from './aniActions'
+import {aniActions, compactOf, isTouch, overflowOf} from './aniActions'
 
 /**
  * 海报卡：整张卡就是一张海报，文字压在下沿的渐变里，操作按钮悬停才浮出来。
@@ -26,6 +26,15 @@ const props = defineProps<{
 }>()
 
 const acts = computed(() => aniActions(props.s, props.item))
+
+/*
+ * 触屏上图标行一颗都不留，全进「更多」菜单。
+ *
+ * 原来这件事是 CSS 干的（@media (hover:none) 把 :not(:last-child) 藏掉），
+ * 而菜单是按「一颗没藏」算的 —— 藏掉的「视频列表 / 编辑 / 预览」哪儿都不在，
+ * 手机上这张卡就再也编辑不了。数目得让 JS 知道，菜单才补得回来。
+ */
+const room = computed(() => (isTouch.value ? 0 : Infinity))
 
 const prefs = usePrefsStore()
 
@@ -83,16 +92,18 @@ function openBgm() {
     <v-checkbox v-if="selectMode" :model-value="selected" class="pick" density="compact" hide-details
                 @click.stop="s.on.toggle(item)"/>
 
-    <!-- 悬停浮出的操作条。触屏下靠 @media (hover:none) 常驻 -->
+    <!-- 悬停浮出的操作条。触屏下常驻，且只剩一颗「更多」（room=0） -->
     <div class="acts" @click.stop>
-      <v-btn v-for="act in compactOf(acts)" :key="act.key" :icon="act.icon" :title="act.title"
+      <v-btn v-for="act in compactOf(acts, room)" :key="act.key" :icon="act.icon" :title="act.title"
              size="small" variant="flat" @click="act.run()"/>
       <v-menu location="top end">
-        <template #activator="{props: menu}">
-          <v-btn v-bind="menu" icon="mdi-dots-horizontal" size="small" title="更多" variant="flat"/>
+        <template #activator="{isActive, props: menu}">
+          <v-btn v-bind="menu" :icon="isActive ? 'mdi-close' : 'mdi-dots-horizontal'"
+                 :title="isActive ? '收起' : '更多'" size="small" variant="flat"/>
         </template>
         <v-list density="comfortable" min-width="180">
-          <v-list-item v-for="act in overflowOf(acts)" :key="act.key" :base-color="act.danger ? 'error' : undefined"
+          <v-list-item v-for="act in overflowOf(acts, room)" :key="act.key"
+                       :base-color="act.danger ? 'error' : undefined"
                        :prepend-icon="act.icon" :title="act.title" @click="act.run()"/>
         </v-list>
       </v-menu>
@@ -226,15 +237,15 @@ function openBgm() {
     }
 }
 
-/* 触屏没有悬停：只留一颗「更多」常驻，其余动作进菜单 */
+/*
+ * 触屏没有悬停：操作条常驻。
+ * 「只留一颗」这件事交给 room 去算（见 script），这里不再拿 CSS 藏按钮 ——
+ * 藏掉的那几颗不会自动进菜单，是真的从界面上消失。
+ */
 @media (hover: none) {
     .acts {
         opacity: 1;
         transform: none;
-    }
-
-    .acts .v-btn:not(:last-child) {
-        display: none;
     }
 
     .veil {

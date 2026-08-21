@@ -6,7 +6,7 @@ import {toApiFile} from '@shared/http'
 import {formatEpisodes, fromNow} from '@shared/format'
 import {usePrefsStore} from '@/stores/prefs'
 import type {AniScreen} from '@/composables/useAniScreen'
-import {aniActions, compactOf, overflowOf} from './aniActions'
+import {aniActions, compactOf, isTouch, overflowOf} from './aniActions'
 
 /**
  * M3 的订阅卡：海报在上、文字区在下、操作行收底。
@@ -28,8 +28,12 @@ const props = defineProps<{
 
 const acts = computed(() => aniActions(props.s, props.item))
 
-/* xs（<600）下图标行只放两个，其余退进「更多」—— 见下面模板里的注释 */
+/*
+ * 图标行放得下几颗，其余退进「更多」—— 见下面模板里的注释。
+ * 平板同样没有悬停、同样要 40px 的热区，所以 xs 之外还看 isTouch。
+ */
 const {xs} = useDisplay()
+const room = computed(() => (xs.value ? 2 : isTouch.value ? 3 : Infinity))
 
 const prefs = usePrefsStore()
 
@@ -135,16 +139,17 @@ function onCardClick() {
       挤下来的那个退回「更多」菜单，不是消失。
     -->
     <v-card-actions class="acts">
-      <v-btn v-for="act in compactOf(acts, xs ? 2 : Infinity)" :key="act.key" :icon="act.icon" :title="act.title"
+      <v-btn v-for="act in compactOf(acts, room)" :key="act.key" :icon="act.icon" :title="act.title"
              density="comfortable" size="small" variant="text" @click.stop="act.run()"/>
       <v-spacer/>
       <v-menu location="bottom end">
-        <template #activator="{props: menu}">
-          <v-btn v-bind="menu" density="comfortable" icon="mdi-dots-vertical" size="small" title="更多"
+        <template #activator="{isActive, props: menu}">
+          <v-btn v-bind="menu" :icon="isActive ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                 :title="isActive ? '收起' : '展开操作'" density="comfortable" size="small"
                  variant="text" @click.stop/>
         </template>
         <v-list density="comfortable" min-width="180">
-          <v-list-item v-for="act in overflowOf(acts, xs ? 2 : Infinity)" :key="act.key"
+          <v-list-item v-for="act in overflowOf(acts, room)" :key="act.key"
                        :base-color="act.danger ? 'error' : undefined"
                        :prepend-icon="act.icon" :title="act.title" @click="act.run()"/>
         </v-list>

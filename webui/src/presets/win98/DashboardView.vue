@@ -339,6 +339,9 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
     .linkish {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
+        /* 「97」这种两位数只有 25px 宽，光抬高度还是够不着，宽度也得兜住 */
+        min-width: 36px;
         min-height: 36px;
         margin-inline: -6px;
         padding-inline: 6px;

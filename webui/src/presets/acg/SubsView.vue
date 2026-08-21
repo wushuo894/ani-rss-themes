@@ -60,9 +60,8 @@ function jump(label: string) {
       <v-btn :active="s.selectMode.value"
              :icon="mobile ? (s.selectMode.value ? 'mdi-close' : 'mdi-checkbox-multiple-marked-outline') : undefined"
              :prepend-icon="mobile ? undefined : (s.selectMode.value ? 'mdi-close' : 'mdi-checkbox-multiple-marked-outline')"
-             title="多选" variant="tonal" @click="s.toggleSelectMode()">
-        <template v-if="!mobile">{{ s.selectMode.value ? '退出多选' : '多选' }}</template>
-      </v-btn>
+             :text="mobile ? undefined : (s.selectMode.value ? '退出多选' : '多选')"
+             title="多选" variant="tonal" @click="s.toggleSelectMode()"/>
     </div>
 
     <AniBatchBar :s="s" rounded="lg"/>
@@ -119,6 +118,16 @@ function jump(label: string) {
 
 .week-bar::-webkit-scrollbar {
     display: none;
+}
+
+/*
+ * 这一条是横向滚动的，chip 就不能跟着缩。
+ * flex 子项默认 flex-shrink: 1 —— 390px 上七个星期一挤，
+ * 「周六（今天）21」被压到 65px 宽，而里面的字要 89px：
+ * 文字直接漫出圆角框，看着像控件坏了。宽度让它自己说了算，放不下就滚。
+ */
+.week-bar > * {
+    flex: 0 0 auto;
 }
 
 .week-title {

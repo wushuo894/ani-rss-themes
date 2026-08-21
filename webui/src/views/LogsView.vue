@@ -46,14 +46,14 @@ function levelColor(l?: string) {
 <template>
   <div class="pa-4 d-flex flex-column logs-page">
     <div class="d-flex align-center flex-wrap ga-2 mb-3">
-      <v-text-field v-model="logs.keyword" class="flex-grow-1" clearable density="compact" hide-details
+      <v-text-field v-model="logs.keyword" class="flex-grow-1 log-search" clearable density="compact" hide-details
                     placeholder="过滤日志内容" prepend-inner-icon="mdi-magnify" style="max-width: 320px"/>
       <!-- 级别和类名都能多选：查一次问题通常要「WARN + ERROR」一起看，
            或者只盯住某个类。单选筛不出这两种最常用的组合。 -->
       <v-select v-model="logs.level" :items="logs.levels" chips closable-chips density="compact" hide-details
-                multiple placeholder="全部级别" style="max-width: 200px"/>
+                multiple placeholder="全部级别" style="min-width: 128px; max-width: 200px"/>
       <v-select v-model="logs.loggerNames" :items="loggerItems" density="compact" hide-details
-                item-props multiple placeholder="全部类名" style="max-width: 220px">
+                item-props multiple placeholder="全部类名" style="min-width: 128px; max-width: 220px">
         <template #selection="{item, index}">
           <span v-if="index === 0" class="text-caption">{{ short(item.value) }}</span>
           <span v-else-if="index === 1" class="text-caption text-medium-emphasis ml-1">
@@ -125,6 +125,21 @@ function levelColor(l?: string) {
 
 .logs-page > :not(.v-card) {
     flex: 0 0 auto;
+}
+
+/*
+ * 窄屏上筛选栏那一行让搜索框独占一整行。
+ *
+ * 不让的话四个控件挤一行：搜索框只剩 71px（占位文字要 97），
+ * 两个下拉各 82px（「全部级别」要 65，扣掉箭头只剩 40）——
+ * 三个控件里的字全被截断，看着像三个坏掉的框。
+ * 两个下拉给了 min-width：宁可换行，也不要挤到看不出是什么。
+ */
+@media (max-width: 599.98px) {
+    .logs-page .log-search {
+        flex: 1 1 100%;
+        max-width: none;
+    }
 }
 
 .log-box {

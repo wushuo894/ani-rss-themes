@@ -38,7 +38,11 @@ const headers = [
         撑开间距又不再是分段按钮了。视图模式只有两种，本来也不需要「同时看见两个选项」——
         按钮上写的是「点了会变成什么」。
       -->
-      <v-btn :prepend-icon="isGrid ? 'mdi-view-list-outline' : 'mdi-view-grid-outline'"
+      <!--
+        窄屏不摆这颗：那边的列表视图本来就退回网格（六列的表格在 390px 上没法用），
+        点了什么都不会变 —— 一颗按下去没反应的按钮比没有这颗按钮更像坏了。
+      -->
+      <v-btn v-if="!mobile" :prepend-icon="isGrid ? 'mdi-view-list-outline' : 'mdi-view-grid-outline'"
              density="comfortable" rounded="lg" variant="outlined"
              @click="s.prefs.viewMode = isGrid ? 'list' : 'grid'">
         {{ isGrid ? '切换到列表' : '切换到网格' }}
@@ -130,9 +134,10 @@ const headers = [
               <v-btn v-for="act in compactOf(aniActions(s, item))" :key="act.key" :icon="act.icon"
                      :title="act.title" density="comfortable" size="small" variant="text" @click="act.run()"/>
               <v-menu location="bottom end">
-                <template #activator="{props: menu}">
-                  <v-btn v-bind="menu" density="comfortable" icon="mdi-dots-vertical" size="small"
-                         title="更多" variant="text" @click.stop/>
+                <template #activator="{isActive, props: menu}">
+                  <v-btn v-bind="menu" :icon="isActive ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                         :title="isActive ? '收起' : '展开操作'" density="comfortable" size="small"
+                         variant="text" @click.stop/>
                 </template>
                 <v-list density="comfortable" min-width="180">
                   <v-list-item v-for="act in overflowOf(aniActions(s, item))" :key="act.key"

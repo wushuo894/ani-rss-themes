@@ -30,7 +30,7 @@ const groups = ['追番', '系统'] as const
         clearable
         density="compact"
         hide-details
-        placeholder="搜索标题 / 字幕组 / 拼音首字母"
+        :placeholder="s.searchHint.value"
         prepend-inner-icon="mdi-magnify"
         variant="outlined"
     />

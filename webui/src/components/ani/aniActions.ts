@@ -1,3 +1,4 @@
+import {readonly, ref} from 'vue'
 import type {Ani} from '@shared/types'
 import type {AniScreen} from '@/composables/useAniScreen'
 import {usePrefsStore} from '@/stores/prefs'
@@ -62,6 +63,12 @@ export function aniActions(s: AniScreen, a: Ani): AniAction[] {
  * max 是给窄屏留的口子：卡片只有 150 来点宽，图标按钮在手机上要给到 40px 才点得着，
  * 四颗（三个常用 + 「更多」）就是 172px，装不下 —— 最后那颗会被顶出卡片外。
  * 超出 max 的不是丢掉，是退回「更多」菜单里（见 overflowOf），一个动作都不会消失。
+ *
+ * ⚠️ 摆不下的时候只能改这个数，不要用 CSS 把多出来的按钮 display: none。
+ * 菜单里放哪些是按这个数算出来的，CSS 藏掉的那颗不会自动补进菜单 ——
+ * 它是从界面上彻底消失，而不是换个地方。「编辑」在手机上整个不见就是这么来的：
+ * vue 那款拿 nth-child 藏了前两颗，海报卡拿 :not(:last-child) 藏了一整排，
+ * 两处都只藏了按钮，菜单还按「一颗没藏」在算。
  */
 export const compactOf = (list: AniAction[], max = Infinity) =>
     list.filter(x => x.compact).slice(0, max)
@@ -71,3 +78,18 @@ export const overflowOf = (list: AniAction[], max = Infinity) => {
     const kept = new Set(compactOf(list, max).map(x => x.key))
     return list.filter(x => !x.compact || !kept.has(x.key))
 }
+
+/**
+ * 触屏（没有悬停）。
+ *
+ * 只看 useDisplay().xs 是不够的：平板和触屏笔记本同样召不出 hover，
+ * 图标行在它们上面也必须常驻、也要 40px 才点得着。
+ * 挂一个模块级的监听给全站共用，不是每个卡片各订一份 —— 一页上有上百张卡。
+ */
+const coarse = ref(false)
+if (typeof window !== 'undefined' && window.matchMedia) {
+    const mq = window.matchMedia('(hover: none)')
+    coarse.value = mq.matches
+    mq.addEventListener('change', e => (coarse.value = e.matches))
+}
+export const isTouch = readonly(coarse)

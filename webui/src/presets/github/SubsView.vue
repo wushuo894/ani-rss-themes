@@ -34,29 +34,27 @@ const desc = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.ti
   <div class="pa-4">
     <div class="d-flex align-center flex-wrap ga-2 mb-4">
       <v-btn color="success" prepend-icon="mdi-plus" variant="flat" @click="s.adding.value = true">添加订阅</v-btn>
+      <!--
+        文字用 :text 传，不要写成 <template v-if="!mobile">…</template>。
+        VBtn 是「有默认插槽就不画 icon」——插槽只要存在（哪怕 v-if 让它渲染成空）
+        icon 那一支就不走了，窄屏上得到的是一颗空按钮：有边框、能点、里面什么都没有。
+      -->
       <v-btn :loading="s.ani.loading" :icon="mobile ? 'mdi-refresh' : undefined"
-             :prepend-icon="mobile ? undefined : 'mdi-refresh'" title="刷新全部" variant="outlined"
-             @click="s.ani.refreshAll()">
-        <template v-if="!mobile">刷新全部</template>
-      </v-btn>
+             :prepend-icon="mobile ? undefined : 'mdi-refresh'" :text="mobile ? undefined : '刷新全部'"
+             title="刷新全部" variant="outlined" @click="s.ani.refreshAll()"/>
       <v-btn :icon="mobile ? 'mdi-package-variant-closed' : undefined"
-             :prepend-icon="mobile ? undefined : 'mdi-package-variant-closed'" title="合集下载"
-             variant="outlined" @click="s.collecting.value = true">
-        <template v-if="!mobile">合集</template>
-      </v-btn>
+             :prepend-icon="mobile ? undefined : 'mdi-package-variant-closed'" :text="mobile ? undefined : '合集'"
+             title="合集下载" variant="outlined" @click="s.collecting.value = true"/>
       <v-btn :icon="mobile ? 'mdi-file-import-outline' : undefined"
-             :prepend-icon="mobile ? undefined : 'mdi-file-import-outline'" title="导入订阅"
-             variant="outlined" @click="s.importing.value = true">
-        <template v-if="!mobile">导入</template>
-      </v-btn>
+             :prepend-icon="mobile ? undefined : 'mdi-file-import-outline'" :text="mobile ? undefined : '导入'"
+             title="导入订阅" variant="outlined" @click="s.importing.value = true"/>
       <AniFilterBar/>
       <v-spacer/>
       <v-btn :active="s.selectMode.value"
              :icon="mobile ? (s.selectMode.value ? 'mdi-close' : 'mdi-checkbox-multiple-marked-outline') : undefined"
              :prepend-icon="mobile ? undefined : (s.selectMode.value ? 'mdi-close' : 'mdi-checkbox-multiple-marked-outline')"
-             title="多选" variant="outlined" @click="s.toggleSelectMode()">
-        <template v-if="!mobile">{{ s.selectMode.value ? '退出多选' : '多选' }}</template>
-      </v-btn>
+             :text="mobile ? undefined : (s.selectMode.value ? '退出多选' : '多选')"
+             title="多选" variant="outlined" @click="s.toggleSelectMode()"/>
     </div>
 
     <AniBatchBar :s="s" rounded="md" variant="outlined"/>
@@ -135,8 +133,9 @@ const desc = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.ti
                 </v-btn>
               </template>
               <v-menu>
-                <template #activator="{props}">
-                  <v-btn v-bind="props" icon="mdi-dots-horizontal" size="small" variant="outlined" @click.stop/>
+                <template #activator="{isActive, props}">
+                  <v-btn v-bind="props" :icon="isActive ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                         :title="isActive ? '收起' : '展开操作'" size="small" variant="outlined" @click.stop/>
                 </template>
                 <v-list density="comfortable" min-width="180">
                   <v-list-item v-for="act in (mobile ? aniActions(s, a) : overflowOf(aniActions(s, a)))"

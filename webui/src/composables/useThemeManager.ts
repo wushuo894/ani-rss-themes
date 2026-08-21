@@ -1,4 +1,4 @@
-import {watch} from 'vue'
+import {watch, watchEffect} from 'vue'
 import {useTheme} from 'vuetify'
 import {applyTheme} from '@shared/themes/apply'
 import {THEME_MAP} from '@shared/themes/registry'
@@ -57,4 +57,23 @@ export function useThemeManager() {
     }
 
     watch(() => [prefs.themeId, prefs.resolved], sync, {immediate: true})
+
+    /*
+     * 手机地址栏、以及装到主屏之后的状态栏，颜色取自 <meta name="theme-color">。
+     * index.html 里写死的那条只是首屏兜底 —— 六款配色差得远，
+     * 一个值总有五款对不上，白底的地址栏配 win98 的银灰或者 acg 的深色都很脏。
+     * 跟着当前皮肤的 surface 走：顶栏用的就是它。
+     */
+    watchEffect(() => {
+        const c = theme.current.value.colors
+        const v = c.surface || c.background
+        if (!v) return
+        let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')
+        if (!meta) {
+            meta = document.createElement('meta')
+            meta.name = 'theme-color'
+            document.head.append(meta)
+        }
+        meta.content = v
+    })
 }

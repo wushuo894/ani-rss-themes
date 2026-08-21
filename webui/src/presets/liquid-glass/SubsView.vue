@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
 import type {Ani} from '@shared/types'
 import {toApiFile} from '@shared/http'
 import {formatEpisodes, fromNow} from '@shared/format'
 import {useAniScreen} from '@/composables/useAniScreen'
 import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 import AniDialogs from '@/components/ani/AniDialogs.vue'
-import {aniActions, compactOf, overflowOf} from '@/components/ani/aniActions'
+import {aniActions, compactOf, isTouch, overflowOf} from '@/components/ani/aniActions'
 import AniBatchBar from '@/components/ani/AniBatchBar.vue'
 import AniFilterBar from '@/components/ani/AniFilterBar.vue'
 
@@ -18,6 +20,10 @@ import AniFilterBar from '@/components/ani/AniFilterBar.vue'
  * 板子的反馈是「边缘高光变亮」而不是「抬起来投影」：后者是纸片的语言。
  */
 const s = useAniScreen()
+
+/* 一行摆得下几颗图标按钮；摆不下的自动进「更多」菜单，不要改用 CSS 藏 */
+const {xs} = useDisplay()
+const room = computed(() => (xs.value ? 1 : isTouch.value ? 2 : Infinity))
 
 const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
 </script>
@@ -104,17 +110,18 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
                 </div>
 
                 <div class="acts">
-                  <v-btn v-for="act in compactOf(aniActions(s, a))" :key="act.key" :icon="act.icon"
+                  <v-btn v-for="act in compactOf(aniActions(s, a), room)" :key="act.key" :icon="act.icon"
                          :title="act.title" density="comfortable" size="small" variant="text"
                          @click.stop="act.run()"/>
                   <v-spacer/>
                   <v-menu location="bottom end">
-                    <template #activator="{props: menu}">
-                      <v-btn v-bind="menu" density="comfortable" icon="mdi-dots-horizontal" size="small"
-                             title="更多" variant="text" @click.stop/>
+                    <template #activator="{isActive, props: menu}">
+                      <v-btn v-bind="menu" :icon="isActive ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+                             :title="isActive ? '收起' : '展开操作'" density="comfortable" size="small"
+                             variant="text" @click.stop/>
                     </template>
                     <v-list density="comfortable" min-width="180">
-                      <v-list-item v-for="act in overflowOf(aniActions(s, a))" :key="act.key"
+                      <v-list-item v-for="act in overflowOf(aniActions(s, a), room)" :key="act.key"
                                    :base-color="act.danger ? 'error' : undefined" :prepend-icon="act.icon"
                                    :title="act.title" @click="act.run()"/>
                     </v-list>

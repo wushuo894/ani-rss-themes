@@ -268,8 +268,13 @@ function go(to: string) {
 @media (max-width: 599.98px), (pointer: coarse) {
     .w98-desktop {
         --w98-pad: 0px;
-        --w98-titleh: 30px;
-        --w98-menuh: 34px;
+        /*
+         * 标题栏和菜单栏都要装得下 36px 的按钮 —— 那是这个项目的触摸下限。
+         * 1998 年的 22px 标题栏在鼠标下刚好，手指下三颗按钮挨在一起，
+         * 想点「最大化」十次有三次点成「关闭」（而关闭是退出登录）。
+         */
+        --w98-titleh: 40px;
+        --w98-menuh: 40px;
         --w98-taskh: 44px;
     }
 }
@@ -375,8 +380,8 @@ function go(to: string) {
 
 @media (max-width: 599.98px), (pointer: coarse) {
     .w98-tb {
-        width: 26px;
-        height: 22px;
+        width: 38px;
+        height: 36px;
     }
 
     .w98-tb-close {
@@ -575,7 +580,7 @@ function go(to: string) {
 
 @media (max-width: 599.98px), (pointer: coarse) {
     .w98-input {
-        height: 34px;
+        height: 36px;
         font-size: 14px;
     }
 }
@@ -692,8 +697,15 @@ function go(to: string) {
     .w98-start,
     .w98-task,
     .w98-trayicon {
+        min-width: 36px;
+        min-height: 36px;
         padding: 0 10px;
         font-size: 13px;
+    }
+
+    /* 托盘那颗只有一个 14px 的图标，撑不满 36 —— 图标居中，热区兜住 */
+    .w98-trayicon {
+        justify-content: center;
     }
 
     /* 手机上任务按钮是最宽的那颗：开始按钮和托盘占掉的宽度之外全给它 */

@@ -27,7 +27,7 @@ const menu = ref(false)
         class="gh-search"
         density="compact"
         hide-details
-        placeholder="搜索订阅（拼音、首字母都行）"
+        :placeholder="s.searchHint.value"
         prepend-inner-icon="mdi-magnify"
         variant="outlined"
     />

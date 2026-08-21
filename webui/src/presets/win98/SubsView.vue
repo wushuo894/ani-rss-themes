@@ -75,6 +75,9 @@ const ctxAt = ref<[number, number]>([0, 0])
 const ctxItem = ref<Ani | null>(null)
 const ctxActions = computed(() => (ctxItem.value ? aniActions(s, ctxItem.value) : []))
 
+/** 这一行是不是正开着菜单 */
+const isOpen = (a: Ani) => ctxOpen.value && ctxItem.value?.id === a.id
+
 function openMenu(e: MouseEvent, a: Ani) {
   ctxItem.value = a
   ctxAt.value = [e.clientX, e.clientY]
@@ -154,7 +157,10 @@ function pick(a: Ani) {
             <td class="col-on">{{ a.enable ? '启用' : '停用' }}</td>
             <td class="col-time">{{ fromNow(a.lastDownloadTime) }}</td>
             <td class="col-act">
-              <button class="lv-more" title="操作" type="button" @click.stop="openMenu($event, a)">▼</button>
+              <!-- 开着的时候翻成 ▲：这一排全长一个样，不标状态就看不出菜单是哪一行召出来的 -->
+              <button :title="isOpen(a) ? '收起' : '展开操作'" class="lv-more" type="button"
+                      @click.stop="openMenu($event, a)">{{ isOpen(a) ? '▲' : '▼' }}
+              </button>
             </td>
           </tr>
           </tbody>
@@ -339,18 +345,19 @@ function pick(a: Ani) {
         padding: 8px 6px;
     }
 
+    /* 36px 是这个项目的触摸下限（见 styles/touch.css），表头和 ▼ 都得够到 */
     .lv-th {
-        height: 32px;
+        height: 36px;
     }
 
     .lv-more {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         font-size: 10px;
     }
 
     .col-act {
-        width: 38px;
+        width: 42px;
     }
 
     .lv-text {

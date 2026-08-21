@@ -296,7 +296,11 @@ async function fillDownloadPath() {
 
       <v-divider/>
 
-      <v-card-text style="min-height: 440px">
+      <!--
+        min-height 是给宽屏的：三页内容长短不一，不兜个下限的话切标签时弹窗会跳一下。
+        全屏时不能要 —— 屏幕矮的手机上 440 撑得整张卡溢出，标题和标签条跟着滚走。
+      -->
+      <v-card-text :style="mobile ? undefined : 'min-height: 440px'">
         <v-tabs-window v-model="tab">
           <!-- ══ 基本 ══ -->
           <v-tabs-window-item value="basic">

@@ -5,6 +5,26 @@
     <!-- viewport-fit=cover：iPhone 刘海屏下让内容铺到安全区外，再由 CSS env() 收回来 -->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
     <meta name="color-scheme" content="light dark"/>
+
+    <!--
+      装到主屏用的那一套。
+      manifest 是相对路径：产物是丢进 {configDir}/webui/ 托管的，反代挂子路径时
+      绝对路径的 /manifest.json 会 404，装不上也不会报错，只是按钮不出现。
+      扩展名用 .json 不用 .webmanifest —— 托管这堆文件的是后端那个静态目录，
+      它按扩展名猜类型，.webmanifest 多半猜成 octet-stream。
+      theme-color 这里给个静态值兜底，真正的那份由 useThemeManager 按当前皮肤实时改
+      —— 六款界面配色差得远，写死一个颜色总有五款对不上。
+    -->
+    <link href="./manifest.json" rel="manifest"/>
+    <meta content="#2b7352" name="theme-color"/>
+    <link href="./favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+    <link href="./icon-192.png" rel="icon" sizes="192x192" type="image/png"/>
+    <!-- iOS 不读 manifest 的 icons，只认这一条 -->
+    <link href="./apple-touch-icon.png" rel="apple-touch-icon"/>
+    <meta content="yes" name="mobile-web-app-capable"/>
+    <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+    <meta content="ani-rss" name="apple-mobile-web-app-title"/>
+
     <title>ani-rss</title>
 </head>
 <body>
