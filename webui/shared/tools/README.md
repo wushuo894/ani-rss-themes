@@ -1,6 +1,6 @@
 # 生成器
 
-两个脚本，都从 ani-rss 的**源码**直接抽，不手抄、不靠猜。
+前两个脚本都从 ani-rss 的**源码**直接抽，不手抄、不靠猜。
 
 先把上游拉下来（浅克隆即可）：
 
@@ -37,3 +37,20 @@ node webui/shared/tools/extract-api.mjs upstream
 
 同样带自校验：抽出的端点必须覆盖源码里声明的每一条 mapping 路径。
 当前结果为 66 个端点 / 22 个 controller。
+
+## mobile-audit.mjs
+
+手机宽度下的版式体检，跑的是构建产物不是源码。
+
+```bash
+npm run build:all -- --demo                          # 先出产物
+node webui/shared/tools/mobile-audit.mjs             # 五款 × 360/390/414 × 13 条路由
+node webui/shared/tools/mobile-audit.mjs material 390 # 只测一款一个宽度
+```
+
+报四类事实：整页横向滚动、元素伸出视口、可点元素不足 36px、固定元素压住按钮。
+一律排除掉本来就该那样的情况 —— 外层有横滚容器的、收起来的抽屉里的、
+评分那排当刻度用的星星。开的是 mobile 模拟档（`hover: none` / `pointer: coarse`），
+跟真手机一致；用桌面档跑会把只在触屏常驻的按钮以悬停态算进来，报一堆假阳性。
+
+没装 Chrome/Edge 就跳过并退出 0。`CHROME_PATH` 可指定浏览器。

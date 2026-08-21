@@ -115,7 +115,15 @@ cd webui
 VITE_PRESET=github VITE_API_TARGET=http://<你的 ani-rss> npm run dev
 npm run typecheck
 npm run build:all -- --demo    # 五款演示构建（假数据，Pages 预览用的就是它）
+npm test                       # 主题 / 接口地址 / 外部播放器的断言
+npm run test:mobile            # 手机宽度版式体检，要先有 --demo 产物
 ```
+
+`test:mobile` 用无头 Chrome/Edge 跑五款 × 360/390/414 × 13 条路由，
+只认四类可判定的事实：整页横向滚动、元素伸出视口、可点元素不足 36px、
+固定元素压住按钮。手机上的毛病看截图很难认（「按钮被顶出去 11px」和「有点挤」长得一样），
+vue-tsc 和单元测试又完全看不见 CSS，所以单开一份。
+本机没装浏览器时它直接跳过并返回 0，不会卡住别人。
 
 `VITE_PRESET` 不给默认是 `vue`。**后端地址走环境变量，不写进仓库**（也可以放进不进版本控制的
 `webui/.env.local`）—— 地址、端口这类东西一旦硬编码进去，之后就没人会去清了。

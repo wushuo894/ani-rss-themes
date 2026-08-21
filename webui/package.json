@@ -12,7 +12,8 @@
     "test:themes": "node --experimental-strip-types shared/themes/apply.test.ts",
     "test:api": "node --experimental-strip-types shared/http.test.ts",
     "test": "npm run test:themes && npm run test:api && npm run test:players",
-    "test:players": "node --experimental-strip-types shared/externalPlayers.test.ts"
+    "test:players": "node --experimental-strip-types shared/externalPlayers.test.ts",
+    "test:mobile": "node shared/tools/mobile-audit.mjs"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
