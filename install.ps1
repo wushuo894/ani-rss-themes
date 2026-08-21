@@ -95,7 +95,7 @@ if (Test-Path (Join-Path $parent 'config.v2.json')) {
 }
 
 # ── 选界面 ──────────────────────────────────────────────
-# 六款是同一套功能的不同外观，装一款就够
+# 九款是同一套功能的不同外观，装一款就够
 $ui = $env:ANIRSS_UI
 if (-not $ui) {
     Say ''

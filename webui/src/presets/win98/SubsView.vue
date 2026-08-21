@@ -13,7 +13,7 @@ import AniFilterBar from '@/components/ani/AniFilterBar.vue'
 /**
  * 订阅页 = 资源管理器的「详细信息」视图。
  *
- * 别的四款给的是海报墙或者卡片流 —— 好看，但一屏只看得见十来条，
+ * 别款给的多半是海报墙或者卡片流 —— 好看，但一屏只看得见十来条，
  * 而且「哪些停用了」「哪些好几周没更新」得一张张看过去。
  * 详细信息视图是另一个路子：一行一条、列对齐、点表头排序，
  * 一屏三十行，扫一眼就知道哪一列不对劲。这正是 Win98 最擅长的事。
@@ -68,7 +68,7 @@ const rows = computed(() => {
 })
 
 /* ── 右键菜单 ──
-   动作清单来自 aniActions，和别的四款是同一份 —— 换个皮肤少几个能力那种事不能再有。
+   动作清单来自 aniActions，和别款是同一份 —— 换个皮肤少几个能力那种事不能再有。
    触屏没有右键，所以每行末尾还有一颗「▼」，点它开的是同一个菜单。 */
 const ctxOpen = ref(false)
 const ctxAt = ref<[number, number]>([0, 0])
@@ -167,7 +167,7 @@ function pick(a: Ani) {
         </table>
       </div>
 
-      <!-- ══ 大图标 ══ 分组按星期，和别的四款一致 -->
+      <!-- ══ 大图标 ══ 分组按星期，和别款一致 -->
       <template v-else>
         <div v-for="w in (s.grouped.value ? s.ani.byWeek : [{label: '', items: s.ani.filtered}])" :key="w.label"
              class="w98-group">

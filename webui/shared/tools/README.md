@@ -44,7 +44,7 @@ node webui/shared/tools/extract-api.mjs upstream
 
 ```bash
 npm run build:all -- --demo                          # 先出产物
-node webui/shared/tools/mobile-audit.mjs             # 六款 × 360/390/414 × 13 条路由
+node webui/shared/tools/mobile-audit.mjs             # 九款 × 360/390/414 × 13 条路由
 node webui/shared/tools/mobile-audit.mjs material 390 # 只测一款一个宽度
 ```
 

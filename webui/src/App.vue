@@ -26,7 +26,7 @@ const prefs = usePrefsStore()
 const ui = useUiStore()
 const router = useRouter()
 
-// 主题（内置明暗 + 6 款皮肤）统一由它接管
+// 主题（内置明暗 + 9 款皮肤）统一由它接管
 useThemeManager()
 // ani-rss 自定义 CSS/JS 框的内容，默认不加载
 useCustomAssets()

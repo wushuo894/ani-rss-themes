@@ -2,7 +2,7 @@
  * 手机宽度下的版式体检。
  *
  *   npm run build:all -- --demo          # 先出演示产物，体检的是真产物不是源码
- *   node webui/shared/tools/mobile-audit.mjs                 # 六款 × 360/390/414
+ *   node webui/shared/tools/mobile-audit.mjs                 # 九款 × 360/390/414
  *   node webui/shared/tools/mobile-audit.mjs material 390    # 只测一款一个宽度
  *
  * 为什么要有这么一个东西：手机上的毛病肉眼看截图很难发现 ——
@@ -92,7 +92,7 @@ const server = createServer(async (req, res) => {
     /*
      * 不给 Service Worker。
      *
-     * 六款是轮流从同一个 127.0.0.1:4173 上发出去的，装上 SW 之后它会横插进每一个请求，
+     * 九款是轮流从同一个 127.0.0.1:4173 上发出去的，装上 SW 之后它会横插进每一个请求，
      * 量到的就不是「这套界面本身排得怎么样」了，而且每换一款都要重新装一遍，慢得离谱。
      * 直接 404，注册会失败 —— main.ts 里那句 catch 就是为这种场合留的，页面照常。
      */
@@ -206,7 +206,7 @@ for (const preset of presets) {
         await send('Emulation.setDeviceMetricsOverride',
             {width: w, height: 844, deviceScaleFactor: 2, mobile: true, screenWidth: w, screenHeight: 844})
         await send('Emulation.setTouchEmulationEnabled', {enabled: true, maxTouchPoints: 5})
-        /* 报一下进度：六款 × 三个宽度 × 十三条路由要跑十几分钟，
+        /* 报一下进度：九款 × 三个宽度 × 十三条路由要跑二十几分钟，
            不出声的话看起来跟卡死了一样，人就会去按 Ctrl-C */
         console.log(`· ${preset} @${w}px …`)
         /*

@@ -241,8 +241,10 @@
     <button id="mode" type="button">切换深色</button>
     <span class="pv-note" id="modeNote"></span>
     <button id="loginToggle" type="button">看登录页</button>
-    <!-- 新界面的预览在另一个目录：那边是真的 Vue app，不是这套 1:1 复刻的静态骨架 -->
-    <button onclick="location.href='webui/'" title="Vue 3 + Vuetify 3 的替代界面，五款" type="button">WebUI 预览 →</button>
+    <!-- 新界面的预览在另一个目录：那边是真的 Vue app，不是这套 1:1 复刻的静态骨架。
+         「共 N 款」里的数字由 .github/workflows/pages.yml 发布时按 ids.ts 重写 ——
+         手写的数字烂过一次：加到第六款时这里还写着五款，一直挂在站点首页上。 -->
+    <button onclick="location.href='webui/'" title="Vue 3 + Vuetify 3 的替代界面，共 9 款" type="button">WebUI 预览 →</button>
     <span class="pv-note pv-hint">顶部按钮可打开各弹窗</span>
     <span class="pv-grow"></span>
     <span class="pv-note pv-hint" id="pasteHint">复制到 设置 → 基础设置 → 页面设置 → 自定义 → CSS</span>

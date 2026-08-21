@@ -9,7 +9,7 @@ import AniSkeleton from '@/components/ani/AniSkeleton.vue'
  * Primer 的总览：左边一条「今天更新」的时间线，右边一列窄边栏。
  *
  * 这一款原来是没有总览页的（meta.dashboard = false，打开直接进清单）。
- * 想法没错 —— 但结果是五款界面里有一款少一整页，
+ * 想法没错 —— 但结果是所有界面里只有这一款少一整页，
  * 「今天有几部要更新」「谁在下」「谁停更了」这三件事只有这一款看不到。
  * github.com 自己的首页也是「feed + 右边栏」，补上并不违和。
  *

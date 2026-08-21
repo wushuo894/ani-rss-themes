@@ -7,7 +7,7 @@ import AniSkeleton from '@/components/ani/AniSkeleton.vue'
 /**
  * 文档站首页的排法：一段 hero 文案 + 两个行动按钮 + 一排 feature 卡 + 正文表格。
  *
- * 这款界面从头到尾不画阴影、不画海报，靠字号层级和细线分块 —— 和另外四款的
+ * 这款界面从头到尾不画阴影、不画海报，靠字号层级和细线分块 —— 和别的几款的
  * 区别不是配色，是「这里是一份可读的文档」而不是「这里是一块仪表盘」。
  */
 const d = useDashboard()

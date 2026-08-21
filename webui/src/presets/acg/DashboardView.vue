@@ -9,7 +9,7 @@ import AniSkeleton from '@/components/ani/AniSkeleton.vue'
  * 「今天更新了什么」——追番的人一天里唯一会反复看的东西。
  *
  * 所以今天那一组占整个首屏，横着铺开一排大海报；统计数字缩成一行小药丸放在底下。
- * 另外四款的总览是「先看数字再看内容」，这款反过来：先看图，数字是配菜。
+ * 别款的总览多半是「先看数字再看内容」，这款反过来：先看图，数字是配菜。
  */
 const d = useDashboard()
 const router = useRouter()

@@ -51,10 +51,19 @@ jobs:
           mkdir -p site/webui
           cp webui/preview-index.html site/webui/index.html
           # 款式清单跟 webui.yml 一样只认 ids.ts，别再抄第二份
-          for id in $(node --experimental-strip-types -e "import('./webui/src/presets/ids.ts').then(m => console.log(m.PRESET_IDS.join(' ')))"); do
+          ids=$(node --experimental-strip-types -e "import('./webui/src/presets/ids.ts').then(m => console.log(m.PRESET_IDS.join(' ')))")
+          test -n "$ids" || { echo "::error::没能从 ids.ts 读出款式清单"; exit 1; }
+          for id in $ids; do
             test -f "webui/dist/$id/index.html" || { echo "::error::webui/dist/$id 没构建出来"; exit 1; }
             cp -r "webui/dist/$id" "site/webui/$id"
           done
+          # 首页那颗「WebUI 预览」按钮的提示里写着款数。手写的数字烂过一次：
+          # 加到第六款时它还写着「五款」，就这么挂在站点首页上，没人发现。
+          # 发布时按 ids.ts 重写一遍，从此没机会再烂；替换不上就当失败，
+          # 否则这条规则自己失效了也是静悄悄的。
+          n=$(echo $ids | wc -w)
+          sed -i "s/替代界面，共 [0-9]\+ 款/替代界面，共 $n 款/" site/index.html
+          grep -q "替代界面，共 $n 款" site/index.html || { echo "::error::首页款数没替换成功，legacy/index.html 那句话是不是改了措辞？"; exit 1; }
           # 老地址活着才算数，缺一个就当失败
           for f in index.html themes/github.css preview/preview.js webui/index.html webui/vue/index.html; do
             test -f "site/$f" || { echo "::error::站点缺少 $f"; exit 1; }

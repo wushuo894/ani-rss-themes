@@ -133,7 +133,7 @@ node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 ```
 
 单款产物在 `webui/dist/<id>/`，组装结果在 `dist-webui/<id>/`。
-打 `webui-v*` 标签会由 GitHub Actions 自动构建并发布上面那六个包。
+打 `webui-v*` 标签会由 GitHub Actions 自动构建并发布上面那九个包。
 
 ## 开发
 
@@ -240,7 +240,7 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 
 #### 装它
 
-不用单独装 —— 六个发布包里都带着。自己构建见 `webui/shared/tools/pack.mjs` 的 `--player` 参数。
+不用单独装 —— 九个发布包里都带着。自己构建见 `webui/shared/tools/pack.mjs` 的 `--player` 参数。
 
 **体积**：播放器下载 13 MB、解压后 40 MB —— 其中 `vendor/ffmpeg-core.wasm` 独占 31 MB（音频转码用），
 `jassub-worker*.wasm` 各 2 MB（ASS 渲染），`anime4k.js` 3.4 MB。界面本体只有 1.6 MB。
@@ -309,7 +309,7 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 **这一层的意义不只是省代码。** 原来的主题是贴在 ani-rss 自己的 DOM 上的，
 换个版本、换个「页面设置」就可能散架；现在主题只依赖 Vuetify 的公开类名和一组自有变量，不再赌别人的内部结构。
 
-「二次元」会向第三方公共接口请求壁纸，在选择器里标了「联网」，介意就选别的五款。
+「二次元」会向第三方公共接口请求壁纸，在选择器里标了「联网」，介意就选别的八款。
 
 三个 JS 附加件没有迁：
 
