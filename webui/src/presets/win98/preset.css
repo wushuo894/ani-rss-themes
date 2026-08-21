@@ -1,0 +1,93 @@
+/*
+ * Win98 这款的动作语言：没有，一帧都没有。
+ *
+ * 1998 年的机器画不起动画，整套系统的反馈全靠「立体边框翻个面」——
+ * 按下去内凹、松开弹回，中间没有过程。所以时长全归零，位移和缩放全部关掉。
+ * 保留的只有焦点虚线框：那是当年唯一的键盘可达性提示，也是可访问性的底线。
+ */
+:root {
+    --m-dur: 0ms;
+    --m-dur-slow: 0ms;
+    --m-ease: linear;
+    --m-ease-out: linear;
+    --m-rise: 0px;
+    --m-scale: 1;
+    --m-stagger: 0ms;
+    --m-lift: 0px;
+    --m-lift-shadow: none;
+    --m-press: 1;
+
+    /*
+     * 外壳自己画的那些控件（标题栏、菜单栏、任务栏、开始菜单、资源管理器窗格）
+     * 用的一套颜色和斜角。
+     *
+     * 和皮肤（shared/themes/registry.ts 里的 win98）是各写一份的，不是漏抽公共：
+     * 皮肤要能单独套到别的五款外壳上，这个外壳也要能配别的皮肤 —— 两边都得自带一份，
+     * 少了哪一份对方都会缺色。这几个值是 1998 年定死的，不会再变。
+     */
+    --w98-face: #c0c0c0;
+    --w98-hi: #ffffff;
+    --w98-light: #dfdfdf;
+    --w98-shade: #808080;
+    --w98-dark: #0a0a0a;
+    --w98-ink: #000000;
+    --w98-desk: #008080;
+    --w98-title-a: #000080;
+    --w98-title-b: #1084d0;
+
+    /* 凸起（按钮、任务栏、面板）：外圈暗、内圈亮 */
+    --w98-out: inset -1px -1px var(--w98-dark), inset 1px 1px var(--w98-hi),
+    inset -2px -2px var(--w98-shade), inset 2px 2px var(--w98-light);
+    /* 按下：整个翻面 */
+    --w98-in: inset -1px -1px var(--w98-hi), inset 1px 1px var(--w98-dark),
+    inset -2px -2px var(--w98-light), inset 2px 2px var(--w98-shade);
+    /* 窗口外框：比按钮再厚一档，亮的在里 */
+    --w98-win: inset -1px -1px var(--w98-dark), inset 1px 1px var(--w98-light),
+    inset -2px -2px var(--w98-shade), inset 2px 2px var(--w98-hi);
+    /* 下沉的白井（列表、输入框、状态栏格子） */
+    --w98-well: inset -1px -1px var(--w98-hi), inset 1px 1px var(--w98-shade),
+    inset -2px -2px var(--w98-light), inset 2px 2px var(--w98-dark);
+}
+
+/*
+ * 键盘焦点是当年那圈 1px 虚线，画在内容里侧。
+ * offset 给负值：Win98 的虚线框是贴着控件内沿走的，不是浮在外面。
+ */
+:focus-visible {
+    outline: 1px dotted var(--w98-ink);
+    outline-offset: -4px;
+}
+
+/*
+ * 关掉页面本身的滚动条。
+ *
+ * Vuetify 的 reset 给 html 写死了 overflow-y: scroll（内容长短变化时页面不会左右跳）。
+ * 别的五款页面本来就滚，看不出来；这一款整个应用是一扇钉死的窗、页面永远不滚，
+ * 于是右边常年杵着一条 15px 宽、拖不动的滚动条 —— 既吃掉一截宽度，又像是坏了。
+ *
+ * 类挂在 <html> 上、由外壳的生命周期开关（见 Shell.vue）：登录页和播放页不在这个外壳里，
+ * 而 CSS 一旦注入就撤不回去，写成无条件的 html {} 会把那两页的滚动一起锁死。
+ */
+html.w98-root {
+    overflow-y: hidden;
+}
+
+/*
+ * 演示角标要给任务栏让位。
+ *
+ * App.vue 把它钉在左下角 12px，只有窄屏（<1280）才抬到 96px —— 那条规则是照
+ * 「底部导航只在手机上出现」写的，而这一款的任务栏任何宽度都在，
+ * 宽屏下角标正好盖在「开始」按钮上。
+ *
+ * 类名写两遍把权重顶到 (0,3,0)：App.vue 那条带 scoped 属性，是 (0,2,0)，
+ * 打平就要赌两张样式表谁在后面 —— 而外壳的 CSS 在异步分块里，顺序是构建器说了算。
+ */
+.v-application .demo-badge.demo-badge {
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 599.98px), (pointer: coarse) {
+    .v-application .demo-badge.demo-badge {
+        bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    }
+}

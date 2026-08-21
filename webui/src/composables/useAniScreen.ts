@@ -6,8 +6,8 @@ import {usePrefsStore} from '@/stores/prefs'
 /**
  * 订阅页的「非视觉」部分：弹窗开关、多选状态、批量动作。
  *
- * 五款界面长得完全不一样，但这一层一模一样 —— 抽出来之后每款只剩「怎么摆」，
- * 加一个弹窗、改一次批量逻辑，五款同时生效。
+ * 六款界面长得完全不一样，但这一层一模一样 —— 抽出来之后每款只剩「怎么摆」，
+ * 加一个弹窗、改一次批量逻辑，六款同时生效。
  */
 export function useAniScreen() {
     const ani = useAniStore()

@@ -8,7 +8,7 @@
  * 干的事只有两件：把选中那款界面的 dist 铺进 --out，再把 webplayer 的 dist
  * 铺进 --out/player/。手工做这两步容易漏第二步，漏了表现是点播放白屏。
  */
-import {cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync} from 'node:fs'
+import {cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync} from 'node:fs'
 import {resolve} from 'node:path'
 
 const argv = process.argv.slice(2)
@@ -18,7 +18,14 @@ const flag = name => {
     return i >= 0 ? argv[i + 1] : null
 }
 
-const IDS = ['acg', 'liquid-glass', 'vue', 'github', 'material']
+/*
+ * 款式清单从 ids.ts 读，不在这儿抄第二份 —— 抄了就会漏，
+ * 漏在这一处的表现最阴：那款界面构建出来了，但打包时被判成「未知预设」，
+ * 压缩包里没有它。用正则而不是 import：这脚本是当 .mjs 直接跑的，
+ * import 一个 .ts 得带上 --experimental-strip-types。
+ */
+const IDS_TS = readFileSync(resolve(import.meta.dirname, '../../src/presets/ids.ts'), 'utf8')
+const IDS = [...IDS_TS.match(/PRESET_IDS\s*=\s*\[([^\]]*)]/)[1].matchAll(/'([^']+)'/g)].map(m => m[1])
 
 if (!IDS.includes(which)) {
     console.error(`用法: node webui/shared/tools/pack.mjs <${IDS.join('|')}> [--player <webplayer/dist>] [--out <目录>]`)

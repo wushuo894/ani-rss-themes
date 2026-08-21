@@ -1,11 +1,11 @@
 # ani-rss 替代 WebUI
 
-给 [ani-rss](https://github.com/wushuo894/ani-rss) 做的五套完整前端，整个替换掉自带界面 —— 不是换肤。
+给 [ani-rss](https://github.com/wushuo894/ani-rss) 做的六套完整前端，整个替换掉自带界面 —— 不是换肤。
 
 上游在 `test` 分支（2026-08-19，commit `a79d482`）加了「备用 webui」：把文件放进 `{configDir}/webui/`，
-后端就优先从那里取静态资源。这五套就是给那个目录用的。
+后端就优先从那里取静态资源。这六套就是给那个目录用的。
 
-**👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)** —— 五款都能点开试，数据是内置的假数据。
+**👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)** —— 六款都能点开试，数据是内置的假数据。
 
 | id | 首页 | 订阅主视图 | 导航形态 | 动作语言 |
 | --- | --- | --- | --- | --- |
@@ -14,18 +14,19 @@
 | `vue` Vue 文档 | 文档站首页：hero + feature 卡 + 表格 | 细线分隔的行清单 | 左侧**分组**侧栏 + 居中正文 | 几乎不动，只淡入，悬停换底色 |
 | `github` GitHub | 没有首页，打开就是清单 | 带边框的清单，行内状态点 | 顶栏 + 一排 tab，无侧栏 | 没有动效，层级靠 1px 边框（Primer 就这样） |
 | `material` Material 3 | 大标题 + tonal 指标卡 + 横向轨道 | M3 卡片网格（带集数进度线），可切表格 | 导航栏杆 / 底部导航 + 扩展 FAB | M3 emphasized 曲线，反馈是 state layer 不是位移 |
+| `win98` Windows 98 | 一页「系统属性」：几个分组框 + 一格一格的进度条 | 资源管理器的详细信息视图：一行一条、点表头排序、右键出菜单 | 整个应用是一扇窗（标题栏 + 菜单栏 + 左侧窗格），底下钉一条带开始菜单的任务栏 | 一帧都没有，反馈只有「立体边框翻个面」 |
 
-**不是五套配色。** 首页、订阅页、卡片形态、导航、连动效曲线都不一样；
-但底下是同一份接口层、状态层、弹窗和设置页 —— 一处修好五款同时好。
+**不是六套配色。** 首页、订阅页、卡片形态、导航、连动效曲线都不一样；
+但底下是同一份接口层、状态层、弹窗和设置页 —— 一处修好六款同时好。
 
-实现上是**一套源码 + 五个预设**：`webui/src/presets/<id>/` 各出一个外壳（`Shell.vue`）、
+实现上是**一套源码 + 六个预设**：`webui/src/presets/<id>/` 各出一个外壳（`Shell.vue`）、
 一个总览页（`DashboardView.vue`）、一个订阅页（`SubsView.vue`）、一份控件默认值（`defaults.ts`）
 和一份动作签名（`preset.css`），构建时用 `VITE_PRESET` 选一款。
-复制五份源码那种「五款」，改一个 bug 要改五次。
+复制六份源码那种「六款」，改一个 bug 要改六次。
 
 动效不是每款各写一遍：`src/styles/motion.css` 只定义**有哪些动作**（入场、悬停、按下、
 骨架屏），曲线和时长全走 CSS 变量，各款的 `preset.css` 改写变量。
-所以五款共用同一批类名，动起来却是五种手感。
+所以六款共用同一批类名，动起来却是六种手感。
 
 页面之间没有整页过渡：路由组件套在 `<keep-alive>` 里，切走再切回来不重新挂载 ——
 列表不用重新渲染、滚动位置还在、日志和下载器也不必重新拉一遍。`<transition>` 和
@@ -67,7 +68,7 @@ irm .../install.ps1 | iex
 
 ### 手动装
 
-[Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 里五个包，一款一个，**挑一个**解压到 `webui/`：
+[Releases](https://github.com/zzzwannasleep/ani-rss-themes/releases) 里六个包，一款一个，**挑一个**解压到 `webui/`：
 
 | 压缩包 | 下载 | 解压后 |
 |---|---|---|
@@ -76,6 +77,7 @@ irm .../install.ps1 | iex
 | `ani-rss-webui-vue.zip` | ~14 MB | ~42 MB |
 | `ani-rss-webui-github.zip` | ~14 MB | ~42 MB |
 | `ani-rss-webui-material.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-win98.zip` | ~14 MB | ~42 MB |
 
 界面本体只有 1.6 MB，其余全是播放器的 wasm。**每个包都自带播放器** ——
 在线播放本来就是 ani-rss 的功能，我们只是把它自带的播放器换成支持 ASS 特效字幕和 HDR 的那个；
@@ -101,12 +103,12 @@ irm .../install.ps1 | iex
 
 ```bash
 npm ci --prefix webui
-npm run build:all --prefix webui -- --only vue     # 不带 --only 就是五款全建
+npm run build:all --prefix webui -- --only vue     # 不带 --only 就是六款全建
 node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 ```
 
 单款产物在 `webui/dist/<id>/`，组装结果在 `dist-webui/<id>/`。
-打 `webui-v*` 标签会由 GitHub Actions 自动构建并发布上面那五个包。
+打 `webui-v*` 标签会由 GitHub Actions 自动构建并发布上面那六个包。
 
 ## 开发
 
@@ -114,12 +116,12 @@ node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 cd webui
 VITE_PRESET=github VITE_API_TARGET=http://<你的 ani-rss> npm run dev
 npm run typecheck
-npm run build:all -- --demo    # 五款演示构建（假数据，Pages 预览用的就是它）
+npm run build:all -- --demo    # 六款演示构建（假数据，Pages 预览用的就是它）
 npm test                       # 主题 / 接口地址 / 外部播放器的断言
 npm run test:mobile            # 手机宽度版式体检，要先有 --demo 产物
 ```
 
-`test:mobile` 用无头 Chrome/Edge 跑五款 × 360/390/414 × 13 条路由，
+`test:mobile` 用无头 Chrome/Edge 跑六款 × 360/390/414 × 13 条路由，
 只认四类可判定的事实：整页横向滚动、元素伸出视口、可点元素不足 36px、
 固定元素压住按钮。手机上的毛病看截图很难认（「按钮被顶出去 11px」和「有点挤」长得一样），
 vue-tsc 和单元测试又完全看不见 CSS，所以单开一份。
@@ -174,7 +176,7 @@ vue-tsc 和单元测试又完全看不见 CSS，所以单开一份。
 
 #### 装它
 
-不用单独装 —— 五个发布包里都带着。自己构建见 `webui/shared/tools/pack.mjs` 的 `--player` 参数。
+不用单独装 —— 六个发布包里都带着。自己构建见 `webui/shared/tools/pack.mjs` 的 `--player` 参数。
 
 **体积**：播放器下载 13 MB、解压后 40 MB —— 其中 `vendor/ffmpeg-core.wasm` 独占 31 MB（音频转码用），
 `jassub-worker*.wasm` 各 2 MB（ASS 渲染），`anime4k.js` 3.4 MB。界面本体只有 1.6 MB。
@@ -220,7 +222,7 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 
 ## 主题
 
-从仓库原有的 CSS 主题里挑了 5 款迁过来，在 **设置 → 基本设置 → 页面设置 → 主题** 里选：
+从仓库原有的 CSS 主题里挑了 6 款迁过来，在 **设置 → 基本设置 → 页面设置 → 主题** 里选：
 
 | id | 名字 | 长什么样 |
 |---|---|---|
@@ -229,6 +231,7 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 | `vue` | Vue 文档 | VitePress 配色，顶部绿紫晕染 |
 | `github` | GitHub | Primer 配色与字栈，贡献热力图格子 |
 | `material` | Material Design 3 | Roboto，全圆角胶囊 |
+| `win98` | Windows 98 | 银灰双层斜角，靛蓝标题栏，方角滚动条，一格一格的进度条（只在浅色下成立） |
 
 原来那些 `.css` 主题文件一个没动，只是挪进了 `legacy/`，给 ani-rss 自带界面换肤照用。
 
@@ -239,7 +242,7 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 **这一层的意义不只是省代码。** 原来的主题是贴在 ani-rss 自己的 DOM 上的，
 换个版本、换个「页面设置」就可能散架；现在主题只依赖 Vuetify 的公开类名和一组自有变量，不再赌别人的内部结构。
 
-「二次元」会向第三方公共接口请求壁纸，在选择器里标了「联网」，介意就选别的四款。
+「二次元」会向第三方公共接口请求壁纸，在选择器里标了「联网」，介意就选别的五款。
 
 三个 JS 附加件没有迁：
 
@@ -252,25 +255,25 @@ PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响�
 
 ```
 webui/
-├── shared/                五款共用，不含 UI 组件
+├── shared/                六款共用，不含 UI 组件
 │   ├── http.ts            传输层：Result 拆包、令牌、子路径自适应
 │   ├── api.ts             66 个端点的具名封装
 │   ├── types.ts           从 Java 实体生成
 │   ├── format.ts          体积/时间/集数格式化
 │   ├── player.ts          webplayer 接入：地址拼装与部署探测
 │   ├── vite-mdi-svg.ts    构建期插件：扫源码，只把用到的图标打进产物（省 700KB）
-│   ├── themes/            主题系统 + 5 款主题 + 自检
+│   ├── themes/            主题系统 + 6 款主题 + 自检
 │   └── tools/             类型/接口生成器、产物组装、Range 探针
 ├── src/
-│   ├── presets/<id>/      五款各自的外壳、总览页、订阅页、控件默认值、动作签名
+│   ├── presets/<id>/      六款各自的外壳、总览页、订阅页、控件默认值、动作签名
 │   ├── styles/motion.css  动效底座：动作定义在这里，曲线由各款覆盖
-│   ├── components/        弹窗、设置项、卡片、骨架屏 —— 五款共用
-│   ├── views/             下载器/日志/设置/登录/播放 —— 五款共用
+│   ├── components/        弹窗、设置项、卡片、骨架屏 —— 六款共用
+│   ├── views/             下载器/日志/设置/登录/播放 —— 六款共用
 │   ├── stores/            订阅、下载、日志、配置、偏好
 │   ├── composables/       外壳逻辑、订阅页逻辑、主题管理
 │   └── demo/              演示模式：拦掉请求用假数据顶上（只进预览构建）
-├── preview-index.html     Pages 上的五款选择页
-└── tools/build-all.mjs    一口气构建五款
+├── preview-index.html     Pages 上的六款选择页
+└── tools/build-all.mjs    一口气构建六款
 
 legacy/                    旧的 CSS + JS 主题，给 ani-rss 自带界面换肤
 ├── themes/*.css           17 款
@@ -281,7 +284,7 @@ legacy/                    旧的 CSS + JS 主题，给 ani-rss 自带界面换�
 
 ## 预览站是怎么发布的
 
-`.github/workflows/pages.yml` 把 `legacy/` 铺回站点根、五款演示构建放进 `/webui/<id>/`。
+`.github/workflows/pages.yml` 把 `legacy/` 铺回站点根、六款演示构建放进 `/webui/<id>/`。
 
 之所以改成用 Actions 发布而不是「从分支根目录发布」：仓库拆成两半之后，
 线上必须保留 `/themes/xxx.css` 这个地址 —— 用户 `@import` 的就是它，换地址等于把已经装好的人的主题弄没。
@@ -293,4 +296,4 @@ CI 里也有一条检查：正式包里出现演示数据就直接失败。
 
 ## 许可
 
-MIT。与 ani-rss 官方无隶属关系；五款界面只是参照了各自的设计语言，与 Vue、GitHub、Google、Apple 均无关联。
+MIT。与 ani-rss 官方无隶属关系；六款界面只是参照了各自的设计语言，与 Vue、GitHub、Google、Apple、Microsoft 均无关联。

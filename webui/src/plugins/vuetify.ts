@@ -27,7 +27,7 @@ const named: IconSet = {
  * 之所以拆两层：颜色要参与 Vuetify 的对比度计算（on-surface 之类是算出来的），
  * 必须交给它；其余的交给它反而会被编译进产物，改一次要重新构建。
  *
- * light / dark / defaults 三样都来自当前预设 —— 五款界面的控件密度和形状不一样，
+ * light / dark / defaults 三样都来自当前预设 —— 六款界面的控件密度和形状不一样，
  * 这一处换掉，整个 app 就换了一种气质，不必逐个组件调。
  */
 /**
@@ -61,7 +61,7 @@ function luminance(hex: string): number {
  *
  * Vuetify 内建的 surface-variant 走的是 M2 那套：浅色主题里它是**深**灰、深色主题里是**浅**灰，
  * 配套的 on-surface-variant 也是照这个假设给的（浅色 #EEEEEE、深色 #000000）。
- * 五款预设都把 surface-variant 改成了和 surface 同侧的颜色，却没有跟着改 on- ——
+ * 各款预设都把 surface-variant 改成了和 surface 同侧的颜色，却没有跟着改 on- ——
  * 于是浅色下变成 #EEEEEE 的字压在 #f6f6f7 上、深色下是纯黑的字压在 #2e2e32 上，
  * 两边都是同色写同色，对比度 1.05。版本号、周几、「19 / 22」这类小药丸整个看不见。
  *

@@ -14,7 +14,7 @@ import AniFilterBar from '@/components/ani/AniFilterBar.vue'
  * 没有封面图 —— GitHub 的清单靠文字密度取胜，塞海报就变味了。
  *
  * 也几乎没有动效：Primer 的层级来自 1px 边框和底色，不来自位移和阴影。
- * 这一款是五款里唯一「安静」的，切过来应该能立刻感觉到区别。
+ * 除了 win98（那一款一帧动画都没有），这是最安静的一款，切过来应该能立刻感觉到区别。
  */
 const s = useAniScreen()
 const {mobile} = useDisplay()

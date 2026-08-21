@@ -26,7 +26,7 @@ const prefs = usePrefsStore()
 const ui = useUiStore()
 const router = useRouter()
 
-// 主题（内置明暗 + 5 款皮肤）统一由它接管
+// 主题（内置明暗 + 6 款皮肤）统一由它接管
 useThemeManager()
 // ani-rss 自定义 CSS/JS 框的内容，默认不加载
 useCustomAssets()
@@ -75,10 +75,11 @@ setUnauthorizedHandler(() => {
 }
 
 /*
- * 手机上左下角是导航的地盘 —— 五款里 material/acg 摆底部导航条、
- * 液态玻璃摆悬浮胶囊，徽标钉在 12px 正好压在上面（实测每页都压住 26px 高一条）。
+ * 手机上左下角是导航的地盘 —— material/acg 摆底部导航条、液态玻璃摆悬浮胶囊，
+ * 徽标钉在 12px 正好压在上面（实测每页都压住 26px 高一条）。
  * 抬到 96px 以上：够让开最高的那条（液态玻璃的胶囊连边距 88px）。
  * 没有底部导航的 vue / github 两款抬上去也只是浮高一点，不挡任何东西。
+ * win98 那款的任务栏在任何宽度下都在，这条规则够不着它 —— 它自己在 preset.css 里再抬一次。
  *
  * 断点跟 Vuetify 的 mobile 对齐 —— 它默认是 lg(1280)，不是 600。
  * 写 600 的话平板横屏拿到的是手机外壳、徽标却按宽屏摆，照样压。

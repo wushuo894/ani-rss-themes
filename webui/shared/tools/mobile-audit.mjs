@@ -2,7 +2,7 @@
  * 手机宽度下的版式体检。
  *
  *   npm run build:all -- --demo          # 先出演示产物，体检的是真产物不是源码
- *   node webui/shared/tools/mobile-audit.mjs                 # 五款 × 360/390/414
+ *   node webui/shared/tools/mobile-audit.mjs                 # 六款 × 360/390/414
  *   node webui/shared/tools/mobile-audit.mjs material 390    # 只测一款一个宽度
  *
  * 为什么要有这么一个东西：手机上的毛病肉眼看截图很难发现 ——
@@ -31,7 +31,14 @@ import {spawn} from 'node:child_process'
 const HERE = dirname(fileURLToPath(import.meta.url))
 const DIST = resolve(HERE, '../../dist')
 const PORT = 4173, CDP_PORT = 9222
-const PRESETS = ['material', 'acg', 'liquid-glass', 'vue', 'github']
+/*
+ * 款式清单从 ids.ts 读，不在这儿再抄一遍 —— 抄了就会漏，
+ * 表现是新加的那款静悄悄没被体检过。
+ * 用正则而不是 import：这个脚本是当 .mjs 直接跑的，import 一个 .ts 得带上
+ * --experimental-strip-types，多一个前提就多一处能坏的地方。
+ */
+const IDS_TS = await readFile(resolve(HERE, '../../src/presets/ids.ts'), 'utf8')
+const PRESETS = [...IDS_TS.match(/PRESET_IDS\s*=\s*\[([^\]]*)]/)[1].matchAll(/'([^']+)'/g)].map(m => m[1])
 const WIDTHS = [360, 390, 414]
 const ROUTES = [
     ['总览', '/'], ['订阅', '/subscriptions'], ['下载', '/downloads'], ['日志', '/logs'],

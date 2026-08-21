@@ -14,8 +14,8 @@ REPO="zzzwannasleep/ani-rss-themes"
 # 可用 ANIRSS_BASE 覆盖下载源（自建镜像、或本地测试）
 BASE="${ANIRSS_BASE:-https://github.com/$REPO/releases/latest/download}"
 
-# 五款界面。序号只是给交互时少打几个字用的，真正的 id 是右边那个。
-UI_IDS="acg liquid-glass vue github material"
+# 六款界面。序号只是给交互时少打几个字用的，真正的 id 是右边那个。
+UI_IDS="acg liquid-glass vue github material win98"
 
 DIR=""
 UI=""
@@ -39,7 +39,7 @@ while [ $# -gt 0 ]; do
         --ui) UI="${2:-}"; shift 2 ;;
         -y|--yes) ASSUME_YES="yes"; shift ;;
         -h|--help)
-            say "用法: install.sh [--dir <webui目录>] [--ui acg|liquid-glass|vue|github|material] [-y]"
+            say "用法: install.sh [--dir <webui目录>] [--ui acg|liquid-glass|vue|github|material|win98] [-y]"
             say "在线播放器包含在每个包里，不需要单独选。"
             exit 0 ;;
         *) die "未知参数: $1" ;;
@@ -136,7 +136,7 @@ else
 fi
 
 # ── 选界面 ─────────────────────────────────────────────
-# 五款是同一套功能的不同外观，装一款就够；先在线看看：
+# 六款是同一套功能的不同外观，装一款就够；先在线看看：
 #   https://zzzwannasleep.github.io/ani-rss-themes/webui/
 if [ -z "$UI" ]; then
     say ""
@@ -145,7 +145,8 @@ if [ -z "$UI" ]; then
     say "  ${B}3${N} Vue 文档        分组侧栏 + 居中正文，细线分栏"
     say "  ${B}4${N} GitHub          深色顶栏 + tab，一张带边框的清单"
     say "  ${B}5${N} Material 3      导航栏杆 / 底部导航 + 右下 FAB"
-    say "${D}  五款功能完全一样，只是长得不同。在线预览：${N}"
+    say "  ${B}6${N} Windows 98      标题栏 + 菜单栏 + 任务栏，订阅页是详细信息列表"
+    say "${D}  六款功能完全一样，只是长得不同。在线预览：${N}"
     say "${D}  https://zzzwannasleep.github.io/ani-rss-themes/webui/${N}"
     UI=$(ask "装哪一款（序号或 id）" "3")
 fi
@@ -157,11 +158,12 @@ case "$UI" in
     3) UI="vue" ;;
     4) UI="github" ;;
     5) UI="material" ;;
+    6) UI="win98" ;;
 esac
 
 _hit=""
 for _i in $UI_IDS; do [ "$UI" = "$_i" ] && _hit="yes"; done
-[ -n "$_hit" ] || die "只能是 $UI_IDS（或序号 1-5），收到: $UI"
+[ -n "$_hit" ] || die "只能是 $UI_IDS（或序号 1-6），收到: $UI"
 
 # ── 下载 ───────────────────────────────────────────────
 TMP=$(mktemp -d 2>/dev/null || mktemp -d -t anirss)

@@ -25,7 +25,7 @@ permissions:
 jobs:
   # ─────────────────────────────────────────────────────────
   build:
-    name: 构建五款界面
+    name: 构建六款界面
     runs-on: ubuntu-latest
     outputs:
       presets: ${{ steps.meta.outputs.presets }}
@@ -61,7 +61,7 @@ jobs:
         working-directory: webui
 
       # build:all 里已经串了 vue-tsc，类型错误会让构建直接失败
-      - name: 构建五款
+      - name: 构建六款
         run: npm run build:all
         working-directory: webui
 
@@ -174,7 +174,7 @@ jobs:
         with:
           path: art
 
-      # 五款各打各的包 —— 一款一个 zip，装谁下谁，不必为一款界面下五份。
+      # 六款各打各的包 —— 一款一个 zip，装谁下谁，不必为一款界面下六份。
       # 但播放器不单独拆包：在线播放本来就是 ani-rss 的功能，我们只是把它自带的
       # 播放器换成支持 ASS 特效字幕和 HDR 的那个，拆开只会让人少装一个然后以为坏了。
       # 资产名不带版本号：install 脚本用 releases/latest/download/<固定名> 取，
@@ -198,7 +198,7 @@ jobs:
       - name: 生成发布说明
         run: |
           cat > notes.md <<EOF
-          五款界面挑一款，解压到 ani-rss **配置目录**下的 \`webui/\` 里（没有就新建一个），
+          六款界面挑一款，解压到 ani-rss **配置目录**下的 \`webui/\` 里（没有就新建一个），
           然后**重启 ani-rss**。程序是启动时才扫这个目录的，只刷新页面不算数。
           **每个包都自带在线播放器**，不用再单独下一个。
 
@@ -217,8 +217,9 @@ jobs:
           | \`ani-rss-webui-vue.zip\`          | Vue 文档：分组侧栏 + 居中正文 |
           | \`ani-rss-webui-github.zip\`       | GitHub：深色顶栏 + tab，一张带边框的清单 |
           | \`ani-rss-webui-material.zip\`     | Material Design 3：导航栏杆 / 底部导航 + FAB |
+          | \`ani-rss-webui-win98.zip\`        | Windows 98：标题栏 + 菜单栏 + 任务栏，订阅页是详细信息列表 |
 
-          五款是同一套功能的不同外观，**装一款就够**，装第二款会覆盖第一款。
+          六款是同一套功能的不同外观，**装一款就够**，装第二款会覆盖第一款。
           想换回自带界面：清空（或删掉）\`webui/\` 目录再重启。
 
           ### 一行装好
@@ -237,7 +238,7 @@ jobs:
 
           ### 先在线看看
 
-          <https://zzzwannasleep.github.io/ani-rss-themes/webui/> —— 五款都能点开试，数据是内置的假数据。
+          <https://zzzwannasleep.github.io/ani-rss-themes/webui/> —— 六款都能点开试，数据是内置的假数据。
 
           ### 播放前先跑一下
 

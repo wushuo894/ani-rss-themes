@@ -2,7 +2,7 @@
 import type {AniScreen} from '@/composables/useAniScreen'
 
 /**
- * 批量操作条。五款界面的按钮排布可以不同，但「能批量做哪些事」必须一致，
+ * 批量操作条。各款界面的按钮排布可以不同，但「能批量做哪些事」必须一致，
  * 所以动作集合放在这里，外观交给 variant / rounded 两个旋钮。
  *
  * 常用的四个平铺，其余收进「更多」：

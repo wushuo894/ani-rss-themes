@@ -4,10 +4,10 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>ani-rss WebUI 预览</title>
-    <meta name="description" content="ani-rss 替代 WebUI 的在线预览：五款界面各点开就能试，数据是内置的假数据"/>
+    <meta name="description" content="ani-rss 替代 WebUI 的在线预览：六款界面各点开就能试，数据是内置的假数据"/>
     <style>
         /* ─────────────────────────────────────────────────────────────
-           这个页面只有一个任务：让人一眼看见五款长什么样。
+           这个页面只有一个任务：让人一眼看见六款长什么样。
            所以卡片里放的不是截图、也不是手画的示意图，是把真界面本身
            用 iframe 装进来按比例缩小 —— 界面改了它自动跟着变，不会过期，
            也不用往仓库里塞几张迟早对不上的 png。
@@ -190,9 +190,10 @@
             font-weight: 650;
         }
 
-        /* ── 五张卡 ───────────────────────────────────────────── */
-        /* 两列，第一张横跨两列。5 张在两列里本来会剩一个洞，
-           让第一张占满一行正好填平 —— 顺带给它一个「主推」的分量。 */
+        /* ── 六张卡 ───────────────────────────────────────────── */
+        /* 两列，第一张和最后一张各横跨两列：6 张排成三行本来是齐的，
+           但这两款（壁纸海报墙、整扇 Win98 窗）缩到半列就只剩一团色块 ——
+           给它们整行，中间四款两两成排，照样不剩洞。 */
         .grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -552,7 +553,7 @@
     </div>
 
     <header class="hero">
-        <p class="eyebrow"><b>五款</b> 同一套功能，只是长得不同</p>
+        <p class="eyebrow"><b>六款</b> 同一套功能，只是长得不同</p>
         <h1>给 ani-rss<br/>换一张<span>好看的脸</span></h1>
         <p class="lede">下面每张卡里跑的都是真界面，不是截图 —— 点开就能翻页、开关、改设置。
             数据是内置的假数据，随便折腾，不连你的任何东西。</p>
@@ -655,6 +656,25 @@
                 <div class="tags"><span>M3 响应式导航</span><span>FAB</span></div>
             </div>
         </a>
+
+        <a class="card wide" href="win98/" style="--a:#008080;--b:#000080">
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/win98/</div>
+                <div class="open">打开 →</div>
+            </div>
+            <div class="shot" data-src="win98/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">Windows 98 <em>win98</em></div>
+                <p class="desc">整个应用是一扇窗：标题栏、菜单栏、资源管理器窗格、状态栏，底下钉一条带开始菜单的任务栏。
+                    订阅页默认是「详细信息」——一行一条、点表头排序。</p>
+                <div class="tags"><span>任务栏 + 开始菜单</span><span>详细信息视图</span></div>
+            </div>
+        </a>
     </div>
 
     <h2>装到自己的 ani-rss 上</h2>
@@ -681,7 +701,7 @@
     </div>
 
     <footer>
-        五款是同一套代码的不同外观，装一款就够，装第二款会覆盖第一款 ——
+        六款是同一套代码的不同外观，装一款就够，装第二款会覆盖第一款 ——
         <a href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest" rel="noopener">下载压缩包</a> ·
         <a href="https://github.com/zzzwannasleep/ani-rss-themes" rel="noopener">源码与说明</a> ·
         <a href="../">旧版主题（给自带界面换肤的 CSS）</a>
@@ -689,13 +709,13 @@
 </div>
 
 <script>
-    /* 缩略图里跑的是真界面。为了不让五个 Vue 应用同时开跑，做两件事：
+    /* 缩略图里跑的是真界面。为了不让六个 Vue 应用同时开跑，做两件事：
        1) 滚到跟前才建 iframe；2) 一次只建一个，等它 load 完再放下一个。
        窄屏和「省流量」模式下干脆不建，留骨架图 —— 手机上没人为了看缩略图愿意下 5 MB。 */
     (function () {
         const boxes = [...document.querySelectorAll('.shot')]
         // iframe 内部按这个宽度渲染，再整体缩到卡片宽度。窄屏上给它手机的宽度 ——
-        // 硬塞 1440 再缩到 0.27 只剩一团糊，而这五款本来就是同一套响应式代码，
+        // 硬塞 1440 再缩到 0.27 只剩一团糊，而这六款本来就是同一套响应式代码，
         // 手机上正好让它把自己的手机版布局摆出来。
         const narrow = matchMedia('(max-width: 720px)').matches
         // 至少给它一个手机的宽度，同时不小于卡片本身 —— 取 max 是为了永远只缩不放，

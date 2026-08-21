@@ -11,7 +11,7 @@ import ImportAniDialog from './ImportAniDialog.vue'
 import CollectionDialog from './CollectionDialog.vue'
 
 /**
- * 九个弹窗的挂载点。五款界面各自只管「订阅怎么摆」，弹窗都长一样，
+ * 九个弹窗的挂载点。各款界面各自只管「订阅怎么摆」，弹窗都长一样，
  * 挂一行 <AniDialogs :s="s"/> 就全有了。
  */
 const {s} = defineProps<{s: AniScreen}>()

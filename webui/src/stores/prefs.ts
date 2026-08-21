@@ -50,7 +50,7 @@ export const usePrefsStore = defineStore('prefs', () => {
 
     /**
      * 选中的皮肤 id，空串表示不启用（Vuetify 原生观感）。
-     * 默认给当前预设自带的那一款 —— 五款界面各自的外壳是照着自家皮肤画的，
+     * 默认给当前预设自带的那一款 —— 每款界面的外壳都是照着自家皮肤画的，
      * 首次打开就该是完整的样子，而不是先看到一版没上皮肤的半成品。
      */
     const themeId = persisted<string>('ani-webui-theme-id', meta.theme)
@@ -64,7 +64,9 @@ export const usePrefsStore = defineStore('prefs', () => {
 
     /* ── 本 WebUI 新增 ── */
     const cardSize = persisted<'small' | 'medium' | 'large'>('ani-webui-card-size', 'medium')
-    const viewMode = persisted<'grid' | 'list'>('ani-webui-view-mode', 'grid')
+    /* 初值跟着预设走，和上面的皮肤同一个道理：Win98 那款的订阅页就是资源管理器的
+       详细信息视图，首次打开却给一墙海报的话，这款界面最像它的地方一次都露不出来 */
+    const viewMode = persisted<'grid' | 'list'>('ani-webui-view-mode', meta.defaultView ?? 'grid')
 
     return {
         mode, resolved, accent, themeId, loadCustomAssets,
