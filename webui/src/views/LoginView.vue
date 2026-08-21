@@ -79,8 +79,8 @@ async function submit() {
     </v-container>
 
     <div class="text-center pb-6 text-medium-emphasis text-caption">
-      <a class="text-medium-emphasis mr-3" href="https://docs.wushuo.top" rel="noopener" target="_blank">ani-rss</a>
-      <a class="text-medium-emphasis" href="https://github.com/wushuo894/ani-rss" rel="noopener" target="_blank">github</a>
+      <a class="text-medium-emphasis touch-link mr-3" href="https://docs.wushuo.top" rel="noopener" target="_blank">ani-rss</a>
+      <a class="text-medium-emphasis touch-link" href="https://github.com/wushuo894/ani-rss" rel="noopener" target="_blank">github</a>
     </div>
   </v-main>
 </template>

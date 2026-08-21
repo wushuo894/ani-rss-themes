@@ -71,7 +71,7 @@ async function importGlobal() {
              variant="text" @click="model = []">
         清空
       </v-btn>
-      <a v-if="doc" :href="doc.href" class="text-caption doc-link" rel="noopener" target="_blank">
+      <a v-if="doc" :href="doc.href" class="text-caption doc-link touch-link" rel="noopener" target="_blank">
         {{ doc.text }}
         <v-icon icon="mdi-open-in-new" size="12"/>
       </a>

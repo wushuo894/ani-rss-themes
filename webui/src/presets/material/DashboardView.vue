@@ -140,13 +140,13 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 
 .stat-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
 }
 
 @media (min-width: 720px) {
     .stat-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 16px;
     }
 }
@@ -204,13 +204,13 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 
 .two-col {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 16px;
 }
 
 @media (min-width: 960px) {
     .two-col {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 }
 

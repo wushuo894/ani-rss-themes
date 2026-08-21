@@ -194,8 +194,9 @@ async function testIpWhitelist() {
 
     <!-- 保存条常驻底部：设置项很长，翻到哪都能存 -->
     <v-sheet v-if="tab !== 'about' && tab !== 'afdian'" class="save-bar d-flex align-center ga-2 px-4 py-3" elevation="4">
-      <!-- 演示站左下角钉着一枚「演示模式」徽标，正好压在这句话上，给它让开一截 -->
-      <span :class="{'demo-gap': isDemo}" class="text-caption text-medium-emphasis">改动不会自动保存</span>
+      <!-- 演示站左下角钉着一枚「演示模式」徽标，正好压在这句话上，给它让开一截。
+           手机上徽标已经抬到底部导航上方去了（见 App.vue），这句话本身也让位给按钮 —— d-none d-sm-flex -->
+      <span :class="{'demo-gap': isDemo}" class="text-caption text-medium-emphasis d-none d-sm-flex">改动不会自动保存</span>
       <v-spacer/>
       <v-btn :disabled="store.saving" variant="text" @click="store.load(true)">放弃改动</v-btn>
       <v-btn :loading="store.saving" color="primary" prepend-icon="mdi-content-save" variant="flat"
@@ -244,9 +245,17 @@ async function testIpWhitelist() {
     flex: 0 0 auto;
 }
 
-/* 徽标宽度 ≈ 128px，加 12px 左边距和一点余量 */
-.demo-gap {
-    margin-left: 152px;
+/*
+ * 徽标宽度 ≈ 128px，加 12px 左边距和一点余量。
+ *
+ * 只在宽屏让位。手机上整条保存条也才 390px，让掉 152px 之后
+ * 「保存设置」会被顶出屏幕右边 25px —— 实测点不到。
+ * 徽标在手机上已经抬到底部导航上方，压根不在这条上，没有让位的必要。
+ */
+@media (min-width: 600px) {
+    .demo-gap {
+        margin-left: 152px;
+    }
 }
 
 .save-bar {

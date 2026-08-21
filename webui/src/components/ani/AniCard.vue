@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
 import type {Ani} from '@shared/types'
 import {toApiFile} from '@shared/http'
 import {formatEpisodes, fromNow} from '@shared/format'
@@ -26,6 +27,9 @@ const props = defineProps<{
 }>()
 
 const acts = computed(() => aniActions(props.s, props.item))
+
+/* xs（<600）下图标行只放两个，其余退进「更多」—— 见下面模板里的注释 */
+const {xs} = useDisplay()
 
 const prefs = usePrefsStore()
 
@@ -125,9 +129,13 @@ function onCardClick() {
       只留三个常用动作，其余收进菜单。
       卡片最窄只有 160px，六个图标按钮排一行会把最后一个挤出可视区 ——
       删除按钮被挤掉是看不出来的，只有想删的时候才发现点不到。
+
+      手机上再收一档，只留两个：图标按钮在触屏下要撑到 40px 才够点，
+      三个常用加一颗「更多」是 172px，比 360px 屏上的卡片（约 156px）还宽。
+      挤下来的那个退回「更多」菜单，不是消失。
     -->
     <v-card-actions class="acts">
-      <v-btn v-for="act in compactOf(acts)" :key="act.key" :icon="act.icon" :title="act.title"
+      <v-btn v-for="act in compactOf(acts, xs ? 2 : Infinity)" :key="act.key" :icon="act.icon" :title="act.title"
              density="comfortable" size="small" variant="text" @click.stop="act.run()"/>
       <v-spacer/>
       <v-menu location="bottom end">
@@ -136,7 +144,8 @@ function onCardClick() {
                  variant="text" @click.stop/>
         </template>
         <v-list density="comfortable" min-width="180">
-          <v-list-item v-for="act in overflowOf(acts)" :key="act.key" :base-color="act.danger ? 'error' : undefined"
+          <v-list-item v-for="act in overflowOf(acts, xs ? 2 : Infinity)" :key="act.key"
+                       :base-color="act.danger ? 'error' : undefined"
                        :prepend-icon="act.icon" :title="act.title" @click="act.run()"/>
         </v-list>
       </v-menu>

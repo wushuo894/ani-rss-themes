@@ -235,14 +235,14 @@ const heroBg = computed(() => {
 /* ── 数字板 ── */
 .nums {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 4px;
     padding: 10px;
 }
 
 @media (min-width: 720px) {
     .nums {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 

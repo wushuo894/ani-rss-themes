@@ -6,6 +6,7 @@ import vuetify from './plugins/vuetify'
 import '@shared/themes/base.css'
 import './styles/motion.css'
 import './styles/spacing.css'
+import './styles/touch.css'
 
 /*
  * 演示构建（GitHub Pages 预览）在挂载前把 fetch 换成假服务端。

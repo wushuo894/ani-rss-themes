@@ -126,7 +126,7 @@ async function verify() {
     </template>
 
     <div class="mt-5">
-      <a class="text-body-2 afdian-link"
+      <a class="text-body-2 afdian-link touch-link"
          href="https://github.com/wushuo894/ani-rss/discussions/260" rel="noopener" target="_blank">
         关于增加的捐赠功能，作者想说的话
         <v-icon icon="mdi-open-in-new" size="14"/>

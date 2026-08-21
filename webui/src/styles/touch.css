@@ -1,0 +1,96 @@
+/*
+ * 手机上的可点性基线。
+ *
+ * 为什么单独一份：这些毛病五款界面各犯一遍 —— 底部导航挤到屏幕外、
+ * 小一号的按钮只有 28px 高、页脚那几个文字链接高 14px。
+ * 都是同一类问题（宽屏够用的尺寸拿到手机上就不够点了），
+ * 分散到五个预设里各修一次，下次加第六款照样再犯。放一处，一改全覆盖。
+ *
+ * 触发条件写成「窄屏 或 触摸屏」两条并列：
+ * 窄屏那条保证手机浏览器一定命中；pointer: coarse 那条覆盖平板 ——
+ * Vuetify 的 mobile 断点是 lg（1280px），平板横屏拿到的也是这套手机外壳。
+ */
+
+/*
+ * 底部导航：Vuetify 给每个按钮兜了 min-width: 80px，五个就是 400px，
+ * 比 390 宽的手机还宽 —— 首尾两个会被挤出屏幕各 5px。
+ * grow 已经让它们平分宽度了，这个下限只会碍事。
+ * 不加媒体查询：宽屏下平分本来就超过 80px，去掉下限不改变任何东西。
+ *
+ * 选择器必须完整写到 .v-bottom-navigation__content > .v-btn ——
+ * Vuetify 的原规则就是这么写的（0,3,1）。少写一层的话我们是 0,2,1 输给它；
+ * 而且它在 Shell 那个异步分块里，加载顺序还排在我们后面，权重打平也照样盖不住 ——
+ * 所以前面还要再垫一层 .v-application 把权重压过去（0,4,1 对 0,3,1）。
+ */
+.v-application .v-bottom-navigation .v-bottom-navigation__content > .v-btn {
+    min-width: 0;
+}
+
+@media (max-width: 599.98px), (pointer: coarse) {
+    /*
+     * 触摸目标下限 40px。M3 建议 48，这里退一档 ——
+     * 48 会把订阅卡片上那排图标按钮撑得比封面还显眼。
+     * 只抬高度不动字号：density="comfortable" 的紧凑观感还在，手指够得着而已。
+     *
+     * 写成不分尺寸的 .v-btn，别去列 size-small / density-compact 那几个类：
+     * 矮下来的路子不止一条 —— 对话框按钮条里的「确定」「取消」带的是
+     * v-btn--slim + density-default，照样只有 32px，按类名点名一定会漏。
+     * 图标按钮排除在外，它要的是宽高一起给（见下一条），
+     * 只给 min-height 会拉成竖条。
+     */
+    .v-btn:not(.v-btn--icon) {
+        min-height: 40px;
+    }
+
+    /* 图标按钮是正方形，光给 min-height 会变成竖着的长条，宽高一起给 */
+    .v-btn--icon.v-btn--size-small,
+    .v-btn--icon.v-btn--size-x-small,
+    .v-btn--icon.v-btn--density-comfortable,
+    .v-btn--icon.v-btn--density-compact {
+        width: 40px;
+        height: 40px;
+    }
+
+    /*
+     * 评分那一排星星要例外。
+     *
+     * 它是 10 个 density="compact" 的图标按钮连成的一条刻度，被上面的下限
+     * 一颗颗撑到 40px 就是 400px —— 比 390px 的屏还宽，最后两颗直接跑到屏幕外。
+     * 星星不是 10 个独立目标而是一条滑杆，逐颗放大没有意义；
+     * 给到 30px（比原来的 28 还大一点），10 颗 300px，
+     * 装得进 360px 对话框刨掉左右内边距后的 312px。
+     * 必须排在上面那两条下限之后 —— 权重一样（0,2,0），靠顺序决胜。
+     */
+    .v-rating .v-btn {
+        width: 30px;
+        height: 30px;
+        min-height: 0;
+    }
+
+    /*
+     * 卡片底部那排图标按钮：抬到 40px 之后，四个加起来比最窄的卡片还宽一点 ——
+     * 390px 屏上两列卡片各 171px，四个按钮连内边距要 172px，
+     * 最后那颗「更多」被顶出屏幕 11px，等于删不掉也点不开。
+     * 放不下时允许一起缩：缩到 34px 也还是比原来的 28px 大，
+     * 总比顶出可视区一点都点不着强。
+     */
+    .acts .v-btn--icon {
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+
+    /*
+     * 正文里的文字链接（关于页的四个入口、捐赠页那句、登录页页脚）
+     * 行高只有 14~20px，是这一版里最难点中的东西。
+     * 撑到 36px 并改成 inline-flex —— 撑的是热区，字号和行内排版不变。
+     */
+    .touch-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        /* 「文档」「TG 群」这种两三个字的链接只有 25px 宽，光抬高度还是够不着。
+           左右各撑 6px 热区，再用等量负外边距抵回去 —— 看着一点没动，能点的地方宽了 12px */
+        padding-inline: 6px;
+        margin-inline: -6px;
+    }
+}

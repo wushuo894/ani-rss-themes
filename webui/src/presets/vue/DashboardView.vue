@@ -268,14 +268,14 @@ const router = useRouter()
 
 .cols {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 40px;
     margin-top: 48px;
 }
 
 @media (min-width: 900px) {
     .cols {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 }
 

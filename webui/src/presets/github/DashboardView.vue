@@ -345,4 +345,27 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
     font-size: .8125rem;
     opacity: .65;
 }
+
+/*
+ * 这两个是本预设自己画的控件，不走 v-btn —— touch.css 那份下限管不到它们。
+ * 实测 .counter 高 32px、.link 高 18px，手机上都够不着。
+ *
+ * 这一块必须摆在 .counter / .link 的基础规则之后：两边权重相同，
+ * 靠先后决胜。摆在前面的话，下面那条 .link { padding: 0 } 会把热区又抹平。
+ */
+@media (max-width: 599.98px), (pointer: coarse) {
+    .counter {
+        min-height: 40px;
+        padding: 8px 12px;
+    }
+
+    .link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 36px;
+        /* 「全部」只有 24px 宽，同样左右各撑 6px 热区再用负外边距抵回去 */
+        padding-inline: 6px;
+        margin-inline: -6px;
+    }
+}
 </style>

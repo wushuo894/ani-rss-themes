@@ -56,8 +56,18 @@ export function aniActions(s: AniScreen, a: Ani): AniAction[] {
     return list
 }
 
-/** 图标行用的那几个 */
-export const compactOf = (list: AniAction[]) => list.filter(x => x.compact)
+/**
+ * 图标行用的那几个。
+ *
+ * max 是给窄屏留的口子：卡片只有 150 来点宽，图标按钮在手机上要给到 40px 才点得着，
+ * 四颗（三个常用 + 「更多」）就是 172px，装不下 —— 最后那颗会被顶出卡片外。
+ * 超出 max 的不是丢掉，是退回「更多」菜单里（见 overflowOf），一个动作都不会消失。
+ */
+export const compactOf = (list: AniAction[], max = Infinity) =>
+    list.filter(x => x.compact).slice(0, max)
 
-/** 「更多」菜单用的那几个 */
-export const overflowOf = (list: AniAction[]) => list.filter(x => !x.compact)
+/** 「更多」菜单用的那几个：本来就不常用的，加上被 max 挤下来的 */
+export const overflowOf = (list: AniAction[], max = Infinity) => {
+    const kept = new Set(compactOf(list, max).map(x => x.key))
+    return list.filter(x => !x.compact || !kept.has(x.key))
+}

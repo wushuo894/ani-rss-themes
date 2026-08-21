@@ -495,7 +495,7 @@ async function fillDownloadPath() {
                             class="mb-2"/>
                   <v-text-field v-model="form.customRenameTemplate" :disabled="!form.customRenameTemplateEnable"
                                 label="模版" placeholder="${title} S${seasonFormat}E${episodeFormat}"/>
-                  <a class="text-caption doc-link" href="https://docs.wushuo.top/config/basic/rename#rename-template"
+                  <a class="text-caption doc-link touch-link" href="https://docs.wushuo.top/config/basic/rename#rename-template"
                      rel="noopener" target="_blank">
                     可用占位符看文档
                     <v-icon icon="mdi-open-in-new" size="12"/>

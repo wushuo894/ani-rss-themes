@@ -179,7 +179,7 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
 /* 宽屏两列就够了：再多列板子就变窄，玻璃的边缘折射看不出来 */
 .card-column {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 18px;
     /* 悬停时边框提亮不产生位移，但 :active 会缩，留一点余量免得被裁 */
     padding: 4px 2px;
@@ -188,7 +188,7 @@ const cover = (a: Ani) => (a.cover ? toApiFile(a.cover) : '')
 
 @media (min-width: 1100px) {
     .card-column {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 22px;
     }
 }

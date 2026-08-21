@@ -180,15 +180,27 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
     backdrop-filter: blur(var(--ani-panel-blur, 0px));
 }
 
+/*
+ * minmax(0, 1fr) 不能省成 1fr。
+ *
+ * 网格子项的自动最小尺寸是 auto —— 里面那条 white-space: nowrap 的下载名
+ * 有多长，列就被撑多宽，1fr 拦不住。390px 的屏上实测整块顶到 435px，
+ * 右边 45px 连同进度条一起跑到屏幕外，还把整页拽出横向滚动条。
+ * 子项自己的 min-width: 0 只管到 .dl-row 那一层，section 这一层照样要给。
+ */
 .two-col {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 28px;
+}
+
+.two-col > * {
+    min-width: 0;
 }
 
 @media (min-width: 900px) {
     .two-col {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         gap: 40px;
     }
 }
