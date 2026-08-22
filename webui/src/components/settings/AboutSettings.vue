@@ -5,6 +5,7 @@ import * as api from '@shared/api'
 import {formatSize} from '@shared/format'
 import {useConfigStore} from '@/stores/config'
 import {useUiStore} from '@/stores/ui'
+import presetMeta from '@preset/meta'
 
 const store = useConfigStore()
 const ui = useUiStore()
@@ -14,14 +15,47 @@ const loading = ref(false)
 const busy = ref('')
 const confirmStop = ref<number | null>(null)
 
+/* 这套界面自己的版本号：构建期注入，和发布包里 webui.json 的 version 同一个数 ——
+   后端就是拿那个数跟 Release 的 tag 比来判断有没有新版的 */
+const WEBUI_VERSION = __VERSION__
+/** 后端返回的 UpdateInfo（字段同 About，只是没有 version） */
+const webui = ref<About | null>(null)
+/** 老版本 ani-rss 没有 /api/webui/*，探测失败就只显示版本号、不给更新入口 */
+const webuiSupported = ref(true)
+
 onMounted(load)
 
 async function load() {
   loading.value = true
   try {
-    info.value = await api.about()
+    // 两趟一起发；WebUI 那趟自己吞异常，老后端上不能连累 ani-rss 这块
+    const [about] = await Promise.all([api.about(), loadWebui()])
+    info.value = about
   } finally {
     loading.value = false
+  }
+}
+
+async function loadWebui() {
+  try {
+    webui.value = await api.webuiGetUpdate()
+    webuiSupported.value = true
+  } catch {
+    webui.value = null
+    webuiSupported.value = false
+  }
+}
+
+async function doWebuiUpdate() {
+  busy.value = 'webui'
+  try {
+    await api.webuiUpdate()
+    /* 后端是「删掉整个 webui 目录再解压」，现在页面上跑的这份文件已经不在了。
+       资源名带哈希、index.html 又是网络优先（见 public/sw.js），刷新就能拿到新的。 */
+    ui.success('界面已更新，正在重新加载')
+    setTimeout(() => location.reload(), 1200)
+  } finally {
+    busy.value = ''
   }
 }
 
@@ -99,6 +133,56 @@ async function doStop(status: number) {
       <v-divider/>
       <v-card-text>
         <pre class="changelog">{{ info.markdownBody }}</pre>
+      </v-card-text>
+    </v-card>
+
+    <v-divider class="mb-4"/>
+
+    <!-- 替换掉 ani-rss 自带界面的就是这套东西，它和 ani-rss 各更新各的：
+         同一张卡里放两个版本号只会让人分不清刚才更新的是哪个 -->
+    <v-card class="mb-4" variant="flat">
+      <v-card-text>
+        <div class="d-flex align-center flex-wrap ga-2 mb-2">
+          <span class="text-h6">{{ presetMeta.name }} WebUI</span>
+          <v-chip size="small" variant="tonal">{{ WEBUI_VERSION }}</v-chip>
+          <v-chip v-if="webui?.update" color="warning" size="small" variant="tonal">
+            有新版本 {{ webui.latest }}
+          </v-chip>
+          <v-chip v-else-if="webui" color="success" size="small" variant="tonal">已是最新</v-chip>
+        </div>
+
+        <div v-if="!webuiSupported" class="text-caption text-medium-emphasis">
+          当前 ani-rss 不支持在线更新界面，去 Releases 下压缩包解压到 config/webui/ 覆盖即可。
+        </div>
+        <template v-else>
+          <div v-if="webui?.date" class="text-caption text-medium-emphasis">发布时间：{{ webui.date }}</div>
+          <div v-if="webui?.size" class="text-caption text-medium-emphasis">
+            压缩包：{{ webui.formatSize || formatSize(webui.size) }}
+          </div>
+          <!-- 更新是「删掉整个 webui 目录再解压」，放进去的额外文件会一起没 -->
+          <div v-if="webui?.update" class="text-caption text-medium-emphasis">
+            更新会先清空 config/webui/ 再解压，自己往里放过的文件请先备份。
+          </div>
+        </template>
+      </v-card-text>
+    </v-card>
+
+    <div v-if="webuiSupported && (webui?.update || webui?.downloadUrl)" class="d-flex flex-wrap ga-2 mb-4">
+      <v-btn v-if="webui?.update" :loading="busy === 'webui'" color="primary" prepend-icon="mdi-download"
+             variant="flat" @click="doWebuiUpdate">
+        更新界面到 {{ webui.latest }}
+      </v-btn>
+      <v-btn v-if="webui?.downloadUrl" :href="webui.downloadUrl" prepend-icon="mdi-open-in-new" target="_blank"
+             variant="text">
+        手动下载
+      </v-btn>
+    </div>
+
+    <v-card v-if="webui?.update && webui.markdownBody" class="mb-4" variant="flat">
+      <v-card-title class="text-subtitle-2">界面更新内容</v-card-title>
+      <v-divider/>
+      <v-card-text>
+        <pre class="changelog">{{ webui.markdownBody }}</pre>
       </v-card-text>
     </v-card>
 

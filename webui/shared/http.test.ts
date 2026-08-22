@@ -22,7 +22,7 @@ function at(href: string) {
 
 // getBaseUrl() 每次调用都现读 location，所以换「当前页面」只要改这个对象，不用重新 import
 at('http://ani.local:7789/index.html')
-const {toApiUrl} = await import('./http.ts')
+const {toApiUrl, http, setErrorHandler} = await import('./http.ts')
 
 /* ── path 里自带查询串 ── */
 assert.equal(toApiUrl('api/stop?status=0'), 'http://ani.local:7789/api/stop?status=0')
@@ -54,4 +54,26 @@ at('http://ani.local:7789/')
     assert.equal(url.searchParams.get('name'), '芙莉莲 & 你')
 }
 
+/* ── postQuiet：老后端上探测 /api/webui/* 不能弹全局提示 ──
+   ani-rss 没有这个端点时回的是 Spring 的 404 包（既没有 code 也没有 message），
+   走普通 post 的话每次打开关于页都会弹一句「undefined」。 */
+{
+    // request() 一进来就读令牌，Node 里没有 localStorage，不补一个的话整段是白跑的
+    ;(globalThis as {localStorage?: unknown}).localStorage = {getItem: () => null, setItem: () => {}, removeItem: () => {}}
+
+    const errors: string[] = []
+    setErrorHandler(m => void errors.push(m))
+    globalThis.fetch = (async () => new Response(
+        JSON.stringify({timestamp: 0, status: 404, error: 'Not Found', path: '/api/webui/getUpdate'}),
+        {headers: {'Content-Type': 'application/json'}},
+    )) as typeof fetch
+
+    await assert.rejects(() => http.postQuiet('api/webui/getUpdate'), (e: Error) => e.name === 'ApiError')
+    assert.deepEqual(errors, [], `postQuiet 不该弹提示，却弹了：${errors}`)
+
+    await assert.rejects(() => http.post('api/webui/getUpdate'))
+    assert.equal(errors.length, 1, '普通 post 仍然要弹提示')
+}
+
 console.log('✓ toApiUrl 全部断言通过')
+console.log('✓ postQuiet 静默行为断言通过')

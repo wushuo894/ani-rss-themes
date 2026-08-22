@@ -65,6 +65,10 @@ export function installDemo(): void {
                 return ok(LOGS)
             case 'api/about':
                 return ok(ABOUT)
+            /* 关于页那块界面更新：不给它就会走到 default，
+               回一句字符串当成 UpdateInfo，演示站上「已是最新」的判断就成了瞎猜 */
+            case 'api/webui/getUpdate':
+                return ok({latest: __VERSION__, update: false, autoUpdate: false})
             case 'api/ping':
                 return ok(true)
             case 'api/playList':

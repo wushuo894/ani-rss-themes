@@ -194,6 +194,19 @@ export const getSubtitles = (filename: string) =>
 /* ==================== 关于 / 维护 ==================== */
 
 export const about = () => http.post<About>('api/about')
+
+/*
+ * 替代 WebUI 的在线更新（上游 test 分支 21dc44f 才有的两个端点）。
+ *
+ * 后端读 {configDir}/webui/webui.json 里的 owner/repo/version/filename，
+ * 拿 GitHub 上 releases/latest 的 tag 跟 version 比，对得上 filename 的那个资产
+ * 校验 size + sha256 后**整个删掉 webui 目录再解压**。所以：
+ *  - 老版本 ani-rss 上这两个端点是 404，getUpdate 用 postQuiet 探测，失败就当不支持；
+ *  - 返回的是 UpdateInfo，字段和 About 一模一样、只少一个 version ——
+ *    界面自己的版本号后端根本不知道，用构建期注入的 __VERSION__（与包里 webui.json 同源）。
+ */
+export const webuiGetUpdate = () => http.postQuiet<About>('api/webui/getUpdate')
+export const webuiUpdate = () => http.post<void>('api/webui/update')
 export const update = () => http.post<void>('api/update')
 export const stop = (status: number) => http.post<void>(q('api/stop', {status}))
 /**

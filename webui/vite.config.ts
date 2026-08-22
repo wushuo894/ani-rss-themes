@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs'
 import {fileURLToPath, URL} from 'node:url'
 import {defineConfig} from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -22,6 +23,10 @@ if (!PRESET_IDS.includes(preset)) {
 /** 演示模式：拦掉所有请求用内置假数据顶上，给 GitHub Pages 预览用 */
 const demo = process.env.VITE_DEMO === '1'
 
+/* 读 package.json 而不是 import：JSON 导入属性（with {type:'json'}）在 vite.config 这层
+   还要看 esbuild / tsconfig 脸色，读文件永远能跑 */
+const version = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')).version
+
 export default defineConfig({
     /**
      * 必须是相对路径。产物是丢进 {configDir}/webui/ 由后端当静态目录托管的，
@@ -31,6 +36,10 @@ export default defineConfig({
 
     define: {
         __PRESET__: JSON.stringify(preset),
+        /* 界面自己的版本号。发布时 workflow 把同一个 package.json 版本写进包里的 webui.json，
+           ani-rss 拿它跟 Release 的 tag 比来判断有没有新版 —— 关于页显示的必须是同一个数，
+           显示别处的数（比如去读 webui.json）只会在两者不一致时把人绕晕。 */
+        __VERSION__: JSON.stringify(version),
         __DEMO__: JSON.stringify(demo),
     },
 

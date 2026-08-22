@@ -128,7 +128,13 @@ export class ApiError extends Error {
 
 let skewWarned = false
 
-async function request<T>(path: string, method: string, body?: unknown): Promise<T> {
+/**
+ * quiet：失败时不弹全局提示，只抛 ApiError 给调用方。
+ * 给「这个后端有没有这个端点」这类探测用 —— 老版本 ani-rss 没有 /api/webui/*，
+ * 返回的是 Spring 的 404 包（没有 code、没有 message），照常走全局提示就是
+ * 每次打开关于页弹一句「undefined」。
+ */
+async function request<T>(path: string, method: string, body?: unknown, quiet = false): Promise<T> {
     const headers: Record<string, string> = {}
     const token = getToken()
     if (token) headers['Authorization'] = token
@@ -160,7 +166,7 @@ async function request<T>(path: string, method: string, body?: unknown): Promise
         setToken('')
         onUnauthorized?.()
     }
-    onError?.(json.message)
+    if (!quiet) onError?.(json.message)
     throw new ApiError(json.code, json.message)
 }
 
@@ -169,4 +175,6 @@ export const http = {
     post: <T>(path: string, body?: unknown) => request<T>(path, 'POST', body),
     put: <T>(path: string, body?: unknown) => request<T>(path, 'PUT', body),
     del: <T>(path: string, body?: unknown) => request<T>(path, 'DELETE', body),
+    /** 静默 POST：出错不弹提示，调用方自己兜（见 request 的 quiet） */
+    postQuiet: <T>(path: string, body?: unknown) => request<T>(path, 'POST', body, true),
 }
