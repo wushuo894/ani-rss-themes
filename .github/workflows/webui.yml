@@ -47,7 +47,12 @@ jobs:
           ids=$(node --experimental-strip-types -e "import('./webui/src/presets/ids.ts').then(m => console.log(m.PRESET_IDS.join(' ')))")
           test -n "$ids" || { echo "::error::没能从 ids.ts 读出款式清单"; exit 1; }
           echo "presets=$ids" >> "$GITHUB_OUTPUT"
-          echo "version=$(node -p "require('./webui/package.json').version")" >> "$GITHUB_OUTPUT"
+          # 版本号必须是三段数字：ani-rss 的在线更新拿包里 webui.json 的 version
+          # 跟 Release 的 tag 直接比字符串，tag 就是版本号本身，多个 -beta 就永远比不上。
+          version=$(node -p "require('./webui/package.json').version")
+          echo "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "::error::版本号 $version 不是 1.0.0 这样的三段数字，在线更新会失效"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "款式：$ids"
 
       - run: npm ci
@@ -167,7 +172,9 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
-      TAG: webui-v${{ needs.build.outputs.version }}
+      # tag 就是版本号本身（1.0.0，不带 webui-v 前缀）：ani-rss 的在线更新拿包里
+      # webui.json 的 version 跟 tag 比，前缀会让它永远认为「有新版」并反复重装。
+      TAG: ${{ needs.build.outputs.version }}
     steps:
       # 这里不 checkout：要发的东西全在 artifact 里，发布说明是现写的
       - uses: actions/download-artifact@v4
@@ -188,6 +195,12 @@ jobs:
             mkdir -p "$stage"
             cp -r "art/webui/$id/." "$stage/"
             cp -r art/webplayer/player "$stage/player"
+            # ani-rss 认这个文件才能在线更新：它读 version 跟本仓库 Release 的 tag 比，
+            # 不一样就下 filename 那个资产。一款一份，各自指向自己的包，
+            # 否则更新一次就被换成另一款界面了。
+            printf '{"owner":"%s","repo":"%s","version":"%s","filename":"%s"}\n' \
+              "${{ github.repository_owner }}" "${GH_REPO#*/}" "$TAG" "ani-rss-webui-$id.zip" \
+              > "$stage/webui.json"
             # 解压后必须直接就是 config/webui/index.html，不能多套一层目录
             test -f "$stage/index.html"           || { echo "::error::$id 包根目录没有 index.html"; exit 1; }
             test -f "$stage/player/play.html"     || { echo "::error::$id 包里没有 player/play.html"; exit 1; }
@@ -206,9 +219,12 @@ jobs:
           config/
           └── webui/
               ├── index.html   ← 必须在这一层，不能多套一层目录
+              ├── webui.json   ← 版本信息，ani-rss 靠它在线更新，别删
               ├── assets/
               └── player/
           \`\`\`
+
+          装好以后新版本在 ani-rss 里就能直接更新，不用再下一遍压缩包。
 
           | 压缩包 | 长什么样 |
           |---|---|

@@ -92,6 +92,7 @@ irm .../install.ps1 | iex
 ```
 {configDir}/webui/
 ├── index.html
+├── webui.json             版本信息，ani-rss 靠它检查并在线更新这套界面
 ├── manifest.json          装到手机主屏用的清单
 ├── sw.js                  离线兜底，只缓存界面自己，不碰 /api/
 ├── icon-*.png             主屏图标（192 / 512 / maskable / apple-touch）
@@ -133,7 +134,10 @@ node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 ```
 
 单款产物在 `webui/dist/<id>/`，组装结果在 `dist-webui/<id>/`。
-打 `webui-v*` 标签会由 GitHub Actions 自动构建并发布上面那九个包。
+推上 `main` 会由 GitHub Actions 自动构建并发布上面那九个包。
+Release 的标签就是 `webui/package.json` 里的版本号本身（`1.0.0`，不带前缀）——
+包里的 `webui.json` 写的是同一个号，ani-rss 拿两者比对来判断有没有新版，
+所以版本号必须是三段数字，改了它才会发出新的 Release。
 
 ## 开发
 
