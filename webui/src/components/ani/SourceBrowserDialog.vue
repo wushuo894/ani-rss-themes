@@ -97,6 +97,18 @@ const season = ref('')
 const keyword = ref('')
 const weekTab = ref(0)
 
+/**
+ * weeks / groups / seasons 现在装的是哪一家的结果。
+ *
+ * 三家共用同一个组件实例（父组件是 `:source="browseSource"`，切来源只是改 prop），
+ * 而 Item.key 三家语义不同：Mikan 是番剧页地址，AniBT / AnimeGarden 是番剧 id。
+ * 不认这个的话，看完 Mikan 再点开 AniBT，屏幕上还是上一家的列表，
+ * 点一部番就会拿 Mikan 的地址去 `api/aniBTGroup?bgmId=`，
+ * 后端原样转给 anibt.net —— 那边回 400。季度标签和搜索词（Mikan 认 `id: 12345`
+ * 这种写法）同样各认各的，一起作废。
+ */
+const loadedSource = ref('')
+
 /** 展开中的番剧 → 它的字幕组，取过就缓存，来回点不重复请求 */
 const openKey = ref('')
 const groups = ref<Record<string, Group[]>>({})
@@ -216,6 +228,7 @@ async function fetchList() {
     }
     weeks.value = weeks.value.filter(w => w.items.length)
     if (weekTab.value >= weeks.value.length) weekTab.value = 0
+    loadedSource.value = props.source
     if (!weeks.value.length) ui.warn('没有查到番剧')
   } finally {
     loading.value = false
@@ -333,9 +346,23 @@ async function batchAdd() {
  * 带了 preset（从编辑订阅点进来的）就每次都重拉 —— 定位条件变了，缓存的整季列表没用；
  * 没带 preset 就沿用上次的结果，来回开关不白等。
  */
+/** 换来源：上一家的东西一件都不留（为什么见 loadedSource 的注释） */
+function dropList() {
+  weeks.value = []
+  groups.value = {}
+  seasons.value = []
+  season.value = ''
+  keyword.value = ''
+  openKey.value = ''
+  openRss.value = ''
+  weekTab.value = 0
+  loadedSource.value = ''
+}
+
 watch(model, v => {
   if (!v) return
   basket.value = []
+  if (loadedSource.value && loadedSource.value !== props.source) dropList()
   const next = locate(props.preset)
   const changed = next.text !== pin.value.text || next.bgmUrl !== pin.value.bgmUrl
   pin.value = next
@@ -349,6 +376,8 @@ watch(model, v => {
   if (!weeks.value.length) void fetchList()
 })
 watch(season, (v, old) => {
+  // 列表刚作废（换来源）时不管：紧接着的 fetchList 会带上新的季度
+  if (!loadedSource.value) return
   if (old !== '' && v !== old) void fetchList()
 })
 

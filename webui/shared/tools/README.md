@@ -54,3 +54,27 @@ node webui/shared/tools/mobile-audit.mjs material 390 # 只测一款一个宽度
 跟真手机一致；用桌面档跑会把只在触屏常驻的按钮以悬停态算进来，报一堆假阳性。
 
 没装 Chrome/Edge 就跳过并退出 0。`CHROME_PATH` 可指定浏览器。
+
+## dialog-check.mjs
+
+「添加订阅」那条链路的行为体检，跑的也是构建产物。
+
+```bash
+npm run build:all -- --demo                        # 先出演示产物
+npm run test:dialogs                               # 默认拿 material 那款外壳跑
+node webui/shared/tools/dialog-check.mjs vue       # 换一款外壳
+```
+
+它不看像素，只把 `window.fetch` 包一层记流水，然后核对发出去的东西。
+判据一句话：**换了番剧来源之后，请求里不能带上一家的东西。**
+
+已经栽过两次，都是同一个形状 —— 三家番剧源共用同一个弹窗实例，
+上一家的列表 / 字幕组缓存 / 挑回来的 Bgm 条目留在原地：
+
+- 拿 Mikan 的番剧页地址当 AniBT 的番剧 id 发出去，后端转给对面，回 400
+- 在 Mikan 挑好一个字幕组，切到 AniBT 手填地址再解析，
+  A 番的 Bgm 条目和匹配规则会一起递过去 —— 建出来的订阅指着 B 的 RSS，名字却是 A 的
+
+两样在界面上都看不出来，vue-tsc 和版式体检也都看不见。
+
+没装 Chrome/Edge 就跳过并退出 0。`CHROME_PATH` 可指定浏览器。

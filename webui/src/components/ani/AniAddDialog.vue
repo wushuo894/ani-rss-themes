@@ -46,8 +46,25 @@ const browseSource = ref<SourceId>('mikan')
 /** 各来源各记各的地址，切标签页时不会被别的来源覆盖掉 */
 const urls = ref<Record<string, string>>({mikan: '', anibt: '', garden: '', other: ''})
 
-/** 从番剧列表挑中的字幕组会连带回填这几项，手填 RSS 时它们是空的 */
-const picked = ref<{bgmUrl?: string; subgroup?: string; match: string[]}>({match: []})
+/**
+ * 从番剧列表挑中的字幕组会连带回填这几项，手填 RSS 时它们是空的。
+ *
+ * 和 urls 一样按来源分开存，而且记着当时挑的是哪条地址 ——
+ * 这三项是「跟着某一条 RSS 地址走的」，不是这个对话框的全局状态。
+ * 只存一份的话：在 Mikan 挑了番 A（带着 A 的 Bgm 条目和匹配规则），
+ * 退回来切到 AniBT 手填一条番 B 的地址，解析时照样把 A 的 Bgm 和 A 的规则递过去 ——
+ * 建出来的订阅指着 B 的 RSS，名字季度集数却是 A 的，规则也永远匹配不上。
+ */
+type Picked = {url: string; bgmUrl?: string; subgroup?: string; match: string[]}
+const picked = ref<Record<string, Picked>>({})
+/** 没挑过 / 挑完又手改了地址，都用它 —— 只读，不会被改 */
+const NOTHING: Picked = {url: '', match: []}
+
+/** 这一栏挑回来的附带信息。地址被手改过就不算数了：这三样是跟着那一条 RSS 地址走的 */
+const pickedOf = (id: string): Picked => {
+  const p = picked.value[id]
+  return p && p.url === (urls.value[id] ?? '').trim() ? p : NOTHING
+}
 
 const current = computed(() => SOURCES.find(s => s.id === tab.value))
 
@@ -59,7 +76,7 @@ function openBrowser(id: SourceId) {
 /** 浏览器里选好字幕组和版本 → 回填表单并直接解析，少让人再点一次 */
 function onPicked(v: {url: string; bgmUrl?: string; subgroup?: string; match: string[]}) {
   urls.value[browseSource.value] = v.url
-  picked.value = {bgmUrl: v.bgmUrl, subgroup: v.subgroup, match: v.match}
+  picked.value[browseSource.value] = {url: v.url, bgmUrl: v.bgmUrl, subgroup: v.subgroup, match: v.match}
   tab.value = browseSource.value
   void parse()
 }
@@ -78,6 +95,8 @@ async function parse() {
     return ui.error('请填写 BgmUrl，或先用搜索选一个 Bangumi 条目')
   }
 
+  const p = isOther ? NOTHING : pickedOf(tab.value)
+
   busy.value = true
   try {
     /* type 必须带上：AniUtil.getAni 里 type 空着就当 mikan 处理，
@@ -86,12 +105,12 @@ async function parse() {
     const a = await api.rssToAni({
       url,
       type: isOther ? 'other' : current.value!.type,
-      bgmUrl: isOther ? otherBgmUrl.value.trim() : picked.value.bgmUrl,
-      subgroup: isOther ? undefined : picked.value.subgroup,
+      bgmUrl: isOther ? otherBgmUrl.value.trim() : p.bgmUrl,
+      subgroup: p.subgroup,
       enable: true,
     })
     // rssToAni 不认匹配规则，选好的版本要自己带过去，否则挑了简中还是会全下
-    if (picked.value.match.length && !isOther) a.match = picked.value.match
+    if (p.match.length) a.match = p.match
     pending.value = a
   } finally {
     busy.value = false
@@ -137,7 +156,7 @@ async function onConfirmed(a: Ani) {
 
 function reset() {
   urls.value = {mikan: '', anibt: '', garden: '', other: ''}
-  picked.value = {match: []}
+  picked.value = {}
   otherBgmUrl.value = ''
   bgmKeyword.value = ''
   bgmResults.value = []
@@ -184,12 +203,12 @@ function reset() {
                 persistent-hint hint="不支持聚合订阅：一次更新太多会漏集"/>
 
             <!-- 从列表挑过来时把选中的东西显式摆出来，不然不知道匹配规则已经带上了 -->
-            <div v-if="picked.subgroup && urls[s.id]" class="d-flex flex-wrap ga-2 mt-4">
-              <v-chip prepend-icon="mdi-account-group" size="small" variant="tonal">{{ picked.subgroup }}</v-chip>
-              <v-chip v-for="m in picked.match" :key="m" size="small" variant="tonal">
+            <div v-if="pickedOf(s.id).subgroup" class="d-flex flex-wrap ga-2 mt-4">
+              <v-chip prepend-icon="mdi-account-group" size="small" variant="tonal">{{ pickedOf(s.id).subgroup }}</v-chip>
+              <v-chip v-for="m in pickedOf(s.id).match" :key="m" size="small" variant="tonal">
                 {{ bare(m) }}
               </v-chip>
-              <v-chip v-if="!picked.match.length" color="success" size="small" variant="tonal">全部版本</v-chip>
+              <v-chip v-if="!pickedOf(s.id).match.length" color="success" size="small" variant="tonal">全部版本</v-chip>
             </div>
 
             <v-btn :loading="busy" class="mt-5" color="primary" prepend-icon="mdi-arrow-right" variant="flat"
