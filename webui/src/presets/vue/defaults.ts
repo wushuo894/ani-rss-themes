@@ -23,6 +23,12 @@ export const dark: ThemeDefinition = {
 
 export const defaults = {
     VTextField: {variant: 'outlined' as const, density: 'comfortable' as const, hideDetails: 'auto' as const},
+    /* VCombobox / VFileInput 跟着 VTextField 走。
+       不写的话它们用的是 Vuetify 的出厂默认 variant: 'filled' —— 于是「匹配」「排除」
+       这几栏在任何一款界面里都是同一副填充底 + 悬停变色的样子，
+       跟旁边所有输入框都不一样，还平白多出一层 hover 底色。 */
+    VCombobox: {variant: 'outlined' as const, density: 'comfortable' as const, hideDetails: 'auto' as const},
+    VFileInput: {variant: 'outlined' as const, density: 'comfortable' as const, hideDetails: 'auto' as const},
     VSelect: {variant: 'outlined' as const, density: 'comfortable' as const, hideDetails: 'auto' as const},
     VTextarea: {variant: 'outlined' as const, density: 'comfortable' as const, hideDetails: 'auto' as const},
     VNumberInput: {variant: 'outlined' as const, density: 'comfortable' as const, hideDetails: 'auto' as const},

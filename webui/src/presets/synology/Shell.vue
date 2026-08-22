@@ -3,6 +3,7 @@ import {computed, onBeforeUnmount, onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useDisplay} from 'vuetify'
 import {useShell} from '@/composables/useShell'
+import SidebarBrand from '@/components/common/SidebarBrand.vue'
 import './preset.css'
 
 /**
@@ -95,13 +96,10 @@ function go(to: string) {
     <!-- ══ 窗口 ══ 最小化时只是藏起来（v-show），滚动位置和列表状态都留着 -->
     <div v-show="!minimized" class="dsm-window">
       <!-- 宽屏的左侧栏。窄屏走抽屉那一份，两处的项来自同一个 s.nav -->
-      <nav v-if="!mobile" class="dsm-side">
-        <div class="dsm-side-head">
-          <v-icon icon="mdi-rss-box" size="20"/>
-          <span>ani-rss</span>
-        </div>
-        <button v-for="n in s.nav.value" :key="n.to" :class="{on: s.isActive(n.to)}" class="dsm-side-item"
-                type="button" @click="go(n.to)">
+      <nav v-if="!mobile" :class="{collapsed: s.prefs.sidebarCollapsed}" class="dsm-side">
+        <SidebarBrand/>
+        <button v-for="n in s.nav.value" :key="n.to" :class="{on: s.isActive(n.to)}" :title="n.label"
+                class="dsm-side-item" type="button" @click="go(n.to)">
           <v-icon :icon="n.icon" size="18"/>
           <span class="dsm-side-label">{{ n.label }}</span>
           <span v-if="n.badge()" class="dsm-side-num">{{ n.badge() }}</span>
@@ -348,14 +346,25 @@ function go(to: string) {
     background: rgb(var(--v-theme-surface-variant));
     border-right: 1px solid rgba(128, 128, 128, .22);
     overflow-y: auto;
+    /* 宽度走过渡，图标不动 —— 收放时窗口内容跟着让位，硬跳一下很出戏 */
+    transition: flex-basis var(--m-dur) var(--m-ease);
 }
 
-.dsm-side-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 10px 14px;
-    font-weight: 600;
+/* 收起来：只剩一列图标。56px = 18px 图标 + 两边各 19px，手指够得着 */
+.dsm-side.collapsed {
+    flex-basis: 56px;
+}
+
+.dsm-side.collapsed .dsm-side-item {
+    justify-content: center;
+    padding-inline: 0;
+}
+
+/* 标签和角标直接不占位。留着改 width:0 的话省略号仍然要一格，
+   图标会被挤得偏左，一列图标就不在中线上了 */
+.dsm-side.collapsed .dsm-side-label,
+.dsm-side.collapsed .dsm-side-num {
+    display: none;
 }
 
 .dsm-side-item {

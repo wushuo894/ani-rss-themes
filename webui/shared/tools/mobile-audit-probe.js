@@ -163,6 +163,16 @@
             if (ox > 4 && oy > 4 && (fixed[a].querySelector('.v-btn') || fixed[b].querySelector('.v-btn'))) {
                 var bar = fixed[a].querySelector('.v-btn') ? fixed[a] : fixed[b]
                 var other = bar === fixed[a] ? fixed[b] : fixed[a]
+                /*
+                 * 挡在上面的那个若是 pointer-events: none，就不算「压住」——
+                 * 点击会穿过去，按钮照样能按。这一条是为演示角标写的：
+                 * 它 position: fixed 钉在左下角，而外壳（w98-desktop / dsm-desktop / mac-screen）
+                 * 本身也是 fixed 且包着全部按钮，于是页面高度只要变一点点，
+                 * 底下那一排按钮里总会有一颗滑进角标那 82×18 的方框里 —— 报的是坐标巧合，
+                 * 不是可用性问题。而且那枚角标只存在于演示产物，正式包里根本没有这个元素。
+                 * 真正要拦的是不透明的粘性条（保存条、底部导航）压住按钮，那些都是能点的。
+                 */
+                if (getComputedStyle(other).pointerEvents === 'none') continue
                 var orect = other.getBoundingClientRect(), covered = false
                 var btns = bar.querySelectorAll('.v-btn')
                 for (var n = 0; n < btns.length; n++) {
@@ -172,6 +182,47 @@
                 }
                 if (covered) out.overlap.push({a: desc(fixed[a]), b: desc(fixed[b]), ox: Math.round(ox), oy: Math.round(oy)})
             }
+        }
+    }
+
+    /*
+     * ── 按钮贴在一起 ──
+     *
+     * 相邻两颗按钮之间不留缝，鼠标从一颗滑到另一颗中间没有任何间隙，看着也分不出
+     * 是两颗还是一条。这类量分散在九款各自的样式里，改一处只治一处 ——
+     * 应用栏右上角那两颗（主题 / 退出登录）就是九款一起 0px，因为九款用的是同一个
+     * v-app-bar，而 Vuetify 的 v-toolbar__content 是个没有 gap 的 flex。
+     *
+     * 天生该贴着的不算：分段按钮、分页、标签栏、底部导航、各款自画的菜单栏和任务栏 ——
+     * 那几种「连成一条」正是它们的形状。
+     */
+    var GLUED = '.v-btn-toggle, .v-pagination, .v-tabs, .v-item-group, .v-slide-group,'
+        + ' .v-btn-group, .v-field, .v-input, .v-window, .v-bottom-navigation,'
+        + ' nav, [role="navigation"], .nav-island, .w98-menubar, .mac-menubar, .dsm-taskbar'
+    out.glued = []
+    var gb = []
+    var allBtn = document.querySelectorAll('.v-btn')
+    for (var bi = 0; bi < allBtn.length; bi++)
+        if (visible(allBtn[bi]) && !allBtn[bi].closest(GLUED)) gb.push(allBtn[bi])
+    for (var g1 = 0; g1 < gb.length; g1++) {
+        for (var g2 = g1 + 1; g2 < gb.length; g2++) {
+            /*
+             * 只比同一个父容器里的兄弟。
+             * 不限定的话，悬浮的那颗 FAB 只要正好飘到某张卡片的图标旁边 0.4px，
+             * 就会被报成「贴在一起」—— 它们根本不在同一行，中间隔着一整个图层。
+             * 真正需要留缝的「两颗按钮」永远是并排的兄弟。
+             */
+            if (gb[g1].parentElement !== gb[g2].parentElement) continue
+            var ra = gb[g1].getBoundingClientRect(), rb = gb[g2].getBoundingClientRect()
+            var oy = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top)
+            var ox2 = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left)
+            var gap = null
+            if (oy > Math.min(ra.height, rb.height) * 0.5) gap = Math.max(ra.left, rb.left) - Math.min(ra.right, rb.right)
+            else if (ox2 > Math.min(ra.width, rb.width) * 0.5) gap = Math.max(ra.top, rb.top) - Math.min(ra.bottom, rb.bottom)
+            // 负数是叠在一起，那是 overlap 那条在管，这里只看「挨着但不留缝」。
+            // 3.5 而不是 4：写着 gap: 4px 的容器实测常是 3.98，卡在整数上会每次都报
+            if (gap === null || gap < 0 || gap >= 3.5) continue
+            out.glued.push({a: desc(gb[g1]), b: desc(gb[g2]), gap: Math.round(gap * 10) / 10})
         }
     }
 
@@ -189,5 +240,6 @@
     out.overlap = dedup(out.overlap).slice(0, 4)
     out.clipped = dedup(out.clipped).slice(0, 8)
     out.offgrid = dedup(out.offgrid).slice(0, 8)
+    out.glued = dedup(out.glued).slice(0, 6)
     return out
 })()

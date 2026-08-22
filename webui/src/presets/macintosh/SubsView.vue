@@ -255,7 +255,8 @@ const picked = (a: Ani) => !!a.id && s.ani.selected.has(a.id)
 .ic-acts {
     display: flex;
     justify-content: center;
-    gap: 2px;
+    /* 图标按钮之间 4px 起 —— 2px 时一排糊成一条。4 仍在点阵网格上 */
+    gap: 4px;
     margin-top: 2px;
 }
 

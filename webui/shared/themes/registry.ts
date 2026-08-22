@@ -12,6 +12,21 @@ import type {ThemeDef} from './types'
  */
 
 /* 常用字体栈，多款主题共用 */
+/*
+ * ── 关于 on-* 那几个键 ──
+ *
+ * Vuetify 会给每个颜色自动推一个前景色，规则是「白字够清楚就用白，否则用黑」
+ * （util/colorUtils.js 的 getForeground）。浅色模式下这套没问题：主色够深，一律白字。
+ * 深色模式下就不对了 —— 深色主题的 primary / success / warning 本身就是亮色
+ * （#42d392 这种），推出来是**纯黑**。纯黑压在饱和的蓝绿红上看着是把字凿进去的，
+ * 九款一起这么干，整个界面都透着一股廉价。
+ *
+ * M3 不这么配：它的深色 on-primary 是 #381e72 —— 同一个色相压到 tone 20 的深紫，不是黑。
+ * 所以下面凡是 Vuetify 会推出纯黑的地方，都显式钉一个「同色相的深色」。
+ * 对比度全部在 6.4:1 以上（AA 线是 4.5），比纯黑低但远够用，而且和底色是一套颜色。
+ *
+ * 浅色模式一处都不用写：那边推出来本来就是白字，正是要的效果。
+ */
 const CN = '"PingFang SC", "Noto Sans SC", "Source Han Sans SC", "Microsoft YaHei"'
 const MONO = 'ui-monospace, "JetBrains Mono", "Cascadia Mono", "Sarasa Mono SC", Consolas, monospace'
 
@@ -87,7 +102,7 @@ export const THEMES: ThemeDef[] = [
     {
         id: 'acg',
         name: '二次元',
-        desc: '随机壁纸，玻璃药丸，hover 光晕，每次刷新换图（只在深色下成立）',
+        desc: '随机壁纸，玻璃药丸，卡片浮起，每次刷新换图（只在深色下成立）',
         /*
          * base 是 dark 不是 auto：底图是随机的照片，压暗层、玻璃面板、白色细边、
          * 压在图上的白字 —— 整套视觉语言都是按深色设计的。跟着用户切到浅色，
@@ -103,6 +118,8 @@ export const THEMES: ThemeDef[] = [
         dark: {
             background: '#0f1420', surface: '#18202e', 'surface-variant': '#232c3d',
             primary: '#7fa9ff', success: '#66c894', warning: '#e8b955', error: '#ef8181', info: '#9aa8bf',
+            /* 深色下这几个色本身是亮的，字要暗但不用纯黑 —— 见本文件开头「on-*」那段 */
+            'on-success': '#123523', 'on-warning': '#402e07',
         },
         vars: {
             font: `"HarmonyOS Sans SC", ${CN}, sans-serif`,
@@ -120,7 +137,13 @@ export const THEMES: ThemeDef[] = [
     :root { --ani-bg-image: url("${ACG_MP}"); }
 }
 .v-card { border: 1px solid rgba(255,255,255,.34); }
-.v-btn:hover { box-shadow: 0 0 16px rgba(127,169,255,.5); }
+/*
+ * 这里原来是「.v-btn:hover { box-shadow: 0 0 16px rgba(127,169,255,.5) }」——
+ * 一圈蓝色外发光。删掉了：按钮本身不发亮，光却从边缘往外洇，看着不是「这块能点」，
+ * 是「这块脏了」。而且它落在**每一颗**按钮上，一屏十几处同时洇，比不做还差。
+ * 悬停反馈交给 Vuetify 自己那层状态色就够，那层贴着按钮的形状，不外溢。
+ */
+.v-btn:hover { border-color: rgba(255,255,255,.5); }
 `,
     },
 
@@ -136,6 +159,8 @@ export const THEMES: ThemeDef[] = [
         dark: {
             background: '#0d0d14', surface: '#17171f', 'surface-variant': '#22222e',
             primary: '#8d8aff', success: '#32d74b', warning: '#ffd60a', error: '#ff453a', info: '#64d2ff',
+            /* 深色下这几个色本身是亮的，字要暗但不用纯黑 —— 见本文件开头「on-*」那段 */
+            'on-success': '#0a3d12', 'on-warning': '#473b00', 'on-info': '#003347',
         },
         vars: {
             font: `-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI Variable Text", ${CN}, sans-serif`,
@@ -190,6 +215,9 @@ body::before {
             primary: '#42d392', secondary: '#647eff', success: '#42d392', warning: '#f0b429',
             error: '#f66f81', info: '#a8b1ff',
             'on-background': '#dfdfd6', 'on-surface': '#dfdfd6',
+            /* 深色下这几个色本身是亮的，字要暗但不用纯黑 —— 见本文件开头「on-*」那段 */
+            'on-primary': '#0c3b26', 'on-success': '#0c3b26',
+            'on-warning': '#443103', 'on-info': '#000747',
         },
         vars: {
             font: `Inter, "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", ${CN}, sans-serif`,
@@ -261,6 +289,11 @@ body::before {
             background: '#1c1b1f', surface: '#211f26', 'surface-variant': '#49454f',
             primary: '#d0bcff', secondary: '#ccc2dc', success: '#b7f397', warning: '#efb8c8',
             error: '#f2b8b5', info: '#cac4d0',
+            /* 这四个直接抄 M3 深色基线：on-primary #381e72、on-secondary #332d41、
+               on-error #601410 —— Google 自己就不用纯黑，用的是同色相压到 tone 20。
+               success / info 基线里没有对应角色，按同一个构造法推。 */
+            'on-primary': '#381e72', 'on-secondary': '#332d41', 'on-error': '#601410',
+            'on-success': '#1b4106', 'on-warning': '#3b0c1a', 'on-info': '#241f28',
         },
         vars: {
             font: `Roboto, "Roboto Flex", ${CN}, sans-serif`,
@@ -514,6 +547,8 @@ ${PIXEL_TYPO}
             background: '#21252b', surface: '#282c34', 'surface-variant': '#31363f',
             primary: '#4da3ff', secondary: '#9aa6b2', success: '#4fd396',
             warning: '#e5c07b', error: '#e06c75', info: '#61afef',
+            /* 深色下这几个色本身是亮的，字要暗但不用纯黑 —— 见本文件开头「on-*」那段 */
+            'on-success': '#0d3a25', 'on-warning': '#3d2b0b',
         },
         vars: {
             font: `"HarmonyOS Sans SC", "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, ${CN}, sans-serif`,
@@ -777,6 +812,8 @@ ${PIXEL_TYPO}
             background: '#1b1e22', surface: '#25282d', 'surface-variant': '#30343a',
             primary: '#4d9ee8', secondary: '#9aa4b0', success: '#4cbf72',
             warning: '#e0a94a', error: '#e56a6e', info: '#6fb0e8',
+            /* 深色下这几个色本身是亮的，字要暗但不用纯黑 —— 见本文件开头「on-*」那段 */
+            'on-warning': '#3e2b09',
         },
         vars: {
             /* DSM 的字栈就是这套：先系统再 Roboto，中文交给 PingFang / 微软雅黑。

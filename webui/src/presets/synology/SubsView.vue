@@ -287,10 +287,10 @@ const alt = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.tit
     justify-content: flex-end;
     align-content: flex-start;
     flex: 0 0 auto;
-    /* 70px 正好放两颗（32 + 2 + 32），四颗折成规整的 2×2；
+    /* 70px 正好放两颗（32 + 4 + 32 = 68），四颗折成规整的 2×2；
        96px 时是 3 + 1，最后那颗「更多」孤零零吊在第二行 */
     max-width: 70px;
-    gap: 2px;
+    gap: 4px;
 }
 
 /*

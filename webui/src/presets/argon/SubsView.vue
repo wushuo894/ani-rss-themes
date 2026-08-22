@@ -281,7 +281,8 @@ const alt = (a: Ani) => [a.themoviedbName, a.jpTitle].find(v => v && v !== a.tit
 .acts {
     display: flex;
     flex-wrap: wrap;
-    gap: 2px;
+    /* 见 liquid-glass 那份注释：图标按钮之间 4px 起 */
+    gap: 4px;
     margin-top: 2px;
     margin-left: auto;
 }

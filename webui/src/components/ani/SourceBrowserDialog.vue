@@ -612,19 +612,24 @@ function search() {
     border-radius: 14px;
     background: rgba(var(--v-theme-on-surface), .02);
     overflow: hidden;
-    transition: border-color .18s, box-shadow .18s, transform .18s cubic-bezier(.2, .7, .3, 1);
+    transition: border-color var(--m-dur) var(--m-ease), background-color var(--m-dur) var(--m-ease);
 }
 
+/*
+ * 悬停只换边框和底色，不再往上抬。
+ *
+ * 原来是 translateY(-2px) + 一层阴影。抬起这件事在网格里根本站不住：
+ * 卡片自己 overflow: hidden，外面又套着 v-card-text 那个滚动容器，
+ * 抬到容器边缘的那张会被切掉一截 —— 动效没做成「浮起来」，做成了「被啃掉一块」。
+ * 而且这一格随时会展开成一整块字幕组列表，抬一下再展开，两段位移叠在一起直接抖。
+ */
 .tile:hover {
-    transform: translateY(-2px);
     border-color: rgba(var(--v-theme-primary), .5);
-    box-shadow: 0 10px 24px -18px rgb(var(--v-theme-on-surface));
+    background: rgba(var(--v-theme-on-surface), .05);
 }
 
-/* 展开的那张不再跟着浮起来 —— 它已经是当前焦点，再抬一次只会抖 */
-.tile.open,
-.tile.open:hover {
-    transform: none;
+/* 展开的那张：边框再深一点，表示「当前在看这个」 */
+.tile.open {
     border-color: rgba(var(--v-theme-primary), .6);
 }
 

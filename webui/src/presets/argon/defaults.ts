@@ -32,6 +32,12 @@ export const dark: ThemeDefinition = {
 export const defaults = {
     global: {density: 'comfortable' as const},
     VTextField: {variant: 'solo-filled' as const, flat: true, rounded: 'lg' as const, hideDetails: 'auto' as const},
+    /* VCombobox / VFileInput 跟着 VTextField 走。
+       不写的话它们用的是 Vuetify 的出厂默认 variant: 'filled' —— 于是「匹配」「排除」
+       这几栏在任何一款界面里都是同一副填充底 + 悬停变色的样子，
+       跟旁边所有输入框都不一样，还平白多出一层 hover 底色。 */
+    VCombobox: {variant: 'solo-filled' as const, flat: true, rounded: 'lg' as const, hideDetails: 'auto' as const},
+    VFileInput: {variant: 'solo-filled' as const, flat: true, rounded: 'lg' as const, hideDetails: 'auto' as const},
     VSelect: {variant: 'solo-filled' as const, flat: true, rounded: 'lg' as const, hideDetails: 'auto' as const},
     VTextarea: {variant: 'solo-filled' as const, flat: true, rounded: 'lg' as const, hideDetails: 'auto' as const},
     VNumberInput: {variant: 'solo-filled' as const, flat: true, rounded: 'lg' as const, hideDetails: 'auto' as const},

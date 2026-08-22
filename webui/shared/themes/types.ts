@@ -22,9 +22,21 @@ export interface ThemeColors {
     warning?: string
     error?: string
     info?: string
-    /** 覆盖 Vuetify 自动推算的前景色，深色背景配浅色字时偶尔需要 */
+    /**
+     * 覆盖 Vuetify 自动推算的前景色。
+     *
+     * Vuetify 推的是非黑即白，深色主题里那些本身很亮的语义色（亮绿的 success、
+     * 亮黄的 warning）会拿到**纯黑**。M3 用的是「同色相压到 tone 20」，不是黑 ——
+     * 需要时在这里钉死，理由见 registry.ts 开头「on-*」那段。
+     */
     'on-background'?: string
     'on-surface'?: string
+    'on-primary'?: string
+    'on-secondary'?: string
+    'on-success'?: string
+    'on-warning'?: string
+    'on-error'?: string
+    'on-info'?: string
 }
 
 export interface ThemeVars {

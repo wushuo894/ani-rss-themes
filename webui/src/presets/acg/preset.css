@@ -14,7 +14,9 @@
     --m-scale: .94;
     --m-stagger: 26ms;
     --m-lift: -7px;
-    --m-lift-shadow: 0 14px 34px rgba(var(--v-theme-primary), .42), 0 4px 12px rgba(0, 0, 0, .28);
+    /* 阴影不掺主色：染了色的阴影不是「浮起来」，是「底下有个灯」——
+       和按钮外发光同一个毛病，只是换了个地方。留纯黑，浮起靠位移和虚化表达 */
+    --m-lift-shadow: 0 14px 34px rgba(0, 0, 0, .34), 0 4px 12px rgba(0, 0, 0, .28);
     --m-press: .96;
 }
 

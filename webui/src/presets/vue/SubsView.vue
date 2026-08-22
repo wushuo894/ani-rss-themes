@@ -281,6 +281,9 @@ function openBgm(a: Ani) {
 .actions {
     display: flex;
     flex: 0 0 auto;
+    /* 图标按钮之间留缝：不留的话四颗 32px 的圆热区严丝合缝并排，
+       看着是一条长条不是四颗按钮（test:mobile 里那条「按钮贴在一起」查的就是这个） */
+    gap: 4px;
     opacity: 0;
     transition: opacity var(--m-dur) var(--m-ease);
 }

@@ -25,16 +25,22 @@ function open(url: string) {
 <template>
   <v-menu>
     <template #activator="{props: menuProps}">
+      <!--
+        文字走 :text 传，不能写成 <template v-if="!iconOnly">…</template>。
+        VBtn 是「只要默认插槽存在就不画 icon」—— v-if 让它渲染成空也算存在，
+        于是 iconOnly 那一支拿到的是一颗**什么都没有的按钮**：
+        有底色、能点、正中间空着，看着就是个幽灵浮在播放列表右边。
+        （群晖那款的工具条踩过同一个坑，见 presets/synology/SubsView.vue）
+      -->
       <v-btn
           v-bind="menuProps"
           :icon="iconOnly ? 'mdi-open-in-app' : undefined"
           :prepend-icon="iconOnly ? undefined : 'mdi-open-in-app'"
+          :text="iconOnly ? undefined : '用本机播放器打开'"
           :variant="iconOnly ? 'text' : 'tonal'"
           size="small"
           title="用本机播放器打开"
-      >
-        <template v-if="!iconOnly">用本机播放器打开</template>
-      </v-btn>
+      />
     </template>
 
     <v-list density="compact">

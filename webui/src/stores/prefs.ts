@@ -67,10 +67,19 @@ export const usePrefsStore = defineStore('prefs', () => {
     /* 初值跟着预设走，和上面的皮肤同一个道理：Win98 那款的订阅页就是资源管理器的
        详细信息视图，首次打开却给一墙海报的话，这款界面最像它的地方一次都露不出来 */
     const viewMode = persisted<'grid' | 'list'>('ani-webui-view-mode', meta.defaultView ?? 'grid')
+    /**
+     * 侧栏收起来只剩图标。
+     *
+     * 记在本地：这是「我这块屏幕上想怎么摆」，不是账号设置 ——
+     * 同一个人在 13 寸笔记本上想收起来、在外接显示器上想摊开，
+     * 存到后端反而两边互相踩。有侧栏的那几款外壳共用这一个开关，
+     * 换一款界面不用重新收一次。
+     */
+    const sidebarCollapsed = persisted<boolean>('ani-webui-sidebar-collapsed', false)
 
     return {
         mode, resolved, accent, themeId, loadCustomAssets,
         showScore, showWeek, showPlaylist, showLastDownloadTime, maxContentWidth,
-        cardSize, viewMode,
+        cardSize, viewMode, sidebarCollapsed,
     }
 })

@@ -95,6 +95,55 @@
 }
 
 /*
+ * ── 状态层：把 Vuetify 那几处「按完还留着的圆角底色」收掉 ──
+ *
+ * Vuetify 每个可交互元素底下都垫着一层 __overlay：hover 叠一点当前前景色，
+ * focus 再叠一点。问题出在它用的是 `:focus` 而不是 `:focus-visible` ——
+ * 鼠标点一下按钮，焦点就留在上面，那块圆角底色跟着一直亮着，
+ * 直到你去点别的地方。看着就像按钮自己在发光，而且是「围着按钮亮一圈」的那种。
+ *
+ * 键盘走焦点时那圈必须留着（不然 Tab 到哪儿完全看不出来），所以只掐
+ * `:focus:not(:focus-visible)` 这一种情况 —— 鼠标点出来的焦点。
+ * --active 的那几条要单独写：它们本来就该留着「选中」那一层，只是不该再叠 focus。
+ */
+.v-btn:focus:not(:focus-visible) > .v-btn__overlay,
+.v-chip:focus:not(:focus-visible) > .v-chip__overlay,
+.v-list-item:focus:not(:focus-visible) > .v-list-item__overlay {
+    opacity: 0;
+}
+
+.v-btn--active:focus:not(:focus-visible) > .v-btn__overlay,
+.v-chip--active:focus:not(:focus-visible) > .v-chip__overlay,
+.v-list-item--active:focus:not(:focus-visible) > .v-list-item__overlay {
+    opacity: calc(var(--v-activated-opacity) * var(--v-theme-overlay-multiplier));
+}
+
+/*
+ * 「匹配」「排除」那几栏悬停时整块变色，不是这里治的 —— 那是它们用了 Vuetify 出厂的
+ * filled 变体（带一层 hover 底色），而同一个表单里别的输入框用的是各款自己定的变体。
+ * 治法是把 VCombobox / VFileInput 补进各款的 defaults.ts，让它们跟 VTextField 一致。
+ * 顺带记一笔：combobox 里那些 chip 根本不渲染 .v-chip__overlay，
+ * 冲着它们写 hover 规则是白写 —— 实测过。
+ */
+
+/*
+ * ── Vuetify 自带的过渡也归这套变量管 ──
+ *
+ * v-window（设置页的八个标签、添加/编辑订阅的分页）自己带一条横向推拉，
+ * 时长写死在库里。九款各自的动效预算管不到它，于是 Win98 和经典 Macintosh
+ * 那两款 —— 变量全是 0ms、明确「这个年代没有过场动画」—— 切标签时照样
+ * 有一段平滑的推拉，风格当场破功。1998 年的标签页是一帧切过去的。
+ *
+ * 0ms 时 Vue 的 Transition 检测不到过渡，直接走完成回调，不会卡在中间态。
+ */
+.v-window__container,
+[class*='v-window-'][class*='-transition-enter-active'],
+[class*='v-window-'][class*='-transition-leave-active'] {
+    transition-duration: var(--m-dur-slow) !important;
+    transition-timing-function: var(--m-ease) !important;
+}
+
+/*
  * 系统开了「减弱动态效果」就全部停掉。
  * 入场动画必须留 opacity:1 的落点 —— 直接 animation:none 会让 both 填充失效，
  * 元素停在 opacity:0，整页变空白。

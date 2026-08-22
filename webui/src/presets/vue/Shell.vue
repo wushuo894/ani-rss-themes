@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import {useShell} from '@/composables/useShell'
+import SidebarBrand from '@/components/common/SidebarBrand.vue'
 import './preset.css'
 
 /**
@@ -13,13 +14,21 @@ const {mobile} = useDisplay()
 const s = useShell()
 const drawer = ref(!mobile.value)
 const groups = ['追番', '系统'] as const
+
+/*
+ * 收起来只在桌面成立。
+ * 窄屏的这个抽屉本来就是盖上来的临时层，收成一条 72px 的窄条既挡内容又没得点。
+ */
+const collapsed = computed(() => s.prefs.sidebarCollapsed && !mobile.value)
 </script>
 
 <template>
   <v-app-bar :elevation="0" class="doc-bar" density="comfortable">
     <v-app-bar-nav-icon v-if="mobile" @click="drawer = !drawer"/>
 
-    <v-app-bar-title class="title-fit mr-6">
+    <!-- 品牌名右边的留白窄屏减半：360px 上这条顶栏要塞下汉堡键、品牌名、搜索框和两颗图标，
+         24px 的余量一让出来，搜索框的占位文字才写得下（test:mobile 量的就是这个） -->
+    <v-app-bar-title :class="mobile ? 'mr-3' : 'mr-6'" class="title-fit">
       <span class="brand">ANI<span class="text-primary">-RSS</span></span>
     </v-app-bar-title>
 
@@ -41,25 +50,33 @@ const groups = ['追番', '系统'] as const
     <v-btn icon="mdi-logout" title="退出登录" variant="text" @click="s.logout"/>
   </v-app-bar>
 
-  <v-navigation-drawer v-model="drawer" :permanent="!mobile" :temporary="mobile" width="240">
-    <div class="pa-4 pb-2">
+  <v-navigation-drawer v-model="drawer" :permanent="!mobile" :rail="collapsed" :temporary="mobile"
+                       rail-width="72" width="240">
+    <div class="px-2 pt-2">
+      <SidebarBrand v-if="!mobile"/>
+    </div>
+
+    <div v-if="!collapsed" class="px-4 pt-2 pb-1">
       <div class="text-caption text-medium-emphasis">
         {{ s.ani.enabledCount }} / {{ s.ani.total }} 启用
       </div>
     </div>
 
     <template v-for="g in groups" :key="g">
-      <div class="group-title">{{ g }}</div>
+      <!-- 收起来时分组名藏掉：72px 的窄条里「追番」两个字要么换行要么截断，
+           而收起来之后本来也只剩五个图标，不需要再分节 -->
+      <div v-if="!collapsed" class="group-title">{{ g }}</div>
       <v-list class="pt-0" density="comfortable" nav>
         <v-list-item
             v-for="n in s.nav.value.filter(i => i.group === g)"
             :key="n.to"
             :active="s.isActive(n.to)"
+            :prepend-icon="collapsed ? n.icon : undefined"
             :title="n.label"
             :to="n.to"
             class="doc-item"
         >
-          <template v-if="n.badge()" #append>
+          <template v-if="n.badge() && !collapsed" #append>
             <span class="text-caption text-medium-emphasis">{{ n.badge() }}</span>
           </template>
         </v-list-item>

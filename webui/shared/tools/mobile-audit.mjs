@@ -7,12 +7,13 @@
  *
  * 为什么要有这么一个东西：手机上的毛病肉眼看截图很难发现 ——
  * 「按钮被顶出屏幕 11px」和「排版有点挤」长得一模一样，
- * 而 vue-tsc 和单元测试对 CSS 一无所知。这里把问题量化成四类可判定的事实：
+ * 而 vue-tsc 和单元测试对 CSS 一无所知。这里把问题量化成几类可判定的事实：
  *
  *   横向滚动  文档比视口宽 —— 整页能左右拽，最容易被当成「网站坏了」
  *   溢出      元素伸到视口外，外面又没有可横滚的容器兜着
  *   小目标    可点元素不足 36px，手指够不着
  *   叠压      两个固定/粘性元素互相盖住
+ *   贴在一起  相邻两颗按钮之间不足 4px —— 分不出是两颗还是一条
  *
  * 用无头浏览器而不是 jsdom：这几样全要真实布局，jsdom 不排版。
  * 开的是 mobile 模拟档（hover:none / pointer:coarse），
@@ -243,6 +244,7 @@ for (const preset of presets) {
                 ...r.tap.map(x => `小目标 ${x.w}×${x.h}：${x.el}`),
                 ...r.clipped.map(x => `文字放不下：「${x.text}」要 ${x.need}px，只有 ${x.room}px —— ${x.el}`),
                 ...(r.offgrid ?? []).map(x => `字号不在点阵网格上：${x.fs}px（必须是 12 的整数倍）—— ${x.el}`),
+                ...(r.glued ?? []).map(x => `按钮贴在一起：只隔 ${x.gap}px —— ${x.a} × ${x.b}`),
                 ...r.overlap.map(x => `叠压 ${x.ox}×${x.oy}：${x.a} × ${x.b}`),
             ].filter(Boolean)
             if (!hits.length) continue
