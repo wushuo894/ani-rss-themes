@@ -78,8 +78,10 @@ const typeIcon = (t?: string) => N_TYPES.find(x => x.value === t)?.icon || 'mdi-
         <v-switch v-model="n.enable" color="primary" density="compact" hide-details/>
         <v-btn :loading="busy === i" icon="mdi-send-check-outline" size="small" title="测试" variant="text"
                @click="test(i)"/>
-        <v-btn icon="mdi-pencil" size="small" variant="text" @click="editing = {item: n, index: i}"/>
-        <v-btn color="error" icon="mdi-delete-outline" size="small" variant="text" @click="remove(i)"/>
+        <!-- 这两颗原来光秃秃只有图标：鼠标悬上去没有提示，读屏也念不出来。
+             旁边那颗「测试」一直是有 title 的，补齐 —— 顺带让弹窗版式体检能稳定找到入口 -->
+        <v-btn icon="mdi-pencil" size="small" title="编辑" variant="text" @click="editing = {item: n, index: i}"/>
+        <v-btn color="error" icon="mdi-delete-outline" size="small" title="删除" variant="text" @click="remove(i)"/>
       </v-card-text>
     </v-card>
 

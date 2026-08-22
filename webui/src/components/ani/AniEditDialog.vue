@@ -665,6 +665,26 @@ async function fillDownloadPath() {
 </template>
 
 <style scoped>
+/*
+ * 标签页里那张栅格（<v-row> + <v-col>）的负外边距得有东西接着。
+ *
+ * v-row 自带 margin: -12px，v-col 自带 padding: 12px —— 一负一正抵消，
+ * 靠的是「父级有 12px 以上的 padding」这个前提。这里的父级是 v-window，
+ * 它没有 padding，而且 overflow: hidden：左边那 12px 直接被切掉、滚都滚不出来，
+ * 右边那 12px 变成一条只有 12px 行程的横向滚动条挂在表单底下 ——
+ * 一拖，整排字段和右边那几颗按钮（用 TMDB 名 / 获取 / 选择）就跟着错位。
+ *
+ * 补法是把 v-window 往两边各撑出 12px 再自己留 12px 的 padding：
+ * 撑出去的部分落在 v-card-text 自己的 24px 留白里（padding 区不参与裁剪），
+ * 字段的位置一个像素都没动，负外边距却终于有东西接着了。
+ *
+ * 不改 v-row/v-col、也不动 spacing.css 里的对话框留白 —— 那两处是九款共用的。
+ */
+:deep(.v-tabs-window) {
+    margin-inline: -12px;
+    padding-inline: 12px;
+}
+
 /* TMDB 名右边那颗外链图标：贴在输入框内侧，不占 append 的位置 */
 .tmdb-link {
     display: inline-flex;

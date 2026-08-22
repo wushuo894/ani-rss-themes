@@ -45,7 +45,13 @@ async function submit(v: number) {
   <v-dialog v-model="dialog" max-width="360" @after-leave="emit('close')">
     <v-card :loading="loading">
       <v-card-title>评分</v-card-title>
-      <v-card-text class="text-center">
+      <!--
+        留白写在行内而不是 class 上：spacing.css 里那条对话框正文的 padding 选择器
+        权重是四个类名，utility class 压不过它，而这里必须压过 ——
+        十颗星按默认留白（24px）在手机上排不下，最后一颗会顶进右边的留白里，
+        看着就是「右边没有边距、星星缺一块」。收到 12px 之后整排刚好落在里面。
+      -->
+      <v-card-text class="text-center" style="padding-inline: 12px">
         <div class="text-body-2 text-medium-emphasis mb-2 text-truncate">{{ item.title }}</div>
         <v-rating v-model="score" :length="10" active-color="primary" density="compact"/>
         <div class="text-caption mt-2" style="min-height: 1.5em">

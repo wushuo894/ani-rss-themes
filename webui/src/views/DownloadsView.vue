@@ -176,7 +176,10 @@ async function confirmRemove() {
           <v-chip :color="stateColor(item.state)" size="x-small" variant="tonal">{{ item.state }}</v-chip>
         </template>
         <template #item.actions="{item}">
-          <v-btn color="error" icon="mdi-delete-outline" size="small" variant="text" @click="removing = item"/>
+          <!-- 宽屏这颗和窄屏卡片里那颗是同一个动作，title 也要一样：
+               只有图标没有名字，鼠标悬上去没提示，读屏也念不出来 -->
+          <v-btn color="error" icon="mdi-delete-outline" size="small" title="删除任务" variant="text"
+                 @click="removing = item"/>
         </template>
       </v-data-table>
       </div>
@@ -218,8 +221,8 @@ async function confirmRemove() {
               </span>
               <v-chip v-for="tag in item.tagList || []" :key="tag" size="x-small" variant="tonal">{{ tag }}</v-chip>
             </div>
-            <v-btn class="flex-grow-0" color="error" icon="mdi-delete-outline" size="small" variant="text"
-                   @click="removing = item"/>
+            <v-btn class="flex-grow-0" color="error" icon="mdi-delete-outline" size="small" title="删除任务"
+                   variant="text" @click="removing = item"/>
           </div>
         </v-card-text>
       </v-card>
