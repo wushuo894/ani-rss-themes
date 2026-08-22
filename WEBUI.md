@@ -270,29 +270,6 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 **体积**：播放器下载 13 MB、解压后 40 MB —— 其中 `vendor/ffmpeg-core.wasm` 独占 31 MB（音频转码用），
 `jassub-worker*.wasm` 各 2 MB（ASS 渲染），`anime4k.js` 3.4 MB。界面本体只有 1.6 MB。
 
-#### ⚠️ 先跑一下 Range 探针
-
-webplayer 靠**按字节范围精确取流**来拆容器，服务端在范围长度上差一个字节就会崩，
-而且崩在解复用阶段 —— 连接正常、总长也读得到，看起来像播放器的锅。
-
-```bash
-node webui/shared/tools/range-probe.mjs "http://<ani-rss>/api/file?filename=<base64>&s=<token>"
-```
-
-**当前上游 `FileController.doFile()` 没通过这个检查**：
-
-```java
-long length = end - start;        // 现在 —— 每个分段响应都少一字节
-long length = end - start + 1;    // 应该（RFC 7233 的 Range 是闭区间）
-```
-
-已用 webplayer 自己的 `HttpSource` 对着复刻该算术的服务器实测：`open()` 正常、总长正确，
-但每次 `read(offset, n)` 只回 `n-1` 字节。顺带 `hasRange` 是无条件置 true 的，
-不带 Range 的普通 GET 也会返回 206（这条只是不合规范，不影响播放）。
-
-在上游修掉之前，在线播放大概率不可用 —— 用「用本机播放器打开」把地址交给
-PotPlayer / VLC / MPV / IINA / Infuse / 弹弹Play 等，那条路不受影响。
-
 ### 已知没做的
 
 - **没有在真实 ani-rss 实例上跑过。** 类型检查、构建、主题自检都过了，接口签名逐个对着后端源码核过，

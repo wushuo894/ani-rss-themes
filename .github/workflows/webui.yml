@@ -259,15 +259,6 @@ jobs:
 
           <https://zzzwannasleep.github.io/ani-rss-themes/webui/> —— 九款都能点开试，数据是内置的假数据。
 
-          ### 播放前先跑一下
-
-          webplayer 靠按字节范围精确取流拆容器，服务端差一个字节就放不了，
-          而且崩在解复用阶段、看着像播放器的锅。先判定责任：
-
-          \`\`\`bash
-          node webui/shared/tools/range-probe.mjs "http://<ani-rss>/api/file?filename=<base64>&s=<token>"
-          \`\`\`
-
           ---
           构建自 \`${GITHUB_SHA:0:7}\`，webplayer 构建自 \`zzzwannasleep/webplayer@${{ needs.player.outputs.sha }}\`
           EOF

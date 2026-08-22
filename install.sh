@@ -221,7 +221,3 @@ say "${Y}${B}还差一步：重启 ani-rss。${N}${D}程序只在启动时扫这
 say ""
 say "${D}想还原：清空该目录（或删掉后把 .bak 改回来），然后再重启一次。${N}"
 say ""
-say "${Y}播放前建议先验一下服务端的 Range 实现：${N}"
-say "${D}  ani-rss 当前版本每个分段响应少一字节，会让播放器崩在解复用阶段，"
-say "  看起来像播放器的锅。仓库里的 webui/shared/tools/range-probe.mjs 可判定。${N}"
-say ""

@@ -177,7 +177,3 @@ Say '程序只在启动时扫这个目录，光刷新页面不生效。' 'DarkGr
 Say ''
 Say '想还原：清空该目录（或删掉后把 .bak 改回来），然后再重启一次。' 'DarkGray'
 Say ''
-Say '播放前建议先验一下服务端的 Range 实现：' 'Yellow'
-Say '  ani-rss 当前版本每个分段响应少一字节，会让播放器崩在解复用阶段，' 'DarkGray'
-Say '  看起来像播放器的锅。仓库里的 webui/shared/tools/range-probe.mjs 可判定。' 'DarkGray'
-Say ''
