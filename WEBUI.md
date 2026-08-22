@@ -332,7 +332,7 @@ webui/
 │   ├── player.ts          webplayer 接入：地址拼装与部署探测
 │   ├── vite-mdi-svg.ts    构建期插件：扫源码，只把用到的图标打进产物（省 700KB）
 │   ├── themes/            主题系统 + 9 款主题 + 自检
-│   └── tools/             类型/接口生成器、产物组装、Range 探针
+│   └── tools/             类型/接口生成器、产物组装、手机版式与弹窗体检
 ├── src/
 │   ├── fonts/             随产物发的三份字体（点阵 / Inter / Roboto），选型见那儿的 README
 │   ├── presets/<id>/      九款各自的外壳、总览页、订阅页、控件默认值、动作签名

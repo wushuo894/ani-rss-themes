@@ -91,7 +91,7 @@ function go(to: string) {
           </li>
           <li role="menuitem" tabindex="0" @click="go('/downloads')">
             <v-icon icon="mdi-download-outline" size="14"/>
-            下载器
+            下载
           </li>
           <li class="sep"/>
           <li role="menuitem" tabindex="0" @click="s.logout()">

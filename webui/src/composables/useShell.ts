@@ -39,7 +39,7 @@ export function useShell() {
             to: meta.dashboard ? '/subscriptions' : '/',
             icon: 'mdi-television-play', label: '订阅', group: '追番', badge: () => ani.total,
         },
-        {to: '/downloads', icon: 'mdi-download-outline', label: '下载器', group: '追番', badge: () => torrents.items.length},
+        {to: '/downloads', icon: 'mdi-download-outline', label: '下载', group: '追番', badge: () => torrents.items.length},
         {to: '/logs', icon: 'mdi-text-box-outline', label: '日志', group: '系统', badge: () => 0},
         {to: '/settings', icon: 'mdi-cog-outline', label: '设置', group: '系统', badge: () => 0},
     ])

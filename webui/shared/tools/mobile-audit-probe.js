@@ -67,7 +67,7 @@
         return w + (isNaN(ls) ? 0 : ls * text.length)
     }
 
-    var out = {vw: VW, doc: document.documentElement.scrollWidth, overflow: [], tap: [], overlap: [], clipped: []}
+    var out = {vw: VW, doc: document.documentElement.scrollWidth, overflow: [], tap: [], overlap: [], clipped: [], wrapped: []}
     var all = document.querySelectorAll('body *')
 
     for (var i = 0; i < all.length; i++) {
@@ -120,6 +120,29 @@
         // 内容比外壳还宽 = 漫出圆角框；这是横向的挤压，不是省略号
         if (own.width > hr.width + 2)
             out.clipped.push({el: desc(host), text: txt, need: Math.round(own.width), room: Math.round(hr.width)})
+    }
+
+    /*
+     * ③ 短标签折成了两行。
+     *
+     * ② 只量得出「横着漫到框外」，而折行一点不增加宽度 —— 量宽度永远是齐的。
+     * 底部导航的「下载器」在 360px 上折成两行、把导航条顶高一截，就是这么漏过去的：
+     * 换台 390px 的机子看又是好的，看着像玄学。
+     * 拿 Range 数这段文字占了几个行盒，>1 就是折了 —— 按钮和标签上的短词不该折行。
+     */
+    var rng = document.createRange()
+    var leaves = document.querySelectorAll(
+        '.v-btn__content, .v-chip__content, .v-tab, .v-list-item-title,'
+        + '.v-btn__content span, .v-chip__content span, .v-tab span')
+    for (var p3 = 0; p3 < leaves.length; p3++) {
+        var lf = leaves[p3]
+        // 只看直接装着文字的那一层：容器的行盒是子元素堆出来的，数了全是噪音
+        if (lf.children.length || !visible(lf)) continue
+        var t3 = (lf.textContent || '').trim()
+        if (!t3 || t3.length > 12) continue
+        rng.selectNodeContents(lf)
+        if (rng.getClientRects().length > 1)
+            out.wrapped.push({el: desc(lf), text: t3})
     }
 
     /*
