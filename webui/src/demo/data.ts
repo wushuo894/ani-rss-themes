@@ -64,6 +64,9 @@ function makeAni(b: typeof BANGUMI[number], i: number): Ani {
         /* 放送日期。真实数据里是完整日期，季度筛选只比到年月 ——
            全塞进同一季的话那个下拉根本不会出现，等于没测到 */
         releaseDate: `${SEASONS[i % SEASONS.length]}-${String((i % 27) + 1).padStart(2, '0')}`,
+        /* 主 RSS 地址。原来这个字段是空的，于是编辑订阅里那一栏在演示站永远是空白，
+           而它恰恰是这个表单最重要的一行 */
+        url: `https://example.invalid/rss?bangumiId=${b.id}`,
         // 摸鱼检测的开关，默认开 —— 它不是「已停更」，别拿它当状态用
         procrastinating: true,
         lastDownloadTime: Date.now() - idleDays * 864e5 - rnd(id + 'f', 20) * 3600_000,

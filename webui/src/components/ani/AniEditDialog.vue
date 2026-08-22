@@ -568,20 +568,27 @@ async function fillDownloadPath() {
       <v-divider/>
 
       <v-card-actions class="flex-wrap">
-        <!-- 「其他」和「预览」只对已存在的订阅有意义：新建的还没入库，
-             刷新和刮削都没有对象可作用 -->
-        <template v-if="!isNew">
-          <v-menu location="top start">
-            <template #activator="{props: p}">
-              <v-btn v-bind="p" append-icon="mdi-menu-up" variant="text">其他</v-btn>
-            </template>
-            <v-list density="comfortable" min-width="240">
-              <v-list-item v-for="m in MORE" :key="m.key" :prepend-icon="m.icon" :subtitle="m.subtitle"
-                           :title="m.title" @click="runMore(m.key)"/>
-            </v-list>
-          </v-menu>
-          <v-btn prepend-icon="mdi-eye-outline" variant="text" @click="previewing = true">预览</v-btn>
-        </template>
+        <!-- 「其他」里全是刷新、刮削、重命名 —— 都要有入库的对象才作用得上，新建时没有 -->
+        <v-menu v-if="!isNew" location="top start">
+          <template #activator="{props: p}">
+            <v-btn v-bind="p" append-icon="mdi-menu-up" variant="text">其他</v-btn>
+          </template>
+          <v-list density="comfortable" min-width="240">
+            <v-list-item v-for="m in MORE" :key="m.key" :prepend-icon="m.icon" :subtitle="m.subtitle"
+                         :title="m.title" @click="runMore(m.key)"/>
+          </v-list>
+        </v-menu>
+
+        <!--
+          「预览」新建时也要有 —— 上游 Ani.vue 底下这颗就没分新建和编辑。
+          它一度和「其他」一起被藏了，理由写的是「新建的还没入库」：那句话对「其他」成立，
+          对预览不成立。api/previewAni 是把整条订阅**放在请求体里**发过去的，
+          后端拿着它现算下载位置和命中项，数据库里有没有这一行根本不相干。
+          而恰恰是新建这一步最需要它：字幕组和匹配规则刚挑完，
+          「这条规则到底能命中几集、文件会落到哪个目录」得先看一眼再入库 ——
+          存完再回来看，就得多走一趟删了重加。
+        -->
+        <v-btn prepend-icon="mdi-eye-outline" variant="text" @click="previewing = true">预览</v-btn>
 
         <!-- 移动文件是不可逆的，放在保存旁边并默认关闭，避免顺手点了 -->
         <v-checkbox v-if="!isNew" v-model="move" density="compact" hide-details label="同时移动已下载的文件"/>

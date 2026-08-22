@@ -60,21 +60,29 @@ node webui/shared/tools/mobile-audit.mjs material 390 # 只测一款一个宽度
 「添加订阅」那条链路的行为体检，跑的也是构建产物。
 
 ```bash
-npm run build:all -- --demo                        # 先出演示产物
-npm run test:dialogs                               # 默认拿 material 那款外壳跑
-node webui/shared/tools/dialog-check.mjs vue       # 换一款外壳
+npm run build:all -- --demo                             # 先出演示产物
+npm run test:dialogs                                    # 九款轮流跑
+node webui/shared/tools/dialog-check.mjs synology       # 只跑一款
 ```
 
 它不看像素，只把 `window.fetch` 包一层记流水，然后核对发出去的东西。
-判据一句话：**换了番剧来源之后，请求里不能带上一家的东西。**
 
-已经栽过两次，都是同一个形状 —— 三家番剧源共用同一个弹窗实例，
-上一家的列表 / 字幕组缓存 / 挑回来的 Bgm 条目留在原地：
+前两条的判据是**换了番剧来源之后，请求里不能带上一家的东西** ——
+已经栽过两次，都是同一个形状：三家番剧源共用同一个弹窗实例，
+上一家的列表 / 字幕组缓存 / 挑回来的 Bgm 条目留在原地。
 
 - 拿 Mikan 的番剧页地址当 AniBT 的番剧 id 发出去，后端转给对面，回 400
 - 在 Mikan 挑好一个字幕组，切到 AniBT 手填地址再解析，
   A 番的 Bgm 条目和匹配规则会一起递过去 —— 建出来的订阅指着 B 的 RSS，名字却是 A 的
 
-两样在界面上都看不出来，vue-tsc 和版式体检也都看不见。
+第三条查的是新建订阅那一步的「预览」在不在。它一度被和「其他」一起藏了，
+理由写的是「新建的还没入库」—— 那句话对「其他」（刷新、刮削）成立，对预览不成立：
+`api/previewAni` 是把整条订阅放在请求体里发的，入没入库不相干。
+
+三样在界面上都看不出来，vue-tsc 和版式体检也都看不见。
+
+九款轮流跑：三条路走的是同一批共用组件，但入口按钮是各款自己画的（「添加订阅」/
+「新增」/「新建订阅…」），只测一款的话别的款入口断了不会有人知道。
+款式清单从 `src/presets/ids.ts` 读，不在这儿抄第二份。
 
 没装 Chrome/Edge 就跳过并退出 0。`CHROME_PATH` 可指定浏览器。

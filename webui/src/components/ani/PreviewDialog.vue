@@ -179,7 +179,12 @@ async function removeTorrents() {
                      @click="setBlocked(true)">
                 禁止下载
               </v-btn>
-              <v-btn :disabled="!chosenHashes.length" :loading="busy === 'torrent'" color="error"
+              <!--
+                新建订阅的预览里没有这颗：deleteTorrent 要拿订阅 id 去找下载器里的任务，
+                而这条订阅还没入库、没有 id。传空串过去删的不知道是谁的种子。
+                「允许 / 禁止下载」两颗留着 —— 它们只改 notDownload，跟着「添加」一起存。
+              -->
+              <v-btn v-if="item.id" :disabled="!chosenHashes.length" :loading="busy === 'torrent'" color="error"
                      prepend-icon="mdi-delete-outline" size="small" variant="text" @click="removeTorrents">
                 删除种子（{{ chosenHashes.length }}）
               </v-btn>

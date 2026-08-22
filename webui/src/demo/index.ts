@@ -120,9 +120,26 @@ export function installDemo(): void {
                 return ok({downloadPath: '/downloads/anime/${title}/Season ${season}'})
             case 'api/getThemoviedbName':
                 return ok({themoviedbName: '演示番剧 (2026)', tmdb: {id: '123456'}})
-            case 'api/rssToAni':
-                // 浏览器挑完字幕组会走这一步，回一条订阅让确认框有东西可显示
-                return ok(listAni().weekList[0].items[0])
+            case 'api/rssToAni': {
+                /*
+                 * 这一步是「拿一条 RSS 地址反查出一条**还没入库**的订阅」，
+                 * 所以回的东西必须没有 id，url 必须就是刚递进来的那条。
+                 *
+                 * 原来直接回了列表里的第一条 —— 它带着 id，也带着别人的地址。
+                 * 于是演示站里「新建」和「编辑」分不出来：只在新建时才该藏起来的东西
+                 * （预览面板里的「删除种子」要拿订阅 id 去下载器里找任务）永远测不到，
+                 * 确认框里显示的地址也不是刚挑的那条。
+                 */
+                const dto = JSON.parse(String(init?.body ?? '{}'))
+                const base = {...listAni().weekList[0].items[0]}
+                delete base.id
+                return ok({
+                    ...base,
+                    url: dto.url,
+                    bgmUrl: dto.bgmUrl || base.bgmUrl,
+                    subgroup: dto.subgroup || base.subgroup,
+                })
+            }
             case 'api/custom.css':
             case 'api/custom.js':
                 return new Response('', {headers: {'Content-Type': 'text/plain'}})
