@@ -90,8 +90,16 @@
 
         var clickable = el.matches('button,a[href],[role=button],[role=tab],[role=switch],'
             + '.v-btn,.v-chip--clickable,input:not([type=hidden]),select,textarea')
-        // 评分那排星星是一条刻度不是十个独立目标，单颗小是有意为之
-        if (clickable && !el.closest('.v-rating') && !el.querySelector('button,a[href],.v-btn')
+        /*
+         * 两处不算「小目标」：
+         *  · 评分那排星星是一条刻度，不是十个独立目标，单颗小是有意为之；
+         *  · 正文段落里的行内链接（更新说明是 Markdown 渲染的，正文里一定会有链接）。
+         *    它的高度就是那一行的行高，撑到 36px 只能靠上下加 padding —— 而行距只有
+         *    1.7 倍，撑完相邻两行的点击区就叠在一起，点这一行会命中上一行的链接，
+         *    比「目标小」更糟。整块可点的东西（按钮、卡片）不在此列。
+         */
+        if (clickable && !el.closest('.v-rating') && !(el.tagName === 'A' && el.closest('.md'))
+            && !el.querySelector('button,a[href],.v-btn')
             && (r.width < 36 || r.height < 36) && fieldHeight(el) < 36)
             out.tap.push({el: desc(el), w: Math.round(r.width), h: Math.round(r.height)})
     }

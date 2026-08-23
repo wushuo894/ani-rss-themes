@@ -1,6 +1,6 @@
 import {
     ABOUT, aniBTList, animeGardenList, CONFIG, EMBY_VIEWS, listAni, LOGS, mikanList,
-    playList, previewAni, sourceGroups, TG_CHATS, TORRENTS,
+    playList, previewAni, sourceGroups, TG_CHATS, TORRENTS, WEBUI_ABOUT,
 } from './data'
 
 /**
@@ -37,6 +37,10 @@ function cover(name: string): Response {
     return new Response(svg, {headers: {'Content-Type': 'image/svg+xml'}})
 }
 
+/** 从请求地址里取一个查询参数。地址是相对的，给 URL 垫一个基底 */
+const param = (url: string, name: string) =>
+    new URL(url, 'http://demo.invalid/').searchParams.get(name) ?? ''
+
 /** 写操作统一这么回：演示站是只读的，但不能让界面报错 —— 报错看着像坏了 */
 const NOOP_HINT = '演示模式：改动不会保存'
 
@@ -68,7 +72,7 @@ export function installDemo(): void {
             /* 关于页那块界面更新：不给它就会走到 default，
                回一句字符串当成 UpdateInfo，演示站上「已是最新」的判断就成了瞎猜 */
             case 'api/webui/getUpdate':
-                return ok({latest: __VERSION__, update: false, autoUpdate: false})
+                return ok({...WEBUI_ABOUT, latest: __VERSION__})
             case 'api/ping':
                 return ok(true)
             case 'api/playList':
@@ -97,10 +101,13 @@ export function installDemo(): void {
                 return ok(aniBTList())
             case 'api/animeGardenList':
                 return ok(animeGardenList())
+            /* 三家分开报家门：RSS 地址要按各自的真实形状生成，混在一起就退化成一条假地址 */
             case 'api/mikanGroup':
+                return ok(sourceGroups('mikan', param(url, 'url')))
             case 'api/aniBTGroup':
+                return ok(sourceGroups('anibt', param(url, 'bgmId')))
             case 'api/animeGardenGroup':
-                return ok(sourceGroups(url))
+                return ok(sourceGroups('garden', param(url, 'bgmId')))
             case 'api/getThemoviedbGroup':
                 // 剧集组挑错了整季集数会错位，演示里给三种典型分法看得出区别
                 return ok([

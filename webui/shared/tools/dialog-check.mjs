@@ -184,6 +184,22 @@ const KIT = String.raw`(() => {
     }
     throw new Error('找不到：' + sel + ' / ' + txts.join(' | '))
   }
+  /* 弹窗会摞起来：编辑框上面还能再开一层番剧列表，而下面那层的按钮同样 querySelector 得到。
+     不分层的话，点到的是背后那颗 —— 只改了 prop、没改 model，watch 一次都不响，
+     表现是「一个请求都没发出去」，看着像入口坏了，其实是脚本点错了地方。 */
+  window.__top = () => window.__vis('.v-overlay--active').slice(-1)[0] || document.body
+  window.__topVis = sel => [...window.__top().querySelectorAll(sel)].filter(e => e.getClientRects().length)
+  window.__topClick = (sel, txt) => {
+    const e = window.__topVis(sel).filter(x => x.textContent.includes(txt))[0]
+    if (!e) throw new Error('顶层找不到：' + sel + ' / ' + txt)
+    e.click()
+    return true
+  }
+  window.__topInput = () => {
+    const i = window.__topVis('input')[0]
+    return i ? i.value : null
+  }
+  window.__layers = () => window.__vis('.v-overlay--active').length
   window.__type = (sel, val) => {
     const el = window.__vis(sel)[0]
     if (!el) throw new Error('找不到输入框：' + sel)
@@ -197,6 +213,57 @@ const KIT = String.raw`(() => {
 
 /* 拼进页面里执行的，所以写成 JS 源码 */
 const ADD_LABELS = "['添加订阅', '新建订阅', '新增']"
+
+/* 关掉最上面那层弹窗。图标走 @mdi/js 的 svg 路径，DOM 里没有 mdi-close 类名可认，
+   与其按 DOM 猜哪颗是关闭键，不如直接敲 Esc。 */
+const esc = async () => {
+    for (const type of ['keyDown', 'keyUp']) {
+        await send('Input.dispatchKeyEvent', {type, key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27})
+    }
+    await sleep(800)
+}
+
+/*
+ * 三家番剧列表收的**根本不是同一样东西**（上游三个组件的 show() 签名就摆在那儿）：
+ *
+ *   Mikan.show(ani)          → 内部抠成搜索词 `id: <bangumiId>`，它只有搜索框
+ *   AniBT.show(bgmUrl)       → 只把 bgmUrl 给列表接口，搜索框全程留空
+ *   AnimeGarden.show(bgmUrl) → 同上，它连搜索框都没有
+ *
+ * 拿一个值喂三家的后果分两种，而且第二种光看请求参数是看不出来的：
+ *   · AniBT 会收到 `title: "id: 12345"` —— 它认的是 bgmId，按这个标题一部都搜不着；
+ *   · AnimeGarden 的请求参数完全正确，但那串字进了搜索框，
+ *     整季列表在**浏览器这边**被本地过滤成空。
+ *
+ * 所以判据是三件一起看：发出去的参数、搜索框里躺着什么、屏幕上还剩几张卡。
+ */
+const SOURCE_PROBES = [
+    ['Mikan', (log, kw, tiles) => {
+        const r = log.filter(x => x.url.startsWith('/api/mikan?')).pop()
+        if (!r) return '没发 api/mikan'
+        const text = new URLSearchParams(r.url.split('?')[1]).get('text') || ''
+        if (!/^id: \d+$/.test(text)) return `text 应该是 \`id: <bangumiId>\`，实际 ${JSON.stringify(text)}`
+        if (!/^id: \d+$/.test(kw || '')) return `搜索框里应该躺着同一个 id，实际 ${JSON.stringify(kw)}`
+        return tiles > 0 ? '' : '列表是空的'
+    }],
+    ['AniBT', (log, kw, tiles) => {
+        const r = log.filter(x => x.url === '/api/aniBT').pop()
+        if (!r) return '没发 api/aniBT'
+        const b = JSON.parse(r.body || '{}')
+        if (!b.bgmUrl) return '请求体里没有 bgmUrl —— AniBT 就是靠它定位的'
+        if (b.title) return `请求体里带了 title=${JSON.stringify(b.title)} —— AniBT 认 bgmId，按 Mikan 的搜索词搜不着`
+        if (kw) return `搜索框里不该有东西，实际 ${JSON.stringify(kw)}`
+        return tiles > 0 ? '' : '列表是空的'
+    }],
+    ['AnimeGarden', (log, kw, tiles) => {
+        const r = log.filter(x => x.url.startsWith('/api/animeGardenList')).pop()
+        if (!r) return '没发 api/animeGardenList'
+        const u = new URLSearchParams(r.url.split('?')[1] || '').get('bgmUrl') || ''
+        if (!/bgm\.tv\/subject\/\d+/.test(u)) return `bgmUrl 不对：${JSON.stringify(u)}`
+        if (kw) return `搜索框里不该有东西，实际 ${JSON.stringify(kw)}`
+        return tiles > 0 ? '' : '列表是空的 —— 搜索框里那串字把整季过滤没了？'
+    }],
+]
 
 const open = async () => {
     /* 先去 about:blank 再回来：只有片段不同的地址是同文档跳转，不会重新加载 ——
@@ -307,6 +374,55 @@ async function checkPreset(id) {
             const canDel = await ev(`window.__vis('.v-btn').some(b => b.textContent.includes('删除种子'))`, 0)
             if (canDel) bad.push('新建订阅的预览里出现了「删除种子」—— 这条订阅还没有 id，删的不知道是谁的种子')
         }
+
+        /* ══ 场景四：从编辑框点开三家番剧列表，各家收到的定位条件不能串 ══
+         *
+         * 走的是「挑一个组 → 解析」这条路，落地的编辑框就是 AniEditDialog 本体
+         * （新建和编辑是同一个组件），所以这里量到的同时也是「编辑订阅」那条路。
+         * 不去订阅列表上找「编辑」按钮：那颗是九款各画各的，认文案迟早认岔。
+         */
+        await open()
+        note('▶ 场景四：解析出编辑框 → 主 RSS / 备用 RSS 两排各点开三家番剧列表')
+        await step('打开「添加订阅」', `window.__clickOne('button', ${ADD_LABELS})`, 900)
+        await step('浏览 Mikan 番剧列表', `window.__click('button.browse', 'Mikan')`, 2600)
+        await step('点开第一部番', `(window.__vis('.tile-head')[0].click(), 1)`, 2000)
+        await step('第一个字幕组点「添加」', `window.__click('.group .v-btn', '添加')`, 900)
+        await step('版本弹窗点「确定」', `window.__click('.v-card-actions .v-btn', '确定')`, 2400)
+
+        const base = await ev('window.__layers()', 0)
+        for (const where of ['主 RSS', '备用 RSS']) {
+            if (where === '备用 RSS') {
+                try {
+                    await step('切到「备用 RSS」一页', `window.__topClick('.v-tab', '备用')`, 900)
+                } catch (e) {
+                    bad.push('编辑框里没有「备用 RSS」这一页 —— ' + e.message)
+                    break
+                }
+            }
+            for (const [name, probe] of SOURCE_PROBES) {
+                await ev('window.__log = []', 0)
+                try {
+                    await step(`${where} → 点「${name}」`,
+                        `window.__topClick('.v-btn', ${JSON.stringify(name)})`, 2800)
+                } catch (e) {
+                    bad.push(`${where} 那排点不开「${name}」—— ${e.message}`)
+                    continue
+                }
+                const log4 = await ev('window.__log', 0)
+                const kw = await ev('window.__topInput()', 0)
+                const tiles = await ev(`window.__topVis('.tile').length`, 0)
+                const why = probe(log4, kw, tiles)
+                if (why) {
+                    dump(log4, true)
+                    note(`  搜索框=${JSON.stringify(kw)} 卡片=${tiles}`)
+                    bad.push(`${where} → ${name}：${why}`)
+                }
+                await esc()
+                /* 关不干净的话，下一轮会点到背后那层，量出来的东西就不是这一家的了 */
+                const now = await ev('window.__layers()', 0)
+                if (now !== base) bad.push(`关掉「${name}」番剧列表后还剩 ${now} 层弹窗（该是 ${base} 层）`)
+            }
+        }
     } catch (e) {
         bad.push('脚本没走通：' + e.message)
     }
@@ -326,7 +442,8 @@ for (const id of PRESETS) broken += (await checkPreset(id)).length ? 1 : 0
 
 console.log('')
 if (broken) console.error(`添加订阅体检不通过：${broken} / ${PRESETS.length} 款有问题`)
-else console.log(`✓ ${PRESETS.length} 款全部通过：换来源之后没有一样东西是上一家的，新建那一步也能预览`)
+else console.log(`✓ ${PRESETS.length} 款全部通过：换来源之后没有一样东西是上一家的，`
+    + `新建那一步能预览，三家番剧列表收到的定位条件也没串`)
 
 ws.close(); proc.kill(); server.close()
 process.exit(broken ? 1 : 0)

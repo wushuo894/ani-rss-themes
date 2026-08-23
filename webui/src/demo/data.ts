@@ -200,11 +200,48 @@ export const CONFIG = {
     tryOut: true, verifyExpirationTime: true, expirationTime: Date.now() + 14 * 864e5,
 } as unknown as Config
 
+/*
+ * 更新说明得是真的 Markdown，把标题 / 列表 / 行内代码 / 围栏代码块 / 表格 / 引用 / 链接
+ * 全用上一遍。原来这里是空的 —— 于是两张「更新内容」卡在演示产物上根本不渲染，
+ * 版式体检也就永远量不到它们，和当初日志只有 5 条、滚都滚不起来是同一类事。
+ */
+const DEMO_NOTES = [
+    '## 更新内容',
+    '',
+    '- 修好了**备用 RSS** 和主 RSS 挤在一页里分不开的问题',
+    '- 番剧浏览器从编辑订阅点进去时，`AniBT` / `AnimeGarden` 不再拿 Mikan 的搜索词去查',
+    '- 日志页切走再切回来会停在最顶上，现在会贴着最后一行',
+    '',
+    '### 升级说明',
+    '',
+    '> 更新会先清空 `config/webui/` 再解压，自己往里放过的文件请先备份。',
+    '',
+    '```bash',
+    'systemctl restart ani-rss',
+    '```',
+    '',
+    '| 平台 | 装法 |',
+    '|---|---|',
+    '| Linux / NAS | 跑 `install.sh` |',
+    '| Windows | 跑 `install.ps1` |',
+    '',
+    '完整改动见 [提交记录](https://github.com/) ——- 这是演示数据，链接不指向任何地方。',
+].join('\n')
+
 export const ABOUT: About = {
     version: '演示版',
     latest: '演示版',
     update: false,
     autoUpdate: false,
+    markdownBody: DEMO_NOTES,
+}
+
+/** 界面自己那一段更新说明。演示里两段都要有，否则「哪段是谁的」这件事就没法看 */
+export const WEBUI_ABOUT: About = {
+    latest: '演示版',
+    update: false,
+    autoUpdate: false,
+    markdownBody: DEMO_NOTES,
 }
 
 
@@ -275,8 +312,25 @@ export function animeGardenList() {
     }))
 }
 
+/*
+ * 三家的 RSS 地址各长各的样。形状抄的是上游「添加订阅」里那三个输入框的 placeholder。
+ *
+ * 原来三家共用一条 `https://example.invalid/rss/<把整个请求地址塞进去>/0`。
+ * 它的坏处不在难看：从这样一条地址解析出来的订阅，`url` 里没有 `bangumiId`，
+ * 于是「带着这条订阅去 Mikan 定位」那条路在演示产物上**根本走不到** ——
+ * 走不到就体检不到，和当初日志只有 5 条、滚都滚不起来是同一类事。
+ */
+const RSS_SHAPE: Record<string, (id: string, i: number) => string> = {
+    mikan: (id, i) => `https://mikanani.me/RSS/Bangumi?bangumiId=${id}&subgroupid=${100 + i}`,
+    anibt: (id, i) => `https://anibt.net/rss/anime.xml?bgmId=${id}&groupSlug=sg-${i}`,
+    garden: (id, i) => `https://api.animes.garden/feed.xml?subject=${id}&fansub=sg-${i}`,
+}
+
 /** 字幕组列表。三家字段名不同，一次全给上，组件那边按名字取，多余的忽略 */
-export function sourceGroups(key: string) {
+export function sourceGroups(source: 'mikan' | 'anibt' | 'garden', key: string) {
+    /* Mikan 传进来的是番剧页地址（.../Home/Bangumi/456080），另外两家直接就是 bgmId */
+    const id = /(\d+)\s*$/.exec(key)?.[1] ?? '0'
+    const shape = RSS_SHAPE[source]
     const versions = [
         [{label: '简体', regex: 'CHS|简'}, {label: '1080P', regex: '1080'}],
         [{label: '繁体', regex: 'CHT|繁'}, {label: '1080P', regex: '1080'}],
@@ -287,7 +341,7 @@ export function sourceGroups(key: string) {
         groupId: `sg-${i}`,
         label: name,
         name,
-        rss: `https://example.invalid/rss/${encodeURIComponent(key)}/${i}`,
+        rss: shape(id, i),
         bgmUrl: `https://bgm.tv/subject/${100000 + i}`,
         bgmId: `${100000 + i}`,
         updateDay: WEEK[i % 7],

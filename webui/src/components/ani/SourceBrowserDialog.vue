@@ -125,16 +125,28 @@ const basket = ref<{item: Item; group: Group}[]>([])
 const batching = ref(0)
 
 /**
- * 把订阅换成一个「定位条件」。三家各认各的：
- *  - Mikan 只有搜索框，所以拼一个搜索词。它认 `id: 12345` 这种写法（bangumiId），
- *    抠得到就用 id，精确；抠不到退回番名，并且要先把标题里的 `(2024)`、
- *    `[tmdbid=123]` 这些刮削后缀去掉 —— 带着后缀去搜是搜不到的。
- *  - AniBT 和 AnimeGarden 的列表接口直接收 bgmUrl，服务端自己筛。
- * 逻辑照抄上游 Mikan.vue#searchAni / Ani.vue#aniBTShow。
+ * 把订阅换成一个「定位条件」。**三家收的根本不是同一样东西**，别拿一个值喂三家：
+ *
+ *   上游 Mikan.vue        `show(ani)`     ← 整个订阅对象，内部抠成搜索词
+ *   上游 AniBT.vue        `show(bgmUrl)`  ← bgmUrl 字符串，搜索框全程留空
+ *   上游 AnimeGarden.vue  `show(bgmUrl)`  ← 同上，它连搜索框都没有
+ *
+ * 所以：
+ *  - Mikan 只有搜索框、没有 bgmUrl 入参，只能拼一个搜索词。它认 `id: 12345` 这种
+ *    写法（bangumiId），抠得到就用 id，精确；抠不到退回番名，并且要先把标题里的
+ *    `(2024)`、`[tmdbid=123]` 这些刮削后缀去掉 —— 带着后缀去搜是搜不到的。
+ *  - AniBT / AnimeGarden 的列表接口直接收 bgmUrl，服务端自己筛，**不给搜索词**。
+ *
+ * 原来这里不分来源，一律返回那个搜索词，调用处又无脑 `keyword.value = text`：
+ * 从编辑订阅点开 AniBT，搜索框里躺着 Mikan 的 `id: 12345`，一起发成
+ * `api/aniBT {title: "id: 12345"}` —— AniBT 认的是 bgmId，按这个标题当然一部都搜不着；
+ * AnimeGarden 更直接，那串字拿去本地过滤，整季列表当场被过滤成空。
  */
-function locate(ani?: Ani): {text: string; bgmUrl: string} {
+function locate(ani: Ani | undefined, source: 'mikan' | 'anibt' | 'garden'): {text: string; bgmUrl: string} {
   if (!ani) return {text: '', bgmUrl: ''}
   const bgmUrl = ani.bgmUrl ?? ''
+  // 搜索词是 Mikan 专用的：另外两家靠 bgmUrl 定位，塞了词反而把结果筛没
+  if (source !== 'mikan') return {text: '', bgmUrl}
 
   if (ani.url) {
     try {
@@ -369,7 +381,7 @@ watch(model, v => {
   if (!v) return
   basket.value = []
   if (loadedSource.value && loadedSource.value !== props.source) dropList()
-  const next = locate(props.preset)
+  const next = locate(props.preset, props.source)
   const changed = next.text !== pin.value.text || next.bgmUrl !== pin.value.bgmUrl
   pin.value = next
   if (props.preset) {
@@ -384,7 +396,16 @@ watch(model, v => {
 watch(season, (v, old) => {
   // 列表刚作废（换来源）时不管：紧接着的 fetchList 会带上新的季度
   if (!loadedSource.value) return
-  if (old !== '' && v !== old) void fetchList()
+  if (old === '' || v === old) return
+  /*
+   * 「挑季度」和「定位到某一部 / 搜某个词」是两种互斥的看法，换季度就是要看整季。
+   * 不清掉的话：AniBT 那边 bgmUrl 硬筛，换到哪一季都只有点进来的那一部；
+   * Mikan 那边 `api.mikan(text, season)` 只要 text 非空就走搜索、季度直接被忽略 ——
+   * 两种都表现成「季度选择器点了没反应」。上游换季度走的也是「不带定位条件重拉」。
+   */
+  pin.value = {text: '', bgmUrl: ''}
+  keyword.value = ''
+  void fetchList()
 })
 
 /** AnimeGarden 没有服务端搜索，本地过滤 */
@@ -397,7 +418,18 @@ const shownItems = computed(() => {
 })
 
 function search() {
-  if (meta.value.searchable) void fetchList()
+  /*
+   * 手动搜索 = 松开「定位到这一部」的销子。
+   * AniBT 的列表接口里 bgmUrl 是硬筛：留着它，返回的永远只有点进来的那一部，
+   * 搜什么都是它 —— 看着像搜索坏了。上游是同一个做法：`show(bgmUrl)` 时把 bgmUrl
+   * 传给列表接口，之后回车/点搜索走的 `i()` 不带参数，bgmUrl 自然就空了。
+   *
+   * AnimeGarden 没有服务端搜索，平时不用重拉；但它同样会被 bgmUrl 钉住，
+   * 钉着的时候列表里只有一部，本地过滤过滤个寂寞 —— 松销子这一次得回服务端要整季。
+   */
+  const wasPinned = !!pin.value.bgmUrl
+  pin.value = {text: '', bgmUrl: ''}
+  if (meta.value.searchable || wasPinned) void fetchList()
 }
 </script>
 

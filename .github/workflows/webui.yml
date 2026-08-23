@@ -102,6 +102,15 @@ jobs:
           test "$(node -p "require('./webui/package.json').version")" = "${{ steps.meta.outputs.version }}" \
             || { echo "::error::版本号没写进去"; exit 1; }
 
+      # 不用浏览器的那几条单测。跑得起来的原因是它们只依赖 node ——
+      # 四个版式/行为体检要真产物 + 无头浏览器，那些留在本地跑。
+      # 这里非跑不可的是 markdown.test.ts：更新说明是 GitHub Release 里别人写的正文，
+      # 直接进 v-html，转义一旦被改坏就是任何能改那个仓库 Release 的人都能执行脚本。
+      # 这种事不该等到有人手动跑测试才发现。
+      - name: 单测
+        run: npm test
+        working-directory: webui
+
       # build:all 里已经串了 vue-tsc，类型错误会让构建直接失败
       - name: 构建九款
         run: npm run build:all
@@ -218,7 +227,13 @@ jobs:
       # webui.json 的 version 跟 tag 比，前缀会让它永远认为「有新版」并反复重装。
       TAG: ${{ needs.build.outputs.version }}
     steps:
-      # 这里不 checkout：要发的东西全在 artifact 里，发布说明是现写的
+      # 要发的包全在 artifact 里，但发布说明得数提交，所以还是要一份带全部历史的仓库。
+      # fetch-depth: 0 —— 默认只拉一个 commit，那样既没有 tag 也没有历史，
+      # 「自上一版以来改了什么」直接无从算起。
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/download-artifact@v4
         with:
           path: art
@@ -250,9 +265,34 @@ jobs:
           done
           cd out && sha256sum *.zip > checksums.txt && ls -lh
 
+      # ani-rss 关于页上那段「界面更新内容」读的就是这里的正文。
+      # 原来这份正文从头到尾都是安装说明 —— 装了十次看到的是同一段话，
+      # 「这一版改了什么」一个字都没有，等于那张卡白显示。
       - name: 生成发布说明
         run: |
+          set -e
+          # 上一版的 tag。tag 就是纯版本号，所以先滤掉历史上用过的其它命名，
+          # 再按版本号排序取第一个不是本次的那个。
+          prev=$(git tag --sort=-v:refname | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | grep -vx "$TAG" | head -1)
+          if [ -n "$prev" ]; then
+            since="自 $prev 以来"
+            log=$(git log --no-merges --pretty=format:'- %s' "$prev..HEAD")
+          else
+            since="最近的改动"
+            log=$(git log --no-merges --pretty=format:'- %s' -20)
+          fi
+          # 同版本号重发（改了构建、没动版本号）时这一段会是空的，别留个空标题在那儿。
+          # 写成 if 而不是 `[ -n "$log" ] && ...`：后者在 set -e 下要是落到最后一条语句，
+          # 空 changelog 会让整步以非零退出，发布直接失败。
+          if [ -n "$log" ]; then
+            log=$(printf '## 更新内容（%s）\n\n%s\n' "$since" "$log")
+          fi
+
           cat > notes.md <<EOF
+          $log
+
+          ## 怎么装
+
           九款界面挑一款，解压到 ani-rss **配置目录**下的 \`webui/\` 里（没有就新建一个），
           然后**重启 ani-rss**。程序是启动时才扫这个目录的，只刷新页面不算数。
           **每个包都自带在线播放器**，不用再单独下一个。

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import {onMounted, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import type {About} from '@shared/types'
 import * as api from '@shared/api'
 import {formatSize} from '@shared/format'
+import {renderMarkdown} from '@shared/markdown'
 import {useConfigStore} from '@/stores/config'
 import {useUiStore} from '@/stores/ui'
 import presetMeta from '@preset/meta'
@@ -22,6 +23,10 @@ const WEBUI_VERSION = __VERSION__
 const webui = ref<About | null>(null)
 /** 老版本 ani-rss 没有 /api/webui/*，探测失败就只显示版本号、不给更新入口 */
 const webuiSupported = ref(true)
+
+/* 两段更新说明都是 Markdown。渲染器自己先把整段转义成纯文本再拼标签，所以 v-html 是安全的 */
+const aniRssNotes = computed(() => renderMarkdown(info.value?.markdownBody ?? ''))
+const webuiNotes = computed(() => renderMarkdown(webui.value?.markdownBody ?? ''))
 
 onMounted(load)
 
@@ -127,12 +132,16 @@ async function doStop(status: number) {
       </v-btn>
     </div>
 
-    <!-- 更新说明是 Markdown，这里不引 Markdown 渲染库，原样等宽显示即可 -->
+    <!-- 标题必须带上「谁的」：这一页有两段更新说明，都叫「更新内容」的话，
+         看到的人只会以为界面在拿 ani-rss 的更新冒充自己的 -->
     <v-card v-if="info?.markdownBody" class="mb-4" variant="flat">
-      <v-card-title class="text-subtitle-2">更新内容</v-card-title>
+      <v-card-title class="d-flex align-center ga-2 text-subtitle-2">
+        <span>ani-rss 更新内容</span>
+        <v-chip v-if="info.latest" size="x-small" variant="tonal">{{ info.latest }}</v-chip>
+      </v-card-title>
       <v-divider/>
       <v-card-text>
-        <pre class="changelog">{{ info.markdownBody }}</pre>
+        <div class="md" v-html="aniRssNotes"/>
       </v-card-text>
     </v-card>
 
@@ -178,11 +187,20 @@ async function doStop(status: number) {
       </v-btn>
     </div>
 
-    <v-card v-if="webui?.update && webui.markdownBody" class="mb-4" variant="flat">
-      <v-card-title class="text-subtitle-2">界面更新内容</v-card-title>
+    <!--
+      不要求 `update` 为真才显示。原来卡在这个条件上：版本号长期不涨（见 workflow 里
+      跟着 run_number 走的那段），`update` 永远是 false，这张卡就一次都没露过面 ——
+      于是页面上唯一看得见的「更新内容」是 ani-rss 那一段，看着就像界面在拿别人的更新充数。
+      已经是最新版时看一眼这一版改了什么，本来也是正当需求。
+    -->
+    <v-card v-if="webui?.markdownBody" class="mb-4" variant="flat">
+      <v-card-title class="d-flex align-center ga-2 text-subtitle-2">
+        <span>{{ presetMeta.name }} WebUI 更新内容</span>
+        <v-chip v-if="webui.latest" size="x-small" variant="tonal">{{ webui.latest }}</v-chip>
+      </v-card-title>
       <v-divider/>
       <v-card-text>
-        <pre class="changelog">{{ webui.markdownBody }}</pre>
+        <div class="md" v-html="webuiNotes"/>
       </v-card-text>
     </v-card>
 
@@ -239,13 +257,118 @@ async function doStop(status: number) {
 </template>
 
 <style scoped>
-.changelog {
-    white-space: pre-wrap;
+/*
+ * 更新说明的版式。内容是 v-html 塞进来的，拿不到 scoped 的那个属性，所以要 :deep。
+ * 一律用 :deep(.md xxx) 收口在这张卡里，别写成全局的 h2/li —— 那会波及九款皮肤的所有页面。
+ */
+.md {
+    font-size: .875rem;
+    line-height: 1.7;
     word-break: break-word;
+}
+
+/* 段落之间给一行的间距，首尾不给：卡片自己有 padding，再叠一层就上下不对称了 */
+.md :deep(> *) {
+    margin: 0 0 12px;
+}
+
+.md :deep(> *:last-child) {
+    margin-bottom: 0;
+}
+
+/* Release 正文里的标题层级很随意（有人从 # 起，有人从 ### 起），
+   全部压到接近正文的字号，靠字重和间距分层，免得一段说明里冒出个巨大标题 */
+.md :deep(h1),
+.md :deep(h2),
+.md :deep(h3),
+.md :deep(h4),
+.md :deep(h5),
+.md :deep(h6) {
+    margin: 20px 0 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.md :deep(h1:first-child),
+.md :deep(h2:first-child),
+.md :deep(h3:first-child) {
+    margin-top: 0;
+}
+
+.md :deep(ul),
+.md :deep(ol) {
+    padding-left: 22px;
+}
+
+.md :deep(li) {
+    margin: 4px 0;
+}
+
+.md :deep(a) {
+    color: rgb(var(--v-theme-primary));
+    text-decoration: none;
+}
+
+.md :deep(a:hover) {
+    text-decoration: underline;
+}
+
+.md :deep(code) {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(var(--v-theme-on-surface), .08);
     /* 走主题变量：scoped 的权重压过 base.css 那条，写死的话皮肤给的等宽字栈永远不生效 */
     font-family: var(--ani-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+    font-size: .8125em;
+}
+
+/* 代码块里全是不折行的长命令（curl | bash），只能自己横滚，
+   不然整张卡被撑宽，把关于页顶出一条横向滚动条 */
+.md :deep(pre) {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(var(--v-theme-on-surface), .06);
+    overflow-x: auto;
+}
+
+.md :deep(pre code) {
+    padding: 0;
+    background: none;
     font-size: .8125rem;
     line-height: 1.6;
-    margin: 0;
+}
+
+.md :deep(blockquote) {
+    padding-left: 12px;
+    border-left: 3px solid rgba(var(--v-theme-primary), .4);
+    color: rgba(var(--v-theme-on-surface), .78);
+}
+
+.md :deep(hr) {
+    border: 0;
+    border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+}
+
+/* 表格同理：九款界面里最窄的手机版只有 360px，写死宽度必然溢出 */
+.md :deep(table) {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: .8125rem;
+}
+
+.md :deep(th),
+.md :deep(td) {
+    padding: 6px 10px;
+    border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+    text-align: left;
+}
+
+.md :deep(th) {
+    font-weight: 600;
+    background: rgba(var(--v-theme-on-surface), .04);
 }
 </style>
