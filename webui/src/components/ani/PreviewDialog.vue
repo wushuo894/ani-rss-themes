@@ -178,7 +178,7 @@ async function removeTorrents() {
 </script>
 
 <template>
-  <v-dialog v-model="dialog" :fullscreen="mobile" max-width="1180" scrollable @after-leave="emit('close')">
+  <v-dialog v-model="dialog" :fullscreen="mobile" max-width="920" scrollable @after-leave="emit('close')">
     <v-card :loading="loading">
       <v-card-title class="d-flex align-center">
         <span class="text-truncate">预览 · {{ item.title }}</span>
@@ -239,8 +239,11 @@ async function removeTorrents() {
             </div>
           </v-slide-y-transition>
 
-          <!-- 列多，横向放不下就让表格自己横滚，别去挤标题那一列 -->
-          <v-table class="grid" density="compact">
+          <!-- fixed-header + 外面那条 max-height：表格自己是一个滚动框。
+               不这么做的话横向滚动条挂在整张表的最下沿，行一多就掉到屏幕外，
+               要先把整页往下拖才够得着它。现在它固定在这个框的底边，
+               表头也钉住，滚轮只管上下，左右那条一直在手边。 -->
+          <v-table class="grid" density="compact" fixed-header>
             <thead>
             <tr>
               <th style="width: 48px">
@@ -250,12 +253,13 @@ async function removeTorrents() {
               <th style="width: 52px">集</th>
               <th style="width: 76px">下载</th>
               <th style="width: 88px">本地</th>
-              <th style="width: 72px">RSS</th>
+              <th style="width: 78px">RSS</th>
               <th style="width: 130px">字幕组</th>
-              <th style="min-width: 320px">标题 / 重命名后</th>
-              <th style="width: 116px">发布时间</th>
+              <th style="min-width: 300px">标题</th>
+              <th style="min-width: 240px">重命名后</th>
+              <th style="width: 112px">发布时间</th>
               <th style="width: 92px">大小</th>
-              <th style="width: 140px">InfoHash</th>
+              <th style="width: 132px">InfoHash</th>
               <th style="width: 48px"/>
             </tr>
             </thead>
@@ -267,23 +271,25 @@ async function removeTorrents() {
               <td>{{ it.episode ?? '—' }}</td>
               <td>
                 <!-- 这三列各说各的：禁不禁止下载、本地在不在、走的哪条 RSS。
-                     原来挤在一列里三选一，「已下载」会被「不下载」盖掉。 -->
+                     两边都给成色块而不是「有色块 / 一行灰字」—— 灰字太不显眼，
+                     扫一列的时候只看得见有色块的那几行，另一半像是空的。
+                     三列三套颜色（绿红 / 蓝灰 / 紫橙），不会互相认错。 -->
                 <v-chip v-if="isBlocked(it)" color="error" size="x-small" variant="flat">禁止</v-chip>
-                <span v-else class="text-caption text-medium-emphasis">允许</span>
+                <v-chip v-else color="success" size="x-small" variant="tonal">允许</v-chip>
               </td>
               <td>
-                <v-chip v-if="isLocal(it)" color="success" size="x-small" variant="tonal">已存在</v-chip>
-                <span v-else class="text-caption text-medium-emphasis">未下载</span>
+                <v-chip v-if="isLocal(it)" color="info" size="x-small" variant="tonal">已下载</v-chip>
+                <v-chip v-else size="x-small" variant="outlined">未下载</v-chip>
               </td>
               <td>
-                <span v-if="it.master" class="text-caption text-medium-emphasis">主</span>
-                <v-chip v-else color="warning" size="x-small" variant="tonal">备用</v-chip>
+                <v-chip v-if="it.master" color="primary" size="x-small" variant="tonal">主</v-chip>
+                <v-chip v-else color="warning" size="x-small" variant="flat">备用</v-chip>
               </td>
               <td class="text-caption">{{ it.subgroup || '—' }}</td>
-              <td>
-                <div class="text-body-2">{{ it.title }}</div>
-                <div v-if="it.reName" class="text-caption text-medium-emphasis">→ {{ it.reName }}</div>
-              </td>
+              <!-- 标题和重命名各占一列。叠在一格里省宽度，但两边对不齐，
+                   要核对「这条被改成了什么」得一行一行上下看 -->
+              <td class="text-body-2">{{ it.title }}</td>
+              <td class="text-caption text-medium-emphasis">{{ it.reName || '—' }}</td>
               <td class="text-caption text-medium-emphasis">{{ it.pubDate || '—' }}</td>
               <td class="text-caption">{{ it.formatSize || '—' }}</td>
               <td>
@@ -323,14 +329,24 @@ async function removeTorrents() {
     background: rgba(var(--v-theme-primary), .1);
 }
 
-/* 十一列，窄屏放不下。v-table 自带的滚动容器已经是 overflow:auto，
-   给里面的表定一个下限就会横滚，不至于把每一列压成竖排的字 */
+/* 十二列，横向放不下。v-table 自带的滚动容器已经是 overflow:auto，
+   给里面的表定一个下限就会横滚，不至于把每一列压成竖排的字。
+   同时把这个容器封顶：横向滚动条就钉在框底，不会随着行数往下跑。 */
+.grid :deep(.v-table__wrapper) {
+    max-height: min(52vh, 420px);
+}
+
 .grid :deep(table) {
-    min-width: 1080px;
+    min-width: 1360px;
 }
 
 .grid :deep(th) {
     white-space: nowrap;
+}
+
+/* 标题和重命名都是一长串文件名，不许在中间断词，让它整段换行 */
+.grid :deep(td) {
+    word-break: break-word;
 }
 
 .hash {
