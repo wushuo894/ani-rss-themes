@@ -272,6 +272,51 @@
         }
     }
 
+    /*
+     * ── 两颗按钮挨在一起，中间没有缝 ──
+     *
+     * 上面三条量的都是「控件和容器」的关系。还有一类是「控件和控件」的：
+     * 一排按钮之间只留 4px，按钮自己又是 text / tonal 这种没有边框的样式，
+     * 涟漪和 hover 底色是铺满整个按钮盒子的 —— 两颗一挨，底色连成一片，
+     * 看上去就是一根长条，人说的「按钮没有边距」就是这个。
+     *
+     * 判据 8px：M3 的最小档，也是 v-card-actions 自带的那个 gap。
+     * 拼在一起才是设计的（分段按钮、分页器、输入框里的附属按钮）整组排掉 ——
+     * 那些有边框或分隔线，本来就该无缝。
+     */
+    var JOINED = '.v-btn-group, .v-btn-toggle, .v-pagination, .v-slide-group, .v-field, .v-tabs'
+    for (var g1 = 0; g1 < roots.length; g1++) {
+        var all = roots[g1].querySelectorAll('.v-btn')
+        var row = []
+        for (var g2 = 0; g2 < all.length; g2++) {
+            var bt = all[g2]
+            if (!visible(bt) || DECOR.test(cls(bt))) continue
+            if (bt.closest(JOINED)) continue
+            row.push({el: bt, r: bt.getBoundingClientRect()})
+        }
+        for (var g3 = 0; g3 < row.length; g3++) {
+            var A = row[g3], near = null, gap = 1e9
+            for (var g4 = 0; g4 < row.length; g4++) {
+                if (g4 === g3) continue
+                var B = row[g4]
+                /* 同一个父级、同一行、B 在 A 右边 —— 三条都要，否则比的是不相干的两颗 */
+                if (A.el.parentElement !== B.el.parentElement) continue
+                if (B.r.left < A.r.right - 1) continue
+                var ov = Math.min(A.r.bottom, B.r.bottom) - Math.max(A.r.top, B.r.top)
+                if (ov < Math.min(A.r.height, B.r.height) * 0.5) continue
+                var d = B.r.left - A.r.right
+                if (d < gap) { gap = d; near = B }
+            }
+            if (!near || gap >= 8) continue
+            out.push({
+                k: '两颗按钮之间只有 ' + Math.round(gap) + 'px（至少要 8）',
+                px: Math.round(8 - gap),
+                el: desc(A.el) + ' ↔ ' + desc(near.el),
+                box: desc(A.el.parentElement),
+            })
+        }
+    }
+
     var seen = {}, res = []
     for (var d = 0; d < out.length; d++) {
         var key = JSON.stringify(out[d])

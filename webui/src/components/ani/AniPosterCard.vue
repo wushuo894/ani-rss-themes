@@ -218,7 +218,8 @@ function openBgm() {
     right: 8px;
     bottom: 8px;
     display: flex;
-    gap: 6px;
+    /* 8px：6px 时几颗图标按钮的水波纹是连着的，看着像一根长条 */
+    gap: 8px;
     opacity: 0;
     transform: translateY(8px);
     transition: opacity var(--m-dur) var(--m-ease), transform var(--m-dur) var(--m-ease);

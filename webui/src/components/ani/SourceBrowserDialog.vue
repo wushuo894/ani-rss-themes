@@ -827,10 +827,11 @@ function search() {
     border-left: 2px solid rgba(var(--v-theme-primary), .3);
 }
 
+/* 行尾那两颗图标按钮（复制磁力 / 下载种子）之间要 8px，6px 挨得看不出是两颗 */
 .res-row {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     padding: 5px 0;
 }
 

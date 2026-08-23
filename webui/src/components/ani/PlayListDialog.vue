@@ -105,7 +105,7 @@ function play(p: PlayItem, sub?: PlayItemSubtitles) {
             </template>
 
             <template #append>
-              <div class="d-flex align-center ga-1" @click.stop>
+              <div class="d-flex align-center ga-2" @click.stop>
                 <ExternalPlayerMenu :name="p.name" :src="srcOf(p)" :sub="subUrl(p)" icon-only/>
                 <v-btn :href="srcOf(p)" icon="mdi-download" size="small" target="_blank" title="下载"
                        variant="text"/>

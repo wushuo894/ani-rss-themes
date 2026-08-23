@@ -195,10 +195,15 @@ async function removeTorrents() {
           推断出遗漏集数：{{ omitList.join('、') }}
         </v-alert>
 
-        <div class="d-flex align-center flex-wrap ga-3 mb-2">
-          <v-btn-toggle v-model="view" density="compact" divided mandatory variant="outlined">
-            <v-btn v-for="v in VIEWS" :key="v.label" :value="v.label" size="small">{{ v.label }}</v-btn>
-          </v-btn-toggle>
+        <div class="d-flex align-center flex-wrap ga-4 mb-3">
+          <!-- 不用 v-btn-toggle：那玩意儿把几颗按钮拼成一条，中间一点缝都没有。
+               三颗独立的按钮，之间 8px，和右边的计数隔 16px。 -->
+          <div class="d-flex align-center flex-wrap ga-2">
+            <v-btn v-for="v in VIEWS" :key="v.label" :variant="view === v.label ? 'tonal' : 'text'"
+                   :color="view === v.label ? 'primary' : undefined" size="small" @click="view = v.label">
+              {{ v.label }}
+            </v-btn>
+          </div>
           <div class="text-caption text-medium-emphasis">
             {{ shown.length === items.length ? `共 ${items.length} 项` : `${shown.length} / ${items.length} 项` }}
           </div>
@@ -319,12 +324,14 @@ async function removeTorrents() {
     font-family: var(--ani-font-mono, monospace);
 }
 
+/* 一排按钮，之间 8px、离条子的边 8px（左边留 16px 给那句「已选 N 项」）。
+   原来是 4px，三颗文字按钮挨在一起像连在一块儿的一根长条 */
 .picked-bar {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
-    padding: 6px 8px 6px 14px;
+    gap: 8px;
+    padding: 8px 8px 8px 16px;
     border-radius: 10px;
     background: rgba(var(--v-theme-primary), .1);
 }
