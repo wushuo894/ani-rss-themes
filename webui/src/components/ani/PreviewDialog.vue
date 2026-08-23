@@ -6,6 +6,18 @@ import * as api from '@shared/api'
 import {useAniStore} from '@/stores/ani'
 import {useUiStore} from '@/stores/ui'
 
+/**
+ * 预览：这条订阅按当前 RSS + 匹配规则，会命中哪些资源。
+ *
+ * 列是照上游 Preview.vue 的表来的 —— 那张表一行有十一列，我们原来只挑了六列，
+ * 少掉的字幕组 / 发布时间 / InfoHash 恰恰是排查「为什么下了这一集」时要看的：
+ * 同一集常有好几个字幕组的版本，光看标题和大小分不出命中的是哪一条。
+ *
+ * 三个状态（禁不禁止下载、本地在不在、走的主还是备用 RSS）原来挤在一列里，
+ * 三选一地显示 —— 「已下载」和「不下载」同时成立时后者把前者盖掉，
+ * 看上去就像这一集根本没下过。现在拆成三列，各说各的。
+ */
+
 const props = defineProps<{
   item: Ani
   /**
@@ -20,6 +32,13 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{close: []}>()
 
+/**
+ * 「本地已存在」这一位，上游 WebUI 读的是 item.local，
+ * 而 types.ts 是从 Java 实体生成的，那边叫 hasDownloaded。
+ * 不确定哪个版本的后端发的是哪个名字，两个都认，谁有值算谁。
+ */
+type Row = Item & {local?: boolean}
+
 const store = useAniStore()
 const ui = useUiStore()
 const {mobile} = useDisplay()
@@ -27,8 +46,10 @@ const dialog = ref(true)
 const loading = ref(false)
 const busy = ref('')
 const downloadPath = ref('')
-const items = ref<Item[]>([])
+const items = ref<Row[]>([])
 const omitList = ref<number[]>([])
+
+const isLocal = (it: Row) => it.local ?? it.hasDownloaded ?? false
 
 /** 选中的行号 —— 用下标而不是集数：同一集可能有多个字幕组的版本 */
 const picked = ref<number[]>([])
@@ -37,17 +58,37 @@ const picked = ref<number[]>([])
    上游的预览面板就是靠它做「禁止下载 / 允许下载」的，而我们这边这个字段
    在整个界面里一次都没被引用过 —— 也就是说这个能力根本没做出来。 */
 const blocked = computed(() => new Set(props.item.notDownload ?? []))
+const isBlocked = (it: Row) => typeof it.episode === 'number' && blocked.value.has(it.episode)
+
+/** 上游表头上方那个下拉，照搬 —— 补完一季之后只想看还缺哪几集 */
+const VIEWS: {label: string; fn: (it: Row) => boolean}[] = [
+  {label: '全部', fn: () => true},
+  {label: '本地已存在', fn: it => isLocal(it)},
+  {label: '本地不存在', fn: it => !isLocal(it)},
+]
+const view = ref('全部')
+
+/** 带上原始下标一起过滤：picked 存的是 items 里的位置，筛选不能把它错位 */
+const shown = computed(() => {
+  const fn = (VIEWS.find(v => v.label === view.value) ?? VIEWS[0]).fn
+  return items.value.map((it, i) => ({it, i})).filter(({it}) => fn(it))
+})
 
 const chosen = computed(() => picked.value.map(i => items.value[i]).filter(Boolean))
 const chosenEpisodes = computed(() =>
     [...new Set(chosen.value.map(it => it.episode).filter((e): e is number => typeof e === 'number'))])
 const chosenHashes = computed(() =>
-    chosen.value.filter(it => it.hasDownloaded && it.infoHash).map(it => it.infoHash as string))
+    chosen.value.filter(it => isLocal(it) && it.infoHash).map(it => it.infoHash as string))
 
-const allPicked = computed(() => items.value.length > 0 && picked.value.length === items.value.length)
+const allPicked = computed(() =>
+    shown.value.length > 0 && shown.value.every(({i}) => picked.value.includes(i)))
 
+/** 全选只管当前筛出来的那些，别把看不见的行也勾上 */
 function toggleAll() {
-  picked.value = allPicked.value ? [] : items.value.map((_, i) => i)
+  const ids = shown.value.map(({i}) => i)
+  picked.value = allPicked.value
+      ? picked.value.filter(i => !ids.includes(i))
+      : [...new Set([...picked.value, ...ids])]
 }
 
 async function load() {
@@ -96,28 +137,28 @@ async function setBlocked(block: boolean) {
 }
 
 /**
- * 复制这一条的种子链接。上游预览表里每行都有这颗，我们漏了。
+ * 复制。种子链接和 InfoHash 都走这里 —— 上游表里这两样也都是点一下就进剪贴板。
  * 用处很实在：某一集匹配规则没命中、或者只想单独补一集时，
  * 直接把链接丢给下载器，不用为一集去改订阅规则。
  *
  * 没有直接用 navigator.clipboard：ani-rss 常跑在 http 的内网地址上，
  * 那不是安全上下文，这个 API 会直接抛。
  */
-async function copyTorrent(url?: string) {
-  if (!url) return ui.error('这一条没有种子链接')
+async function copyText(text: string | undefined, what: string) {
+  if (!text) return ui.error(`这一条没有${what}`)
   try {
-    await navigator.clipboard.writeText(url)
-    ui.success('种子链接已复制')
+    await navigator.clipboard.writeText(text)
+    ui.success(`${what}已复制`)
   } catch {
     const el = document.createElement('textarea')
-    el.value = url
+    el.value = text
     el.style.position = 'fixed'
     el.style.opacity = '0'
     document.body.appendChild(el)
     el.select()
     document.execCommand('copy')
     document.body.removeChild(el)
-    ui.success('种子链接已复制')
+    ui.success(`${what}已复制`)
   }
 }
 
@@ -137,7 +178,7 @@ async function removeTorrents() {
 </script>
 
 <template>
-  <v-dialog v-model="dialog" :fullscreen="mobile" max-width="960" scrollable @after-leave="emit('close')">
+  <v-dialog v-model="dialog" :fullscreen="mobile" max-width="1180" scrollable @after-leave="emit('close')">
     <v-card :loading="loading">
       <v-card-title class="d-flex align-center">
         <span class="text-truncate">预览 · {{ item.title }}</span>
@@ -154,9 +195,13 @@ async function removeTorrents() {
           推断出遗漏集数：{{ omitList.join('、') }}
         </v-alert>
 
-        <div class="d-flex align-center flex-wrap ga-2 mb-2">
-          <div class="text-caption text-medium-emphasis">匹配到的资源</div>
-          <v-chip size="x-small" variant="tonal">{{ items.length }}</v-chip>
+        <div class="d-flex align-center flex-wrap ga-3 mb-2">
+          <v-btn-toggle v-model="view" density="compact" divided mandatory variant="outlined">
+            <v-btn v-for="v in VIEWS" :key="v.label" :value="v.label" size="small">{{ v.label }}</v-btn>
+          </v-btn-toggle>
+          <div class="text-caption text-medium-emphasis">
+            {{ shown.length === items.length ? `共 ${items.length} 项` : `${shown.length} / ${items.length} 项` }}
+          </div>
           <v-chip v-if="blocked.size" color="error" size="x-small" variant="tonal">
             {{ blocked.size }} 集不下载
           </v-chip>
@@ -164,6 +209,9 @@ async function removeTorrents() {
 
         <v-empty-state v-if="!loading && !items.length" icon="mdi-magnify-close"
                        text="当前 RSS 与匹配规则下没有命中任何资源" title="没有匹配项"/>
+
+        <v-empty-state v-else-if="!shown.length" icon="mdi-filter-remove-outline"
+                       text="换个筛选看看" :title="`没有${view}的资源`"/>
 
         <template v-else>
           <!-- 选中后才出现的操作条：没选东西时摆一排灰按钮只会让人以为坏了 -->
@@ -191,49 +239,63 @@ async function removeTorrents() {
             </div>
           </v-slide-y-transition>
 
-          <v-table density="compact">
+          <!-- 列多，横向放不下就让表格自己横滚，别去挤标题那一列 -->
+          <v-table class="grid" density="compact">
             <thead>
             <tr>
               <th style="width: 48px">
                 <v-checkbox-btn :indeterminate="picked.length > 0 && !allPicked" :model-value="allPicked"
                                 density="compact" @update:model-value="toggleAll"/>
               </th>
-              <th style="width: 56px">集</th>
-              <th>标题 / 重命名后</th>
-              <th style="width: 84px">RSS</th>
-              <th style="width: 96px">大小</th>
-              <th style="width: 104px">状态</th>
+              <th style="width: 52px">集</th>
+              <th style="width: 76px">下载</th>
+              <th style="width: 88px">本地</th>
+              <th style="width: 72px">RSS</th>
+              <th style="width: 130px">字幕组</th>
+              <th style="min-width: 320px">标题 / 重命名后</th>
+              <th style="width: 116px">发布时间</th>
+              <th style="width: 92px">大小</th>
+              <th style="width: 140px">InfoHash</th>
               <th style="width: 48px"/>
             </tr>
             </thead>
             <tbody>
-            <tr v-for="(it, i) in items" :key="i" :class="{blocked: typeof it.episode === 'number' && blocked.has(it.episode)}">
+            <tr v-for="{it, i} in shown" :key="i" :class="{blocked: isBlocked(it)}">
               <td>
                 <v-checkbox-btn v-model="picked" :value="i" density="compact"/>
               </td>
               <td>{{ it.episode ?? '—' }}</td>
               <td>
+                <!-- 这三列各说各的：禁不禁止下载、本地在不在、走的哪条 RSS。
+                     原来挤在一列里三选一，「已下载」会被「不下载」盖掉。 -->
+                <v-chip v-if="isBlocked(it)" color="error" size="x-small" variant="flat">禁止</v-chip>
+                <span v-else class="text-caption text-medium-emphasis">允许</span>
+              </td>
+              <td>
+                <v-chip v-if="isLocal(it)" color="success" size="x-small" variant="tonal">已存在</v-chip>
+                <span v-else class="text-caption text-medium-emphasis">未下载</span>
+              </td>
+              <td>
+                <span v-if="it.master" class="text-caption text-medium-emphasis">主</span>
+                <v-chip v-else color="warning" size="x-small" variant="tonal">备用</v-chip>
+              </td>
+              <td class="text-caption">{{ it.subgroup || '—' }}</td>
+              <td>
                 <div class="text-body-2">{{ it.title }}</div>
                 <div v-if="it.reName" class="text-caption text-medium-emphasis">→ {{ it.reName }}</div>
               </td>
-              <td>
-                <!-- 主 / 备用 RSS：上游预览表里有这一列，命中的是哪条源直接影响排查 -->
-                <v-chip v-if="it.master" size="x-small" variant="tonal">主</v-chip>
-                <v-chip v-else color="warning" size="x-small" variant="tonal">备用</v-chip>
-              </td>
+              <td class="text-caption text-medium-emphasis">{{ it.pubDate || '—' }}</td>
               <td class="text-caption">{{ it.formatSize || '—' }}</td>
               <td>
-                <v-chip v-if="typeof it.episode === 'number' && blocked.has(it.episode)"
-                        color="error" size="x-small" variant="tonal">不下载
-                </v-chip>
-                <v-chip v-else :color="it.hasDownloaded ? 'success' : undefined" size="x-small" variant="tonal">
-                  {{ it.hasDownloaded ? '已下载' : '未下载' }}
-                </v-chip>
+                <!-- 四十位十六进制，整串摆出来能把表挤到没边；截断显示，点一下拿全的 -->
+                <span v-if="it.infoHash" :title="it.infoHash" class="hash"
+                      @click="copyText(it.infoHash, 'InfoHash')">{{ it.infoHash }}</span>
+                <span v-else class="text-caption text-medium-emphasis">—</span>
               </td>
               <td>
                 <!-- 单独补一集时直接拿链接走，不用为一集去改订阅规则 -->
                 <v-btn :disabled="!it.torrent" icon="mdi-content-copy" size="x-small"
-                       title="复制种子链接" variant="text" @click="copyTorrent(it.torrent)"/>
+                       title="复制种子链接" variant="text" @click="copyText(it.torrent, '种子链接')"/>
               </td>
             </tr>
             </tbody>
@@ -259,6 +321,33 @@ async function removeTorrents() {
     padding: 6px 8px 6px 14px;
     border-radius: 10px;
     background: rgba(var(--v-theme-primary), .1);
+}
+
+/* 十一列，窄屏放不下。v-table 自带的滚动容器已经是 overflow:auto，
+   给里面的表定一个下限就会横滚，不至于把每一列压成竖排的字 */
+.grid :deep(table) {
+    min-width: 1080px;
+}
+
+.grid :deep(th) {
+    white-space: nowrap;
+}
+
+.hash {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+    font-family: var(--ani-font-mono, monospace);
+    font-size: 11.5px;
+    color: rgba(var(--v-theme-on-surface), .62);
+    cursor: pointer;
+}
+
+.hash:hover {
+    color: rgb(var(--v-theme-primary));
 }
 
 /* 标成不下载的整行压暗，一眼看出来哪几集被排除了 */

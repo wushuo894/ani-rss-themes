@@ -70,6 +70,9 @@ function makeAni(b: typeof BANGUMI[number], i: number): Ani {
         // 摸鱼检测的开关，默认开 —— 它不是「已停更」，别拿它当状态用
         procrastinating: true,
         lastDownloadTime: Date.now() - idleDays * 864e5 - rnd(id + 'f', 20) * 3600_000,
+        /* 「这几集不要下」。原来一条都没有，于是预览面板里的「禁止」标记、
+           整行压暗、标题上那个「N 集不下载」全在演示产物上不出现 —— 量不到 */
+        notDownload: i % 3 === 1 ? [2, 5] : [],
         standbyRssList: i % 5 === 0
             ? [{label: '桜都字幕组', url: 'https://example.invalid/rss?sub=sakurato', offset: 0},
                 {label: 'ANi', url: 'https://example.invalid/rss?sub=ani', offset: 0}]
@@ -96,16 +99,23 @@ export function previewAni(ani: {title?: string; subgroup?: string; currentEpiso
             return {
                 title: `[${g}] ${ani.title ?? '演示番剧'} - ${String(ep).padStart(2, '0')} [1080p][简繁内封].mkv`,
                 reName: `${ani.title ?? '演示番剧'} S01E${String(ep).padStart(2, '0')}.mkv`,
-                infoHash: `demo-hash-${ep}`,
+                /* 真的是四十位十六进制。原来给的是 `demo-hash-3` 这种，
+                   那一列到底会不会把表挤爆、要不要截断，在演示产物上量不出来 */
+                infoHash: (ep * 0x9e3779b1).toString(16).padStart(8, '0').repeat(5).slice(0, 40),
                 // 「复制种子链接」这一列要有东西可复制
                 torrent: `https://example.invalid/torrent/${ep}.torrent`,
                 episode: ep,
                 formatSize: `${(0.9 + (i % 4) * 0.25).toFixed(2)} GB`,
                 length: Math.round((0.9 + (i % 4) * 0.25) * 1024 ** 3),
+                /* 上游 WebUI 读 local，生成的类型里叫 hasDownloaded —— 两个都发，
+                   预览面板那边 `local ?? hasDownloaded` 无论后端用哪个名字都对得上 */
+                local: ep <= total - 2,
                 hasDownloaded: ep <= total - 2,
                 master: i % 5 !== 3,          // 偶尔命中备用 RSS，那一列才有东西可看
                 subgroup: g,
-                pubDate: '',
+                /* 原来是空串，于是「发布时间」这一列在演示产物上永远是「—」，
+                   宽度够不够、换不换行一样量不出来 */
+                pubDate: new Date(Date.now() - (total - ep) * 7 * 86400_000).toISOString().slice(0, 10),
             }
         }),
         omitList: total > 5 ? [3] : [],
