@@ -27,6 +27,19 @@ function q(path: string, params: Record<string, unknown>): string {
     return s ? `${path}?${s}` : path
 }
 
+/**
+ * 单文件的 multipart 请求体。字段名固定是 file —— 后端三个上传端点
+ * （importConfig / upload / webui/upload）都写死了 @RequestParam("file")。
+ *
+ * 这几个上传原来各自手写 fetch，绕开了接口层：出错既不弹提示、403 也不会跳登录，
+ * 传错文件时页面上一点反应都没有。现在统一走 http.post，FormData 由 request 识别。
+ */
+function filePart(file: File): FormData {
+    const fd = new FormData()
+    fd.append('file', file)
+    return fd
+}
+
 /* ==================== 配置 ==================== */
 
 export const getConfig = () => http.post<Config>('api/config')
@@ -207,6 +220,22 @@ export const about = () => http.post<About>('api/about')
  */
 export const webuiGetUpdate = () => http.postQuiet<About>('api/webui/getUpdate')
 export const webuiUpdate = () => http.post<void>('api/webui/update')
+
+/*
+ * 换界面 / 还原自带界面（上游 test 分支 94afa0b，3.2.17 起才有）。
+ *
+ * upload：收一个 zip，**根目录必须有 webui.json**（后端只用 ZipFile#getEntry 查这一个条目，
+ * 多套一层目录就报「上传 WebUI 失败」），先删掉整个 {configDir}/webui 再解压过去。
+ * 本仓库九个发布包都是照这个形状打的，下下来直接选中就能传。
+ *
+ * delete：把 {configDir}/webui 整个删掉。静态资源的第二个来源是 classpath，
+ * 目录一没，后端就退回 ani-rss 自带的那套界面 —— 这就是「还原」。
+ *
+ * 两个都用 postQuiet：老版本 ani-rss 上是 404（Spring 的 404 包里没有 message，
+ * 全局提示会弹一句「undefined」），由调用方自己判断该说什么。
+ */
+export const webuiUpload = (file: File) => http.postQuiet<void>('api/webui/upload', filePart(file))
+export const webuiDelete = () => http.postQuiet<void>('api/webui/delete')
 export const update = () => http.post<void>('api/update')
 export const stop = (status: number) => http.post<void>(q('api/stop', {status}))
 /**
@@ -237,20 +266,10 @@ export const calendarIcsUrl = (apiKey: string) => toApiUrl('api/calendar.ics', {
 /** Emby Webhook 回调地址，同样用 apiKey */
 export const embyWebHookUrl = (apiKey: string) => toApiUrl('api/embyWebHook', {'api-key': apiKey})
 
-/** 导入配置：multipart 上传，不能用 JSON 那套 */
-export async function importConfig(file: File): Promise<void> {
-    const fd = new FormData()
-    fd.append('file', file)
-    const res = await fetch(toApiUrl('api/importConfig'), {
-        method: 'POST',
-        body: fd,
-        headers: getToken() ? {Authorization: getToken()} : {},
-    })
-    const json = await res.json()
-    if (json.code < 200 || json.code >= 300) throw new Error(json.message)
-}
-
 /* ==================== 补充端点 ==================== */
+
+/** 导入配置：multipart 上传，不能用 JSON 那套 */
+export const importConfig = (file: File) => http.post<void>('api/importConfig', filePart(file))
 
 /** Bangumi 授权回调：把 OAuth 返回的 code 交给后端换 token */
 export const bgmOauthCallback = (code: string) => http.post<void>(q('api/bgm/oauth/callback', {code}))
@@ -260,18 +279,8 @@ export const bgmOauthCallback = (code: string) => http.post<void>(q('api/bgm/oau
  * type='getBase64' 时后端只回 base64 不落盘；否则存进 {configDir}/files/ 并返回相对路径。
  * 自定义封面走的就是这个。
  */
-export async function upload(file: File, type?: 'getBase64'): Promise<string> {
-    const fd = new FormData()
-    fd.append('file', file)
-    const res = await fetch(toApiUrl('api/upload', type ? {type} : {}), {
-        method: 'POST',
-        body: fd,
-        headers: getToken() ? {Authorization: getToken()} : {},
-    })
-    const json = await res.json()
-    if (json.code < 200 || json.code >= 300) throw new Error(json.message)
-    return json.data as string
-}
+export const upload = (file: File, type?: 'getBase64') =>
+    http.post<string>(q('api/upload', {type}), filePart(file))
 
 /**
  * 用户在「页面设置」里填的自定义 CSS / JS 的地址（免鉴权）。

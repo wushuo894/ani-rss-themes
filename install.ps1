@@ -56,7 +56,7 @@ function Confirm {
 
 Say ''
 Say 'ani-rss 替代 WebUI 安装' 'White'
-Say '装完要重启一次 ani-rss；想还原就把 webui 目录清空后再重启。' 'DarkGray'
+Say '装完刷新页面就生效（ani-rss 3.2.15 以下要重启）；想还原见结尾。' 'DarkGray'
 Say ''
 
 # ── 目录 ────────────────────────────────────────────────
@@ -172,8 +172,9 @@ try {
 Say ''
 Say "装好了  $dir  ($ui)" 'Green'
 Say ''
-Say '还差一步：重启 ani-rss。' 'Yellow'
-Say '程序只在启动时扫这个目录，光刷新页面不生效。' 'DarkGray'
+Say '刷新页面就能看到。' 'Yellow'
+Say 'ani-rss 3.2.15 以下静态资源带缓存，那些版本要重启一次。' 'DarkGray'
 Say ''
-Say '想还原：清空该目录（或删掉后把 .bak 改回来），然后再重启一次。' 'DarkGray'
+Say '想还原：3.2.17 起在网页「设置 → 关于 → 更换界面」里点「还原自带界面」；' 'DarkGray'
+Say '或者清空该目录（删掉后把 .bak 改回来也行），再刷新一次。' 'DarkGray'
 Say ''

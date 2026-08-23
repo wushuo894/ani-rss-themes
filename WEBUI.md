@@ -104,8 +104,9 @@ irm .../install.ps1 | iex
 `{configDir}` 的确定顺序（`ConfigUtil.getConfigDir()`）：环境变量 `CONFIG` → 当前工作目录下的
 `config/` → Windows/macOS 为 `~/ani-rss`，其他系统为 `config`。
 
-**重启 ani-rss** —— 程序只在启动时扫 `config/webui/`，光刷新页面不生效。
-想换回自带界面，把 `webui/` 清空或改名，再重启一次。
+放完**刷新页面**就生效。ani-rss 3.2.15 以前静态资源那条链是带缓存的（`resourceChain(true)`），
+放进去的文件要重启才认；3.2.15 起改成了不缓存，刷新就够。**3.2.15 以下仍然要重启。**
+想换回自带界面，把 `webui/` 清空或改名（3.2.17 起可以直接在网页上点，见下）。
 
 > qBittorrent 的替代 WebUI 要求产物根目录下有 `public/` 子目录，**ani-rss 没有这个要求**，文件直接放 `webui/` 根下。
 
@@ -132,6 +133,27 @@ irm .../install.ps1 | iex
 **先把整段转义成纯文本，再往里加自己生成的标签**，所以不存在「漏过滤了某个标签」，
 因为压根没有过滤这一步。协议白名单只放行 `http(s)` / `mailto` / 站内路径，
 `javascript:` 之类连 `href` 都不给。`shared/markdown.test.ts` 里有 15 条注入用例。
+
+### 在网页里换界面 / 还原（ani-rss 3.2.17 起）
+
+上游 `test` 分支 3.2.17 加了两个端点（`/api/webui/upload`、`/api/webui/delete`），
+「设置 → 关于 → 更换界面」这张卡就是它们：
+
+- **上传并切换** —— 选一个界面压缩包传上去，后端先清空 `config/webui/` 再解压。
+  下载来的九个包直接选中就行，不用解压、不用登服务器、不用碰 Docker 卷。
+  校验只看一条：zip 的**根目录**里得有 `webui.json`，多套一层目录会被拒（「上传 WebUI 失败」）。
+  包大小上限是后端的 `spring.servlet.multipart.max-file-size` = 50MB，九个包都在 15MB 上下。
+- **还原自带界面** —— 把 `config/webui/` 整个删掉。静态资源的第二个来源是 jar 里的 classpath，
+  目录一没就退回 ani-rss 自带的那套界面。想换回来再传一次包。
+
+两个动作都是「整套文件被换掉」，所以点完会先把 service worker 连缓存一起卸掉再刷新 ——
+不卸的话它还挂在这个源上拦请求，断网时会拿旧界面的 `index.html` 顶替新界面。
+
+老版本 ani-rss 上这两个端点是 404，按钮照样显示，点了会直说「需要 3.2.17 及以上」。
+**故意不跟着「检查更新」那块一起隐藏**：3.2.17 的 `WebUIService#getWebUI` 把 `webui.json`
+找去了 `config/webui/webui/` 这一层（`new File(webuiDir, "webui/webui.json")`，而 `webuiDir`
+本身就是 `config/webui`），在线更新在这个版本上是坏的 —— 跟着它藏，按钮恰好在唯一支持
+换界面的版本上看不见。本仓库的发布包两处各放一份 `webui.json`，两条路都能走。
 
 ### 装到手机主屏
 

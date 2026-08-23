@@ -258,6 +258,12 @@ jobs:
             printf '{"owner":"%s","repo":"%s","version":"%s","filename":"%s"}\n' \
               "${{ github.repository_owner }}" "${GH_REPO#*/}" "$TAG" "ani-rss-webui-$id.zip" \
               > "$stage/webui.json"
+            # 再抄一份到 webui/ 里。3.2.17 那次重构把读取路径写成了
+            # new File(webuiDir, "webui/webui.json")，而 webuiDir 本身就是 config/webui —— 多了一级，
+            # 只放根目录那份的话，装在 3.2.17 上「检查界面更新」永远说没有更新。
+            # 根目录那份不能省：上传界面时后端查的是 ZipFile#getEntry("webui.json")。
+            mkdir -p "$stage/webui"
+            cp "$stage/webui.json" "$stage/webui/webui.json"
             # 解压后必须直接就是 config/webui/index.html，不能多套一层目录
             test -f "$stage/index.html"           || { echo "::error::$id 包根目录没有 index.html"; exit 1; }
             test -f "$stage/player/play.html"     || { echo "::error::$id 包里没有 player/play.html"; exit 1; }
@@ -293,8 +299,12 @@ jobs:
 
           ## 怎么装
 
-          九款界面挑一款，解压到 ani-rss **配置目录**下的 \`webui/\` 里（没有就新建一个），
-          然后**重启 ani-rss**。程序是启动时才扫这个目录的，只刷新页面不算数。
+          **ani-rss 3.2.17 及以上**：不用解压。在自带界面的「设置 → 页面」里点「选择文件并上传」，
+          或者在本界面的「设置 → 关于 → 更换界面」里传这个 zip，传完刷新就换好了。
+          同一张卡上的「还原自带界面」可以随时退回 ani-rss 原来那套。
+
+          手动装：九款挑一款，解压到 ani-rss **配置目录**下的 \`webui/\` 里（没有就新建一个），
+          刷新页面即可（**3.2.15 以下要重启 ani-rss**，那之前的版本静态资源带缓存）。
           **每个包都自带在线播放器**，不用再单独下一个。
 
           \`\`\`

@@ -73,6 +73,14 @@ export function installDemo(): void {
                回一句字符串当成 UpdateInfo，演示站上「已是最新」的判断就成了瞎猜 */
             case 'api/webui/getUpdate':
                 return ok({...WEBUI_ABOUT, latest: __VERSION__})
+            /* 换界面 / 还原：不能走 default 那条「成功但什么也没做」——
+               界面收到成功就会卸掉 service worker 再刷新，演示站上看着像真换了一次。
+               回一个失败包，照常弹「演示模式」那句 */
+            case 'api/webui/upload':
+            case 'api/webui/delete':
+                return new Response(
+                    JSON.stringify({code: 400, message: NOOP_HINT, data: null, t: Date.now()}),
+                    {headers: {'Content-Type': 'application/json'}})
             case 'api/ping':
                 return ok(true)
             case 'api/playList':

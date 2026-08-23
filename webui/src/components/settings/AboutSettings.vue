@@ -2,6 +2,7 @@
 import {computed, onMounted, ref} from 'vue'
 import type {About} from '@shared/types'
 import * as api from '@shared/api'
+import {ApiError} from '@shared/http'
 import {formatSize} from '@shared/format'
 import {renderMarkdown} from '@shared/markdown'
 import {useConfigStore} from '@/stores/config'
@@ -15,6 +16,9 @@ const info = ref<About | null>(null)
 const loading = ref(false)
 const busy = ref('')
 const confirmStop = ref<number | null>(null)
+const confirmRestore = ref(false)
+/** 要换上去的界面包。v-file-input 的 v-model 是数组，即使只让选一个 */
+const pkg = ref<File[]>([])
 
 /* 这套界面自己的版本号：构建期注入，和发布包里 webui.json 的 version 同一个数 ——
    后端就是拿那个数跟 Release 的 tag 比来判断有没有新版的 */
@@ -61,6 +65,82 @@ async function doWebuiUpdate() {
     setTimeout(() => location.reload(), 1200)
   } finally {
     busy.value = ''
+  }
+}
+
+/*
+ * 换界面 / 还原自带界面。
+ *
+ * 这两个端点是 3.2.17 才有的，而**同一个版本上 getUpdate 是坏的**
+ * （WebUIService 把 webui.json 找去了 config/webui/webui/ 这一层，多了一级），
+ * 所以不能跟着 webuiSupported 一起藏 —— 那样恰好在唯一支持换界面的版本上看不见按钮。
+ * 老版本上就让它 404，在下面按错误码说人话。
+ */
+function notSupported(e: unknown): boolean {
+  return e instanceof ApiError && (e.code === 404 || e.code === 405)
+}
+
+/*
+ * 换界面前先把 service worker 连缓存一起卸掉。
+ * main.ts 在正式产物里注册了一个 sw.js：整套文件被后端换掉之后，它还挂在这个源上继续拦请求，
+ * 断网时会拿我们缓存的 index.html 顶替新界面 —— 换都换了还被旧界面糊一脸。
+ * 只有「整套换掉」才需要这么做，同一款界面的版本更新不用（资源名带哈希，自然不撞）。
+ */
+async function dropServiceWorker() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(regs.map(r => r.unregister()))
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys()
+      await Promise.all(keys.map(k => caches.delete(k)))
+    }
+  } catch {
+    // 卸不掉也不该挡着刷新，大不了下一次网络优先取回来
+  }
+}
+
+/** 后端 spring.servlet.multipart.max-file-size 是 50MB，超了 Tomcat 直接回一段 HTML，
+    接口层只能报「服务端返回了非 JSON 内容」—— 不如在这儿说清楚 */
+const MAX_PKG_SIZE = 50 * 1024 * 1024
+
+async function doWebuiUpload() {
+  const f = pkg.value?.[0]
+  if (!f) return ui.error('请先选择界面压缩包')
+  if (!f.name.toLowerCase().endsWith('.zip')) return ui.error('只认 zip 压缩包')
+  if (f.size > MAX_PKG_SIZE) return ui.error('压缩包超过 50MB，后端不收')
+
+  busy.value = 'upload'
+  try {
+    await api.webuiUpload(f)
+    pkg.value = []
+    ui.success('界面已替换，正在重新加载')
+    await dropServiceWorker()
+    setTimeout(() => location.reload(), 1200)
+  } catch (e) {
+    ui.error(notSupported(e)
+        ? '当前 ani-rss 不支持在网页里换界面，需要 3.2.17 及以上'
+        : (e as Error).message || '上传失败')
+  } finally {
+    busy.value = ''
+  }
+}
+
+async function doWebuiRestore() {
+  busy.value = 'restore'
+  try {
+    await api.webuiDelete()
+    ui.success('已还原自带界面，正在重新加载')
+    await dropServiceWorker()
+    setTimeout(() => location.reload(), 1200)
+  } catch (e) {
+    ui.error(notSupported(e)
+        ? '当前 ani-rss 不支持在网页里还原界面，需要 3.2.17 及以上'
+        : (e as Error).message || '还原失败')
+  } finally {
+    busy.value = ''
+    confirmRestore.value = false
   }
 }
 
@@ -204,6 +284,41 @@ async function doStop(status: number) {
       </v-card-text>
     </v-card>
 
+    <!-- 换界面：传一个包上去就换成别的，或者整个删掉退回 ani-rss 自带的那套。
+         不藏在 webuiSupported 后面，理由见 script 里 notSupported 上面那段。 -->
+    <v-card class="mb-4" variant="flat">
+      <v-card-title class="text-subtitle-2">更换界面</v-card-title>
+      <v-divider/>
+      <v-card-text>
+        <div class="text-caption text-medium-emphasis mb-3">
+          选一个界面压缩包传上去就换成它，zip 的根目录里要有 <code>webui.json</code>（本仓库九个包都是）。
+          上传会先清空 <code>config/webui/</code>，自己往里放过的文件请先备份。
+          需要 ani-rss 3.2.17 及以上。
+        </div>
+
+        <v-file-input
+            v-model="pkg"
+            accept=".zip"
+            class="mb-3"
+            density="comfortable"
+            label="选择界面压缩包"
+            prepend-icon="mdi-folder-zip-outline"
+            show-size
+        />
+
+        <div class="d-flex flex-wrap ga-2">
+          <v-btn :disabled="!pkg?.length" :loading="busy === 'upload'" color="primary"
+                 prepend-icon="mdi-upload" variant="flat" @click="doWebuiUpload">
+            上传并切换
+          </v-btn>
+          <v-btn :loading="busy === 'restore'" color="error" prepend-icon="mdi-backup-restore"
+                 variant="tonal" @click="confirmRestore = true">
+            还原自带界面
+          </v-btn>
+        </div>
+      </v-card-text>
+    </v-card>
+
     <v-divider class="mb-4"/>
 
     <div class="text-subtitle-2 mb-2">服务</div>
@@ -225,6 +340,25 @@ async function doStop(status: number) {
       </a>
       <a class="text-medium-emphasis touch-link" href="https://t.me/ani_rss" rel="noopener" target="_blank">TG 群</a>
     </div>
+
+    <v-dialog v-model="confirmRestore" max-width="400">
+      <v-card>
+        <v-card-title>还原自带界面</v-card-title>
+        <v-card-text>
+          <p class="mb-0">
+            会删掉整个 <code>config/webui/</code>，网页立刻退回 ani-rss 自带的那套界面。
+          </p>
+          <p class="text-caption text-medium-emphasis mt-2 mb-0">
+            想换回来再传一次包就行。ani-rss 3.2.16 以下改完要重启才生效，不是刷新。
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer/>
+          <v-btn variant="text" @click="confirmRestore = false">取消</v-btn>
+          <v-btn :loading="busy === 'restore'" color="error" variant="flat" @click="doWebuiRestore">确定</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-dialog :model-value="confirmStop !== null" max-width="400" @update:model-value="confirmStop = null">
       <v-card>

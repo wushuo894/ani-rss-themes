@@ -65,14 +65,44 @@ at('http://ani.local:7789/')
     setErrorHandler(m => void errors.push(m))
     globalThis.fetch = (async () => new Response(
         JSON.stringify({timestamp: 0, status: 404, error: 'Not Found', path: '/api/webui/getUpdate'}),
-        {headers: {'Content-Type': 'application/json'}},
+        // 端点不存在时 HTTP 状态码本身就是 404（后端自己的错误包才是恒 200），
+        // 原来这里造的是 200，退回状态码那条路就测不到
+        {status: 404, headers: {'Content-Type': 'application/json'}},
     )) as typeof fetch
 
-    await assert.rejects(() => http.postQuiet('api/webui/getUpdate'), (e: Error) => e.name === 'ApiError')
+    // Spring 那份 404 包里既没有 code 也没有 message：退回 HTTP 状态码和 error 字段，
+    // 否则弹出来是「undefined」，调用方也没法靠 404 认出「这版后端还没这个端点」
+    await assert.rejects(() => http.postQuiet('api/webui/getUpdate'),
+        (e: Error & {code: number}) => e.name === 'ApiError' && e.code === 404 && e.message === 'Not Found')
     assert.deepEqual(errors, [], `postQuiet 不该弹提示，却弹了：${errors}`)
 
     await assert.rejects(() => http.post('api/webui/getUpdate'))
     assert.equal(errors.length, 1, '普通 post 仍然要弹提示')
+}
+
+/* ── FormData 请求体：Content-Type 必须让浏览器自己写 ──
+   multipart 的头里要带一段 boundary，手写成 'multipart/form-data' 就没有 boundary，
+   后端一个字段都解不出来（上传界面包、导入配置、传封面三个端点全废）。
+   同时请求体不能被 JSON.stringify 掉。 */
+{
+    let seen: RequestInit | undefined
+    globalThis.fetch = (async (_u: unknown, init: RequestInit) => {
+        seen = init
+        return new Response(JSON.stringify({code: 200, message: '', data: null, t: Date.now()}),
+            {headers: {'Content-Type': 'application/json'}})
+    }) as unknown as typeof fetch
+
+    const fd = new FormData()
+    fd.append('file', new Blob(['x']), 'a.zip')
+    await http.post('api/webui/upload', fd)
+    const headers = seen?.headers as Record<string, string>
+    assert.equal(headers['Content-Type'], undefined, 'FormData 不许自己设 Content-Type')
+    assert.ok(seen?.body instanceof FormData, 'FormData 必须原样递给 fetch，不能被 JSON 化')
+
+    // JSON 那条路照旧
+    await http.post('api/setConfig', {a: 1})
+    assert.equal((seen?.headers as Record<string, string>)['Content-Type'], 'application/json')
+    assert.equal(seen?.body, '{"a":1}')
 }
 
 /* ── posterUrl：Mikan 那层「裁成正方形」的缩放参数必须摘掉 ──
@@ -98,4 +128,5 @@ at('http://ani.local:7789/')
 
 console.log('✓ toApiUrl 全部断言通过')
 console.log('✓ postQuiet 静默行为断言通过')
+console.log('✓ FormData 请求体断言通过')
 console.log('\u2713 posterUrl 断言通过')

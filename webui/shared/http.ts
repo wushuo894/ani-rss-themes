@@ -166,12 +166,16 @@ async function request<T>(path: string, method: string, body?: unknown, quiet = 
     const headers: Record<string, string> = {}
     const token = getToken()
     if (token) headers['Authorization'] = token
-    if (body !== undefined) headers['Content-Type'] = 'application/json'
+    /* FormData 的 Content-Type 必须让浏览器自己写：multipart 要带一段 boundary，
+       手写成 multipart/form-data 就没有 boundary，后端一个字段都解不出来。
+       所以这里只给 JSON 的情况设头，FormData 原样递给 fetch。 */
+    const isForm = body instanceof FormData
+    if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json'
 
     const res = await fetch(toApiUrl(path), {
         method,
         headers,
-        body: body === undefined ? null : JSON.stringify(body),
+        body: body === undefined ? null : isForm ? body : JSON.stringify(body),
     })
 
     // 后端正常情况下 HTTP 恒 200、错误码在包里；但静态资源 404 之类会走到这
@@ -190,12 +194,21 @@ async function request<T>(path: string, method: string, body?: unknown, quiet = 
 
     if (json.code >= 200 && json.code < 300) return json.data
 
-    if (json.code === 403) {
+    /* 后端的错误包一定有 code 和 message，但**不是所有 JSON 都出自后端**：
+       端点不存在时回的是 Spring 自己那份 {timestamp, status, error, path}，两个字段都没有。
+       照原样往下抛就是一个 code=undefined、message=undefined 的 ApiError ——
+       提示弹出来是「undefined」，调用方也没法按状态码分情况说话
+       （关于页那个「换界面」就要靠 404 认出「这版 ani-rss 还没这个功能」）。
+       没有 code 就退回 HTTP 状态码，没有 message 就退回 Spring 的 error。 */
+    const code = typeof json.code === 'number' ? json.code : res.status
+    const message = json.message || (json as {error?: string}).error || `HTTP ${res.status}`
+
+    if (code === 403) {
         setToken('')
         onUnauthorized?.()
     }
-    if (!quiet) onError?.(json.message)
-    throw new ApiError(json.code, json.message)
+    if (!quiet) onError?.(message)
+    throw new ApiError(code, message)
 }
 
 export const http = {
