@@ -36,7 +36,24 @@ node webui/shared/tools/extract-api.mjs upstream
 ```
 
 同样带自校验：抽出的端点必须覆盖源码里声明的每一条 mapping 路径。
-当前结果为 66 个端点 / 22 个 controller。
+当前结果为 70 个端点 / 23 个 controller。
+
+## preview-fit.mjs
+
+预览站首页（`webui/preview-index.html`）的一屏体检。
+
+```bash
+npm run test:preview --prefix webui
+```
+
+三档桌面分辨率下量三件事：九张卡是不是都落在第一屏内（留 8px 余量，
+正好压在下沿不算）、宽屏上是不是三列、每张卡的 ⤓ zip 是不是指向自己那一款的包。
+
+不用先构建：卡片高度由 CSS 定，缩略图起没起来都不影响版式，
+所以九个预览地址一律回 404，留骨架图。
+
+不过就把第一屏各块的高度摊开打出来（连一张卡的标题栏 / 缩略图 / 文字三段），
+省得下一个人自己去开 DevTools 找是谁变高了。加第十款界面时最先响的就是它。
 
 ## mobile-audit.mjs
 

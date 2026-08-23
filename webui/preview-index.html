@@ -72,10 +72,12 @@
             background-repeat: no-repeat;
         }
 
+        /* 目标是「一屏看完」：横向放宽到三列排得开，纵向的留白全部改成跟着视口高度走。
+           写死的 28/64/68/56px 加起来就有 200 多，1080p 上光留白就吃掉四分之一屏。 */
         .wrap {
-            max-width: 1180px;
+            max-width: 1440px;
             margin: 0 auto;
-            padding: 28px 20px 80px;
+            padding: clamp(12px, 2.2vh, 26px) 20px clamp(16px, 3vh, 40px);
         }
 
         a {
@@ -83,15 +85,8 @@
         }
 
         /* ── 顶部 ─────────────────────────────────────────────── */
-        .top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 64px;
-        }
-
+        /* 「回主题预览」「源码」原来单独占一行，两颗小药丸吃掉整整 51px ——
+           而九张卡分到多少高度，就是从这种地方省出来的。并进大标题那一行的动作区。 */
         .back, .ghlink {
             display: inline-flex;
             align-items: center;
@@ -119,16 +114,55 @@
         }
 
         /* ── 大标题 ───────────────────────────────────────────── */
+        /* 大标题和动作按钮并排。原来是竖着堆的：眉标、标题、一段话、三块 facts，
+           加起来 300px 打底，九张卡还没开始就已经翻了半屏。 */
         .hero {
-            max-width: 760px;
-            margin-bottom: 44px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: clamp(10px, 1.8vh, 22px);
+        }
+
+        .hero-text {
+            max-width: 720px;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* 主按钮：一键去 Releases 拿包。每张卡上那颗 ⤓ zip 直接下对应那一款，
+           这颗是「九款随便挑」的入口，两个都留着。 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 8px 15px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            background: var(--accent);
+            color: var(--accent-ink);
+            font-size: 13.5px;
+            font-weight: 650;
+            text-decoration: none;
+            transition: filter .16s, transform .16s;
+        }
+
+        .btn:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
         }
 
         .eyebrow {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 20px;
+            margin: 0 0 clamp(6px, 1vh, 14px);
             padding: 5px 12px 5px 8px;
             border: 1px solid var(--line);
             border-radius: 999px;
@@ -148,9 +182,10 @@
         }
 
         h1 {
-            margin: 0 0 18px;
-            font-size: clamp(34px, 6.2vw, 58px);
-            line-height: 1.08;
+            margin: 0 0 clamp(6px, 1vh, 12px);
+            /* 高度也进 clamp：矮屏上 58px 的标题纯属占地方 */
+            font-size: clamp(24px, 3vw + 1vh, 40px);
+            line-height: 1.1;
             letter-spacing: -.03em;
             font-weight: 800;
         }
@@ -165,15 +200,15 @@
         .lede {
             margin: 0;
             color: var(--dim);
-            font-size: clamp(15px, 1.7vw, 17.5px);
-            line-height: 1.7;
+            font-size: clamp(13.5px, 1.4vw, 16px);
+            line-height: 1.6;
         }
 
         .facts {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 26px;
+            margin-top: clamp(8px, 1.2vh, 16px);
         }
 
         .facts span {
@@ -191,12 +226,19 @@
         }
 
         /* ── 九张卡 ───────────────────────────────────────────── */
-        /* 两列打底，个别几款横跨整行：壁纸海报墙、整扇 Win98 窗、DSM 的桌面
-           缩到半列就只剩一团色块，给它们整行；其余两两成排，照样不剩洞。 */
+        /* 三档：手机一列、平板两列、宽屏三列（3×3 一次排完，不用滚）。
+           两列时个别几款横跨整行 —— 壁纸海报墙、整扇 Win98 窗、DSM 的桌面缩到半列
+           只剩一团色块；三列时不给整行，占满一行反而把 3×3 撑成 4 行。 */
         .grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 22px;
+            gap: clamp(10px, 1.4vh, 18px);
+        }
+
+        @media (min-width: 1100px) {
+            .grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
         }
 
         @media (max-width: 720px) {
@@ -212,6 +254,7 @@
         }
 
         .card {
+            position: relative;
             grid-column: span 1;
             display: flex;
             flex-direction: column;
@@ -225,8 +268,13 @@
             transition: transform .22s cubic-bezier(.2, .7, .3, 1), border-color .22s, box-shadow .22s;
         }
 
-        .card.wide {
-            grid-column: 1 / -1;
+        /* 只有两列那一档才让它们横跨整行。三列时给整行等于把 3×3 撑成 6 行 ——
+           这条覆盖必须写在这里而不是上面的 .grid 段里：同权重的规则后来者赢，
+           写在前面的会被这条压回去，表现就是「断点看着改了，列数没变」。 */
+        @media (min-width: 721px) and (max-width: 1099px) {
+            .card.wide {
+                grid-column: 1 / -1;
+            }
         }
 
         .card:hover {
@@ -235,9 +283,41 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 26px 54px -20px rgba(0, 0, 0, .7);
         }
 
-        .card:focus-visible {
+        /* 铺满整张卡的透明链接。放在 chrome / shot / meta 之上、下载按钮之下，
+           所以点哪儿都是「打开预览」，只有 ⤓ zip 那一小块是下载。 */
+        .go {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            border-radius: inherit;
+        }
+
+        .card:has(.go:focus-visible) {
             outline: 2px solid var(--accent);
             outline-offset: 3px;
+        }
+
+        /* 下载：直接指向 releases/latest/download/<包名>，这个地址不用调 API、
+           永远指向最新一版，所以是真·一键，不是先跳 Releases 再找。 */
+        .dl {
+            position: relative;
+            z-index: 3;
+            flex: 0 0 auto;
+            padding: 1px 8px;
+            border: 1px solid var(--line-2);
+            border-radius: 999px;
+            background: var(--bg-2);
+            color: var(--dim);
+            font-size: 11.5px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color .16s, border-color .16s, background .16s;
+        }
+
+        .dl:hover {
+            color: var(--accent-ink);
+            border-color: var(--accent);
+            background: var(--accent);
         }
 
         /* 假的浏览器边框：一眼认出「这是一整个界面」，不是一张配图 */
@@ -245,7 +325,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 9px 12px;
+            padding: 5px 10px;
             border-bottom: 1px solid var(--line);
             background: var(--panel-2);
         }
@@ -290,6 +370,8 @@
 
         /* 缩略图容器：定死宽高比，里面的 iframe 按 1440 宽渲染再缩到容器宽度，
            下面裁掉 —— 仪表盘从上往下看本来就最好看 */
+        /* 缩略图容器。宽屏上高度由视口决定而不是宽高比 —— 三列 × 16:9 是 3 × 250px，
+           光缩略图就 750px，一屏无论如何装不下。三行 × 15vh 才有得谈。 */
         .shot {
             position: relative;
             aspect-ratio: 16 / 9;
@@ -304,8 +386,8 @@
         .shot iframe {
             position: absolute;
             inset: 0;
-            width: 1440px;
-            height: 900px;
+            width: 1280px;
+            height: 800px;
             border: 0;
             transform-origin: 0 0;
             pointer-events: none;
@@ -324,7 +406,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            height: 60px;
+            height: 42px;
             background: linear-gradient(to top, var(--panel), transparent);
             pointer-events: none;
         }
@@ -366,16 +448,16 @@
         }
 
         .meta {
-            padding: 15px 17px 17px;
+            padding: 8px 12px 9px;
             border-top: 1px solid var(--line);
         }
 
         .name {
             display: flex;
             align-items: baseline;
-            gap: 9px;
-            margin-bottom: 5px;
-            font-size: 17.5px;
+            gap: 8px;
+            margin-bottom: 2px;
+            font-size: 15px;
             font-weight: 700;
             letter-spacing: -.01em;
         }
@@ -385,17 +467,58 @@
             color: var(--dim);
         }
 
+        /* 描述封成两行。九张卡的描述有长有短，不封的话每张卡高度都不一样，
+           三列排起来底边参差不齐，而且最长那张直接把整行撑高。 */
         .desc {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
             margin: 0;
             color: var(--dim);
-            font-size: 13.5px;
+            font-size: 12.5px;
+            line-height: 1.55;
         }
 
         .tags {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
-            margin-top: 12px;
+            margin-top: 8px;
+        }
+
+        /*
+         * 宽屏上按「谁最不重要谁先走」的顺序让位。九张卡排三行，每张卡省 1px 就是省 3px，
+         * 而缩略图分到多少，正好就是这些文字省下来的。次序是量出来的不是拍的：
+         *
+         *   ≥1100px       标签和 hero 里那几块 facts 直接不要 —— 标签说的事描述里都有
+         *   高 ≤ 780px    描述收成一行
+         *   高 ≤ 700px    描述整条省掉，眉标也省掉，大标题再小一号
+         *
+         * 款名和缩略图任何时候都留着 —— 那两样才是这一屏的正事。
+         */
+        @media (min-width: 1100px) {
+            .tags, .facts {
+                display: none;
+            }
+        }
+
+        @media (min-width: 1100px) and (max-height: 780px) {
+            .desc {
+                -webkit-line-clamp: 1;
+                line-clamp: 1;
+            }
+        }
+
+        @media (min-width: 1100px) and (max-height: 700px) {
+            .desc, .eyebrow {
+                display: none;
+            }
+
+            h1 {
+                font-size: clamp(22px, 2.4vw, 30px);
+            }
         }
 
         .tags span {
@@ -408,15 +531,15 @@
 
         /* ── 安装 ─────────────────────────────────────────────── */
         h2 {
-            margin: 68px 0 6px;
-            font-size: 22px;
+            margin: clamp(14px, 2.4vh, 32px) 0 4px;
+            font-size: 19px;
             letter-spacing: -.02em;
         }
 
         .sub {
-            margin: 0 0 22px;
+            margin: 0 0 clamp(8px, 1.2vh, 16px);
             color: var(--dim);
-            font-size: 14px;
+            font-size: 13.5px;
         }
 
         .cmds {
@@ -424,7 +547,14 @@
             /* minmax(0,1fr) 而不是默认的 auto —— 默认那个按内容最宽处撑，
                一行 curl 在手机上就能把整页顶出一条横向滚动条 */
             grid-template-columns: minmax(0, 1fr);
-            gap: 12px;
+            gap: 10px;
+        }
+
+        /* 宽屏两条并排，省一行 */
+        @media (min-width: 1100px) {
+            .cmds {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
         .cmd {
@@ -432,7 +562,7 @@
             align-items: center;
             min-width: 0;
             gap: 12px;
-            padding: 12px 12px 12px 16px;
+            padding: 9px 10px 9px 14px;
             border: 1px solid var(--line);
             border-radius: 12px;
             background: var(--panel);
@@ -492,9 +622,9 @@
 
         .note {
             display: flex;
-            gap: 12px;
-            margin-top: 16px;
-            padding: 14px 16px;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px 14px;
             border: 1px solid var(--line);
             border-left: 3px solid var(--accent);
             border-radius: 10px;
@@ -515,8 +645,8 @@
         }
 
         footer {
-            margin-top: 56px;
-            padding-top: 22px;
+            margin-top: clamp(12px, 2vh, 28px);
+            padding-top: clamp(10px, 1.6vh, 20px);
             border-top: 1px solid var(--line);
             color: var(--dim);
             font-size: 13px;
@@ -532,6 +662,57 @@
             color: var(--fg);
         }
 
+        /*
+         * 「九张卡一屏看完」这件事，不靠一层层压像素去凑。
+         *
+         * 凑法是这样的：量出标题多高、卡片多高，把留白一处处调小，直到刚好放下 ——
+         * 换一号字体、多一行描述、加一款界面，全部作废，而且是静悄悄地作废。
+         *
+         * 改成让第一屏自己是一个定高的 flex 列：顶栏和标题占多少算多少，
+         * 网格 flex:1 吃掉剩下的全部高度，三行均分，每张卡里缩略图再吃掉
+         * 卡片减去标题栏和文字之后剩下的。于是「放不放得下」不再是算术题 ——
+         * 内容多了就是缩略图矮一点，永远不会把第九张卡挤到屏幕外面去。
+         *
+         * 放在样式表最末尾，别往上挪：媒体查询**不加权重**，
+         * 写在 .shot / .card 那些基础规则前面的话，同权重后来者赢，
+         * 这一整块会被它们压回去 —— 表现是「改了没反应」，而且一声不吭。
+         */
+        @media (min-width: 1100px) {
+            .screen {
+                display: flex;
+                flex-direction: column;
+                /* 减两样：顶上那道内边距（底下那道在安装说明之后，不占第一屏），
+                   再留 26px 喘气 —— 不留的话第九张卡的底边正好压在屏幕最下沿，
+                   看着像被裁掉一截，也不给人「下面还有东西」的暗示 */
+                min-height: calc(100dvh - clamp(12px, 2.2vh, 26px) - 26px);
+            }
+
+            .grid {
+                flex: 1 1 auto;
+                /* 这个 0 是关键：flex 子项的自动最小尺寸是「内容有多高就多高」，
+                   不写的话 flex:1 只会让它变高、从来不会让它变矮，
+                   于是 .screen 被内容顶穿，min-height 形同虚设 */
+                min-height: 0;
+                /* minmax(0,1fr) 同理：不写 0 的话行高按内容撑，上面那份高度就白分了 */
+                grid-template-rows: repeat(3, minmax(0, 1fr));
+            }
+
+            .card {
+                min-height: 0;
+            }
+
+            .shot, .card.wide .shot {
+                flex: 1 1 auto;
+                height: auto;
+                min-height: 64px;
+                aspect-ratio: auto;
+            }
+
+            .meta {
+                flex: 0 0 auto;
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             * {
                 transition: none !important;
@@ -541,38 +722,50 @@
 </head>
 <body>
 <div class="wrap">
-    <div class="top">
-        <a class="back" href="../">← 回主题预览</a>
-        <a class="ghlink" href="https://github.com/zzzwannasleep/ani-rss-themes" rel="noopener">
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.19c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/>
-            </svg>
-            源码
-        </a>
-    </div>
-
+<!-- 第一屏：顶栏 + 大标题 + 九张卡。包这一层是为了让网格「吃掉剩下的高度」而不是
+     反过来按内容把页面顶高 —— 详见 .screen 那段 CSS。安装说明在这一层外面，
+     本来就该往下滚一点才看见。 -->
+<section class="screen">
     <header class="hero">
-        <!-- 这两个数字不要手写。它们烂过两次：只有 5 款的时候写死了 5，
-             加到 6 款、9 款都没人想起来改，就一直挂在首页最显眼的位置上。
-             现在由页面自己数下面有几张卡（见底部脚本），加一款自动跟着变。 -->
-        <p class="eyebrow"><b class="js-count">9</b> 款同一套功能，只是长得不同</p>
-        <h1>给 ani-rss<br/>换一张<span>好看的脸</span></h1>
-        <p class="lede">下面每张卡里跑的都是真界面，不是截图 —— 点开就能翻页、开关、改设置。
-            数据是内置的假数据，随便折腾，不连你的任何东西。</p>
-        <div class="facts">
-            <span>每款自带一张同名皮肤，<b class="js-count">9</b> 款随便换</span>
-            <span>同一套<b>响应式</b>代码，不是另做的手机版</span>
-            <span>装一款就够，<b>约 14 MB</b>（含在线播放器）</span>
+        <div class="hero-text">
+            <!-- 这两个数字不要手写。它们烂过两次：只有 5 款的时候写死了 5，
+                 加到 6 款、9 款都没人想起来改，就一直挂在首页最显眼的位置上。
+                 现在由页面自己数下面有几张卡（见底部脚本），加一款自动跟着变。 -->
+            <p class="eyebrow"><b class="js-count">9</b> 款同一套功能，只是长得不同</p>
+            <h1>给 ani-rss 换一张<span>好看的脸</span></h1>
+            <p class="lede">每张卡里跑的都是真界面，不是截图 —— 点开就能翻页、开关、改设置；
+                数据是内置的假数据，随便折腾。卡片右上角的 <b>⤓ zip</b> 直接下那一款的最新压缩包。</p>
+            <div class="facts">
+                <span>同一套<b>响应式</b>代码，不是另做的手机版</span>
+                <span>装一款就够，<b>约 14 MB</b>（含在线播放器）</span>
+            </div>
+        </div>
+        <div class="hero-actions">
+            <a class="back" href="../">← 回主题预览</a>
+            <a class="ghlink" href="https://github.com/zzzwannasleep/ani-rss-themes" rel="noopener">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M8 0a8 8 0 0 0-2.53 15.59c.4.07.55-.17.55-.38l-.01-1.34c-2.23.48-2.7-1.07-2.7-1.07-.36-.93-.89-1.18-.89-1.18-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.23 1.88.87 2.34.67.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.03 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.28.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.19c0 .21.15.46.55.38A8 8 0 0 0 8 0Z"/>
+                </svg>
+                源码
+            </a>
+            <a class="btn" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest" rel="noopener">
+                ⤓ 下载最新版
+            </a>
         </div>
     </header>
 
     <!-- data-a / data-b 是骨架图的两个渐变色，取各款自己的主色 -->
     <div class="grid" id="grid">
-        <a class="card wide" href="acg/" style="--a:#4a7fe8;--b:#b06ab3">
+        <article class="card wide" style="--a:#4a7fe8;--b:#b06ab3">
+            <!-- 整张卡是「打开预览」，铺一层透明的链接盖住它；下载那颗压在这层上面。
+                 不能写成 <a> 套 <a>：那是无效 HTML，浏览器会把内层那个拆出去 -->
+            <a class="go" href="acg/" aria-label="打开 acg 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/acg/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-acg.zip"
+                   title="下载 acg 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="acg/">
                 <div class="ph"><b></b>
@@ -585,13 +778,16 @@
                     随机照片托不住深色文字。</p>
                 <div class="tags"><span>海报墙</span><span>每次刷新换壁纸</span><span>玻璃药丸</span></div>
             </div>
-        </a>
+        </article>
 
-        <a class="card" href="liquid-glass/" style="--a:#5e5ce6;--b:#50c8ff">
+        <article class="card" style="--a:#5e5ce6;--b:#50c8ff">
+            <a class="go" href="liquid-glass/" aria-label="打开 liquid-glass 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/liquid-glass/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-liquid-glass.zip"
+                   title="下载 liquid-glass 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="liquid-glass/">
                 <div class="ph"><b></b>
@@ -603,13 +799,16 @@
                 <p class="desc">导航是一枚悬浮的玻璃胶囊，内容是一张张横躺的大圆角卡，按下去会回弹。</p>
                 <div class="tags"><span>悬浮岛</span><span>按下回弹</span></div>
             </div>
-        </a>
+        </article>
 
-        <a class="card" href="vue/" style="--a:#42d392;--b:#35495e">
+        <article class="card" style="--a:#42d392;--b:#35495e">
+            <a class="go" href="vue/" aria-label="打开 vue 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/vue/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-vue.zip"
+                   title="下载 vue 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="vue/">
                 <div class="ph"><b></b>
@@ -621,13 +820,16 @@
                 <p class="desc">文档站的路子：左侧分组导航 + 居中正文，靠细线分栏不靠阴影。信息密度最舒服的一款。</p>
                 <div class="tags"><span>分组侧栏</span><span>细线分栏</span></div>
             </div>
-        </a>
+        </article>
 
-        <a class="card" href="github/" style="--a:#2d333b;--b:#0d1117">
+        <article class="card" style="--a:#2d333b;--b:#0d1117">
+            <a class="go" href="github/" aria-label="打开 github 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/github/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-github.zip"
+                   title="下载 github 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="github/">
                 <div class="ph"><b></b>
@@ -639,13 +841,16 @@
                 <p class="desc">Primer 的路子：深色顶栏 + 一排 tab，内容是一张带边框的清单。没有侧栏，打开就干活。</p>
                 <div class="tags"><span>无侧栏</span><span>顶栏固定深色</span></div>
             </div>
-        </a>
+        </article>
 
-        <a class="card" href="material/" style="--a:#6750a4;--b:#d0bcff">
+        <article class="card" style="--a:#6750a4;--b:#d0bcff">
+            <a class="go" href="material/" aria-label="打开 material 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/material/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-material.zip"
+                   title="下载 material 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="material/">
                 <div class="ph"><b></b>
@@ -657,13 +862,16 @@
                 <p class="desc">宽屏走导航栏杆、窄屏切底部导航，扩展 FAB 常驻右下。最接近安卓原生的一款。</p>
                 <div class="tags"><span>M3 响应式导航</span><span>FAB</span></div>
             </div>
-        </a>
+        </article>
 
-        <a class="card wide" href="win98/" style="--a:#008080;--b:#000080">
+        <article class="card wide" style="--a:#008080;--b:#000080">
+            <a class="go" href="win98/" aria-label="打开 win98 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/win98/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-win98.zip"
+                   title="下载 win98 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="win98/">
                 <div class="ph"><b></b>
@@ -676,13 +884,16 @@
                     订阅页默认是「详细信息」——一行一条、点表头排序。</p>
                 <div class="tags"><span>任务栏 + 开始菜单</span><span>详细信息视图</span></div>
             </div>
-        </a>
+        </article>
 
-        <a class="card" href="argon/" style="--a:#0084ff;--b:#4da3ff">
+        <article class="card" style="--a:#0084ff;--b:#4da3ff">
+            <a class="go" href="argon/" aria-label="打开 argon 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/argon/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-argon.zip"
+                   title="下载 argon 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="argon/">
                 <div class="ph"><b></b>
@@ -695,13 +906,16 @@
                     九款里位移最大、手感最软的一款。</p>
                 <div class="tags"><span>居中正文栏</span><span>悬停浮起</span></div>
             </div>
-        </a>
+        </article>
 
-        <a class="card" href="macintosh/" style="--a:#000000;--b:#8f8f8f">
+        <article class="card" style="--a:#000000;--b:#8f8f8f">
+            <a class="go" href="macintosh/" aria-label="打开 macintosh 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/macintosh/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-macintosh.zip"
+                   title="下载 macintosh 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="macintosh/">
                 <div class="ph"><b></b>
@@ -714,13 +928,16 @@
                     订阅页是 Finder 的图标视图，选中就整块反白。界面字是真的 12px 点阵。</p>
                 <div class="tags"><span>屏幕菜单栏</span><span>点阵字</span></div>
             </div>
-        </a>
+        </article>
 
-        <a class="card wide" href="synology/" style="--a:#0f6ecd;--b:#14a3a3">
+        <article class="card wide" style="--a:#0f6ecd;--b:#14a3a3">
+            <a class="go" href="synology/" aria-label="打开 synology 预览"></a>
             <div class="chrome">
                 <div class="dots"><i></i><i></i><i></i></div>
                 <div class="addr">webui/synology/</div>
-                <div class="open">打开 →</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-synology.zip"
+                   title="下载 synology 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
             </div>
             <div class="shot" data-src="synology/">
                 <div class="ph"><b></b>
@@ -733,11 +950,12 @@
                     应用装在一扇带左侧栏的窗里；总览是资源监控挂件，订阅页是套件中心那种左图右文的卡片。</p>
                 <div class="tags"><span>顶部任务栏</span><span>窗内左侧栏</span><span>资源监控挂件</span></div>
             </div>
-        </a>
+        </article>
     </div>
+</section>
 
     <h2>装到自己的 ani-rss 上</h2>
-    <p class="sub">脚本会问装哪一款、装到哪个目录，在线播放器一并装好。</p>
+    <p class="sub">脚本会问装哪一款、装到哪个目录，在线播放器一并装好，每款约 14 MB。</p>
 
     <div class="cmds">
         <div class="cmd">
@@ -753,15 +971,16 @@
     </div>
 
     <div class="note">
-        <span aria-hidden="true">⚠️</span>
-        <p style="margin:0"><strong>装完要重启 ani-rss，光刷新页面不生效。</strong>
-            程序只在启动时扫一次配置目录下的 <code>webui/</code>，而且 <code>index.html</code> 必须直接躺在这一层，
-            多套一层目录会被当成空文件夹、静默用回自带界面。想还原：清空该目录再重启。</p>
+        <span aria-hidden="true">💡</span>
+        <p style="margin:0"><code>index.html</code> 必须直接躺在配置目录的 <code>webui/</code> 这一层，
+            多套一层会被当成空文件夹、静默用回自带界面。放完<strong>刷新页面</strong>就生效
+            （ani-rss 3.2.15 以下静态资源带缓存，那些版本要重启一次）。
+            <strong>3.2.17 起还可以在网页里换</strong>：设置 → 关于 → 更换界面，传 zip 或一键还原自带界面。</p>
     </div>
 
     <footer>
         九款是同一套代码的不同外观，装一款就够，装第二款会覆盖第一款 ——
-        <a href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest" rel="noopener">下载压缩包</a> ·
+        <a href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest" rel="noopener">全部压缩包</a> ·
         <a href="https://github.com/zzzwannasleep/ani-rss-themes" rel="noopener">源码与说明</a> ·
         <a href="../">旧版主题（给自带界面换肤的 CSS）</a>
     </footer>
@@ -778,15 +997,23 @@
      * 放在最前面、独立于下面那个 IIFE：那一段在「省流量」模式下会提前 return，
      * 数字要是写在它里面，省流量的人看到的就永远是 HTML 里那个兜底值。
      */
-    (function () {
+    ;(function () {
         const n = document.querySelectorAll('.grid > .card').length
         if (n) document.querySelectorAll('.js-count').forEach(el => el.textContent = n)
     })()
 
     /* 缩略图里跑的是真界面。为了不让九个 Vue 应用同时开跑，做两件事：
        1) 滚到跟前才建 iframe；2) 一次只建一个，等它 load 完再放下一个。
-       窄屏和「省流量」模式下干脆不建，留骨架图 —— 手机上没人为了看缩略图愿意下 5 MB。 */
-    (function () {
+       窄屏和「省流量」模式下干脆不建，留骨架图 —— 手机上没人为了看缩略图愿意下 5 MB。
+
+       行首那个分号不是笔误，少了它整页脚本就死了：上一段以 `})()` 结尾，
+       这一行以 `(` 开头，中间的换行不会被自动补分号 —— 两段被粘成
+       `})()(function(){...})()`，也就是「把上一个 IIFE 的返回值（undefined）当函数调用」，
+       抛 TypeError，从这里往下一行都不执行。
+       表现极其阴：九张卡永远停在骨架图上（看着像「缩略图还没加载完」），
+       下面两颗「复制」按钮点了没反应，而控制台之外一点提示都没有。
+       preview-fit 里那条「iframe 有没有被建出来」就是拿来盯这个的。 */
+    ;(function () {
         const boxes = [...document.querySelectorAll('.shot')]
         // iframe 内部按这个宽度渲染，再整体缩到卡片宽度。窄屏上给它手机的宽度 ——
         // 硬塞 1440 再缩到 0.27 只剩一团糊，而这九款本来就是同一套响应式代码，
@@ -794,8 +1021,10 @@
         const narrow = matchMedia('(max-width: 720px)').matches
         // 至少给它一个手机的宽度，同时不小于卡片本身 —— 取 max 是为了永远只缩不放，
         // 放大出来的界面又糊又肿，比骨架图还难看
-        const wOf = box => narrow ? Math.max(430, box.clientWidth) : 1440
-        const H = narrow ? 820 : 900
+        const wOf = box => narrow ? Math.max(430, box.clientWidth) : 1280
+        // 桌面上从 1440×900 收到 1280×800：卡片变成三列之后本来就更窄，
+        // 再按 1440 渲染缩下来只剩 0.3 倍，界面里的字全糊成灰条
+        const H = narrow ? 820 : 800
 
         // 「省流量」模式下不建 iframe，留骨架图垫着。
         // 骨架图任何时候都垫在下面：iframe 起来之前、以及起不来的时候，卡片都不该是空的

@@ -18,7 +18,8 @@
     "test:mobile": "node shared/tools/mobile-audit.mjs",
     "test:dialogs": "node shared/tools/dialog-check.mjs",
     "test:about": "node shared/tools/about-check.mjs",
-    "test:layout": "node shared/tools/dialog-layout.mjs"
+    "test:layout": "node shared/tools/dialog-layout.mjs",
+    "test:preview": "node shared/tools/preview-fit.mjs"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
