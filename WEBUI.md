@@ -5,7 +5,7 @@
 上游在 `test` 分支（2026-08-19，commit `a79d482`）加了「备用 webui」：把文件放进 `{configDir}/webui/`，
 后端就优先从那里取静态资源。这九套就是给那个目录用的。
 
-**👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)** —— 九款都能点开试，数据是内置的假数据。
+**👉 [在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)** —— 十一款都能点开试，数据是内置的假数据。
 
 | id | 首页 | 订阅主视图 | 导航形态 | 动作语言 |
 | --- | --- | --- | --- | --- |
@@ -18,18 +18,25 @@
 | `argon` Argon | 博客首页：渐变横幅 + 一排数字药丸 + 文章流 | 一列大圆角宽卡，左缩略图右正文，鼠标一过整张浮起来 | 毛玻璃顶栏上一排胶囊，窄屏换汉堡抽屉；正文限宽居中 | 位移最大的一款：抬 6px、阴影铺开一倍，in-out 曲线 |
 | `macintosh` 经典 Macintosh | 「关于本机」：一个图标 + 四条斜纹计量杠 + Finder 列表 | Finder 图标视图：一格一张封面，名字压在名牌上，选中整块反白 | 屏幕顶上一条苹果菜单栏（不属于任何窗）+ 窗内一排纸片标签 | 一帧都没有，反馈只有「黑白对调」 |
 | `synology` 群晖 DSM | 资源监控挂件：健康条 + 环形表 + 数字方块 + 两块列表 | 套件中心卡片：左封面右信息，动作按钮折成 2×2 | 顶部深色任务栏 + 九宫格主菜单，窗内左侧栏；窗口按钮在右 | 后台的手感：150ms 淡入淡出，不抬起 |
+| `ab` AutoBangumi | 放送日历：一周七列，今天那列点主色 | 番剧墙：5:7 海报，名字在图外面；悬停整图蒙暗 + 一颗圆按钮 | 顶栏 / 侧栏 / 内容各是一张浮起的圆角板，窄屏侧栏变悬浮底栏 | 快而短：150ms ease-out，抬 2px，一点回弹都没有 |
+| `mp` MoviePilot | Materio 统计卡（左边一条主色竖线）+ 横向海报轨道 | 2:3 海报，悬停整张罩深灰紫渐变，类型和评分压在两个角上 | 260px 竖侧栏，选中项是右半边的药丸 + 紫渐变；顶栏滚动才糊毛玻璃 | 180ms + cubic-bezier(.2,.8,.2,1)，悬停抬 4px |
 
-**不是九套配色。** 首页、订阅页、卡片形态、导航、连动效曲线都不一样；
-但底下是同一份接口层、状态层、弹窗和设置页 —— 一处修好九款同时好。
+**不是十一套配色。** 首页、订阅页、卡片形态、导航、连动效曲线都不一样；
+但底下是同一份接口层、状态层、弹窗和设置页 —— 一处修好十一款同时好。
 
-实现上是**一套源码 + 九个预设**：`webui/src/presets/<id>/` 各出一个外壳（`Shell.vue`）、
+其中 `ab` / `mp` 是照着 [Auto_Bangumi](https://github.com/EstrellaXD/Auto_Bangumi) 和
+[MoviePilot](https://github.com/jxxghp/MoviePilot) 的前端源码复刻的：断点、圆角、阴影、
+栅格最小列宽、海报比例、动效时长这些数都是从它们的 `var.scss` / `_variables.scss` 里读出来的，
+不是照着截图描的。两个上游都是 MIT，这里复刻的是观感，代码一行没抄。
+
+实现上是**一套源码 + 十一个预设**：`webui/src/presets/<id>/` 各出一个外壳（`Shell.vue`）、
 一个总览页（`DashboardView.vue`）、一个订阅页（`SubsView.vue`）、一份控件默认值（`defaults.ts`）
 和一份动作签名（`preset.css`），构建时用 `VITE_PRESET` 选一款。
-复制九份源码那种「九款」，改一个 bug 要改九次。
+复制十一份源码那种「十一款」，改一个 bug 要改十一次。
 
 动效不是每款各写一遍：`src/styles/motion.css` 只定义**有哪些动作**（入场、悬停、按下、
 骨架屏），曲线和时长全走 CSS 变量，各款的 `preset.css` 改写变量。
-所以九款共用同一批类名，动起来却是九种手感。
+所以十一款共用同一批类名，动起来却是十一种手感。
 
 页面之间没有整页过渡：路由组件套在 `<keep-alive>` 里，切走再切回来不重新挂载 ——
 列表不用重新渲染、滚动位置还在、日志和下载器也不必重新拉一遍。`<transition>` 和
@@ -84,6 +91,8 @@ irm .../install.ps1 | iex
 | `ani-rss-webui-argon.zip` | ~14 MB | ~42 MB |
 | `ani-rss-webui-macintosh.zip` | ~15 MB | ~43 MB |
 | `ani-rss-webui-synology.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-ab.zip` | ~14 MB | ~42 MB |
+| `ani-rss-webui-mp.zip` | ~14 MB | ~42 MB |
 
 界面本体只有 1.6 MB（`macintosh` / `win98` 多 0.5 MB，那是点阵字体），其余全是播放器的 wasm。**每个包都自带播放器** ——
 在线播放本来就是 ani-rss 的功能，我们只是把它自带的播放器换成支持 ASS 特效字幕和 HDR 的那个；
@@ -146,7 +155,7 @@ irm .../install.ps1 | iex
 下载只能让浏览器自己去（`<a>` 导航不受同源策略管），下完在「更换界面」里传上去。
 
 备胎读的也是 `config/webui/webui.json`（自己这个源上的静态文件，不走接口），
-owner / repo / filename 都在里面，所以九款各查各的包，不会串。
+owner / repo / filename 都在里面，所以十一款各查各的包，不会串。
 
 关于页上有**两段**更新内容，各归各的：「ani-rss 更新内容」是上游那个程序的，
 「〈款名〉WebUI 更新内容」才是这套界面的。两段都常显，不再要求「有新版才显示」——
@@ -156,7 +165,7 @@ owner / repo / filename 都在里面，所以九款各查各的包，不会串�
 正文按 Markdown 渲染（标题、列表、代码块、表格、引用、链接都认）。
 渲染器是自己写的一小段（`webui/shared/markdown.ts`），不引 marked / markdown-it：
 正文是 GitHub Release 里别人写的内容、跨网来的，那两个库都得再配一个 DOMPurify
-才敢塞进 `v-html`，两个依赖 ~50KB 还要乘以九款。这段的做法反过来 ——
+才敢塞进 `v-html`，两个依赖 ~50KB 还要乘以十一款。这段的做法反过来 ——
 **先把整段转义成纯文本，再往里加自己生成的标签**，所以不存在「漏过滤了某个标签」，
 因为压根没有过滤这一步。协议白名单只放行 `http(s)` / `mailto` / 站内路径，
 `javascript:` 之类连 `href` 都不给。`shared/markdown.test.ts` 里有 15 条注入用例。
@@ -183,12 +192,12 @@ owner / repo / filename 都在里面，所以九款各查各的包，不会串�
 
 ### 装到手机主屏
 
-九款都是 PWA。手机浏览器打开后：
+十一款都是 PWA。手机浏览器打开后：
 
 - **Android / Chrome**：菜单 →「添加到主屏幕」或地址栏里的安装按钮
 - **iOS / Safari**：分享 →「添加到主屏幕」
 
-装上之后没有地址栏，状态栏颜色跟着当前皮肤走，九款各是各的。
+装上之后没有地址栏，状态栏颜色跟着当前皮肤走，十一款各是各的。
 Service Worker 只兜界面本身：`/api/` 一个都不缓存（订阅状态、下载进度是活数据，
 缓存一次就是骗人），带哈希的 `assets/` 走缓存优先，`index.html` 走网络优先、
 断网才退回缓存 —— 所以升级后打开就是新版，不用手动清缓存。
@@ -201,7 +210,7 @@ Service Worker 只兜界面本身：`/api/` 一个都不缓存（订阅状态、
 
 ```bash
 npm ci --prefix webui
-npm run build:all --prefix webui -- --only vue     # 不带 --only 就是九款全建
+npm run build:all --prefix webui -- --only vue     # 不带 --only 就是十一款全建
 node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 ```
 
@@ -226,13 +235,13 @@ GitHub 的 `run_number`，于是每推一次 main 就是一个更大的新版本
 cd webui
 VITE_PRESET=github VITE_API_TARGET=http://<你的 ani-rss> npm run dev
 npm run typecheck
-npm run build:all -- --demo    # 九款演示构建（假数据，Pages 预览用的就是它）
+npm run build:all -- --demo    # 十一款演示构建（假数据，Pages 预览用的就是它）
 npm test                       # 主题 / 接口地址 / 外部播放器的断言
 npm run test:mobile            # 手机宽度版式体检，要先有 --demo 产物
-npm run test:dialogs           # 添加订阅那条链路的行为体检，九款轮流跑，同样要先有 --demo 产物
+npm run test:dialogs           # 添加订阅那条链路的行为体检，十一款轮流跑，同样要先有 --demo 产物
 ```
 
-`test:mobile` 用无头 Chrome/Edge 跑九款 × 360/390/414 × 13 条路由，
+`test:mobile` 用无头 Chrome/Edge 跑十一款 × 360/390/414 × 13 条路由，
 只认可判定的事实：整页横向滚动、元素伸出视口、可点元素不足 36px、
 固定元素压住按钮、相邻两颗按钮之间不足 4px（贴成一条，分不出是两颗）、
 控件里的短文本放不下（占位文字被截、chip 里的字漫出框外）、
@@ -259,7 +268,7 @@ Mikan / AniBT / AnimeGarden 三家共用同一个番剧列表弹窗（切来源�
   这一步必须有「预览」（上游 Ani.vue 底下那颗就不分新建和编辑），
   且里面不该出现「删除种子」—— 那要拿订阅 id 去下载器里找任务，这条还没入库
 
-九款都跑：三条路走的是同一批共用组件，但入口按钮是各款自己画的 ——
+十一款都跑：三条路走的是同一批共用组件，但入口按钮是各款自己画的 ——
 同一颗「添加订阅」，群晖那款叫「新增」，麦金塔那款叫「新建订阅…」。
 只测一款，另外八款的入口什么时候断了都不知道。
 
@@ -380,7 +389,7 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 
 ## 主题
 
-9 款，在 **设置 → 基本设置 → 页面设置 → 主题** 里选。前 6 款从仓库原有的 CSS 主题迁过来，后 3 款是新写的：
+11 款，在 **设置 → 基本设置 → 页面设置 → 主题** 里选。前 6 款从仓库原有的 CSS 主题迁过来，后 5 款是新写的：
 
 | id | 名字 | 长什么样 |
 |---|---|---|
@@ -393,6 +402,8 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 | `argon` | Argon | 大圆角、软阴影、胶囊按钮，顶上一团很淡的主色晕染 |
 | `macintosh` | 经典 Macintosh | 只有黑白：条纹标题栏、1px 黑边、硬投影、斜纹进度条（只在浅色下成立） |
 | `synology` | 群晖 DSM | 干净的白面板、细灰边、DSM 蓝，桌面是蓝绿渐变壁纸 |
+| `ab` | Auto_Bangumi | Soft Ink 紫：填充式控件、聚焦才长描边，Tailwind 那套软阴影 |
+| `mp` | MoviePilot | Materio 紫：紫底紫面，12px 圆角卡，三层叠出来的软阴影 |
 
 原来那些 `.css` 主题文件一个没动，只是挪进了 `legacy/`，给 ani-rss 自带界面换肤照用。
 
@@ -416,26 +427,26 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 
 ```
 webui/
-├── shared/                九款共用，不含 UI 组件
+├── shared/                十一款共用，不含 UI 组件
 │   ├── http.ts            传输层：Result 拆包、令牌、子路径自适应
 │   ├── api.ts             70 个端点的具名封装
 │   ├── types.ts           从 Java 实体生成
 │   ├── format.ts          体积/时间/集数格式化
 │   ├── player.ts          webplayer 接入：地址拼装与部署探测
 │   ├── vite-mdi-svg.ts    构建期插件：扫源码，只把用到的图标打进产物（省 700KB）
-│   ├── themes/            主题系统 + 9 款主题 + 自检
+│   ├── themes/            主题系统 + 11 款主题 + 自检
 │   └── tools/             类型/接口生成器、产物组装、手机版式与弹窗体检
 ├── src/
 │   ├── fonts/             随产物发的三份字体（点阵 / Inter / Roboto），选型见那儿的 README
-│   ├── presets/<id>/      九款各自的外壳、总览页、订阅页、控件默认值、动作签名
+│   ├── presets/<id>/      十一款各自的外壳、总览页、订阅页、控件默认值、动作签名
 │   ├── styles/motion.css  动效底座：动作定义在这里，曲线由各款覆盖
-│   ├── components/        弹窗、设置项、卡片、骨架屏 —— 九款共用
-│   ├── views/             下载器/日志/设置/登录/播放 —— 九款共用
+│   ├── components/        弹窗、设置项、卡片、骨架屏 —— 十一款共用
+│   ├── views/             下载器/日志/设置/登录/播放 —— 十一款共用
 │   ├── stores/            订阅、下载、日志、配置、偏好
 │   ├── composables/       外壳逻辑、订阅页逻辑、主题管理
 │   └── demo/              演示模式：拦掉请求用假数据顶上（只进预览构建）
-├── preview-index.html     Pages 上的九款选择页
-└── tools/build-all.mjs    一口气构建九款
+├── preview-index.html     Pages 上的十一款选择页
+└── tools/build-all.mjs    一口气构建十一款
 
 legacy/                    旧的 CSS + JS 主题，给 ani-rss 自带界面换肤
 ├── themes/*.css           17 款
@@ -446,7 +457,7 @@ legacy/                    旧的 CSS + JS 主题，给 ani-rss 自带界面换�
 
 ## 预览站是怎么发布的
 
-`.github/workflows/pages.yml` 把 `legacy/` 铺回站点根、九款演示构建放进 `/webui/<id>/`。
+`.github/workflows/pages.yml` 把 `legacy/` 铺回站点根、十一款演示构建放进 `/webui/<id>/`。
 
 之所以改成用 Actions 发布而不是「从分支根目录发布」：仓库拆成两半之后，
 线上必须保留 `/themes/xxx.css` 这个地址 —— 用户 `@import` 的就是它，换地址等于把已经装好的人的主题弄没。
@@ -469,8 +480,9 @@ CI 里也有一条检查：正式包里出现演示数据就直接失败。
 
 ## 许可
 
-MIT。与 ani-rss 官方无隶属关系；九款界面只是参照了各自的设计语言，
-与 Vue、GitHub、Google、Apple、Microsoft、Synology 以及 Argon 主题作者均无关联。
+MIT。与 ani-rss 官方无隶属关系；十一款界面只是参照了各自的设计语言，
+与 Vue、GitHub、Google、Apple、Microsoft、Synology、Auto_Bangumi、MoviePilot
+以及 Argon 主题作者均无关联。两个复刻款照搬的是观感，不含上游任何代码；两个上游项目都是 MIT。
 
 随产物发的三份字体各自带原始许可（`webui/src/fonts/OFL-*.txt`），都是 SIL Open Font License 1.1：
 [方舟像素字体](https://github.com/TakWolf/ark-pixel-font)（TakWolf）、

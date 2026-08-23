@@ -4,10 +4,10 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>ani-rss WebUI 预览</title>
-    <meta name="description" content="ani-rss 替代 WebUI 的在线预览：九款界面各点开就能试，数据是内置的假数据"/>
+    <meta name="description" content="ani-rss 替代 WebUI 的在线预览：十一款界面各点开就能试，数据是内置的假数据"/>
     <style>
         /* ─────────────────────────────────────────────────────────────
-           这个页面只有一个任务：让人一眼看见九款长什么样。
+           这个页面只有一个任务：让人一眼看见十一款长什么样。
            所以卡片里放的不是截图、也不是手画的示意图，是把真界面本身
            用 iframe 装进来按比例缩小 —— 界面改了它自动跟着变，不会过期，
            也不用往仓库里塞几张迟早对不上的 png。
@@ -86,7 +86,7 @@
 
         /* ── 顶部 ─────────────────────────────────────────────── */
         /* 「回主题预览」「源码」原来单独占一行，两颗小药丸吃掉整整 51px ——
-           而九张卡分到多少高度，就是从这种地方省出来的。并进大标题那一行的动作区。 */
+           而每张卡分到多少高度，就是从这种地方省出来的。并进大标题那一行的动作区。 */
         .back, .ghlink {
             display: inline-flex;
             align-items: center;
@@ -115,7 +115,7 @@
 
         /* ── 大标题 ───────────────────────────────────────────── */
         /* 大标题和动作按钮并排。原来是竖着堆的：眉标、标题、一段话、三块 facts，
-           加起来 300px 打底，九张卡还没开始就已经翻了半屏。 */
+           加起来 300px 打底，卡片还没开始就已经翻了半屏。 */
         .hero {
             display: flex;
             align-items: flex-end;
@@ -137,7 +137,7 @@
         }
 
         /* 主按钮：一键去 Releases 拿包。每张卡上那颗 ⤓ zip 直接下对应那一款，
-           这颗是「九款随便挑」的入口，两个都留着。 */
+           这颗是「十一款随便挑」的入口，两个都留着。 */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -225,10 +225,12 @@
             font-weight: 650;
         }
 
-        /* ── 九张卡 ───────────────────────────────────────────── */
-        /* 三档：手机一列、平板两列、宽屏三列（3×3 一次排完，不用滚）。
+        /* ── 十一张卡 ─────────────────────────────────────────── */
+        /* 三档：手机一列、平板两列、宽屏四列（4×3 一次排完，不用滚）。
+           从三列改四列是加第十、十一款时改的：十一张卡在三列里要排四行，
+           每行分到的高度少四分之一，缩略图会矮到看不出是哪一款。
            两列时个别几款横跨整行 —— 壁纸海报墙、整扇 Win98 窗、DSM 的桌面缩到半列
-           只剩一团色块；三列时不给整行，占满一行反而把 3×3 撑成 4 行。 */
+           只剩一团色块；多列时不给整行，占满一行反而多撑出一行来。 */
         .grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -237,7 +239,7 @@
 
         @media (min-width: 1100px) {
             .grid {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-columns: repeat(4, minmax(0, 1fr));
             }
         }
 
@@ -268,7 +270,7 @@
             transition: transform .22s cubic-bezier(.2, .7, .3, 1), border-color .22s, box-shadow .22s;
         }
 
-        /* 只有两列那一档才让它们横跨整行。三列时给整行等于把 3×3 撑成 6 行 ——
+        /* 只有两列那一档才让它们横跨整行。四列时给整行等于把 4×3 撑成 6 行 ——
            这条覆盖必须写在这里而不是上面的 .grid 段里：同权重的规则后来者赢，
            写在前面的会被这条压回去，表现就是「断点看着改了，列数没变」。 */
         @media (min-width: 721px) and (max-width: 1099px) {
@@ -467,7 +469,7 @@
             color: var(--dim);
         }
 
-        /* 描述封成两行。九张卡的描述有长有短，不封的话每张卡高度都不一样，
+        /* 描述封成两行。各卡的描述有长有短，不封的话每张卡高度都不一样，
            三列排起来底边参差不齐，而且最长那张直接把整行撑高。 */
         .desc {
             display: -webkit-box;
@@ -489,7 +491,7 @@
         }
 
         /*
-         * 宽屏上按「谁最不重要谁先走」的顺序让位。九张卡排三行，每张卡省 1px 就是省 3px，
+         * 宽屏上按「谁最不重要谁先走」的顺序让位。卡片排三行，每张卡省 1px 就是省 3px，
          * 而缩略图分到多少，正好就是这些文字省下来的。次序是量出来的不是拍的：
          *
          *   ≥1100px       标签和 hero 里那几块 facts 直接不要 —— 标签说的事描述里都有
@@ -663,7 +665,7 @@
         }
 
         /*
-         * 「九张卡一屏看完」这件事，不靠一层层压像素去凑。
+         * 「所有卡一屏看完」这件事，不靠一层层压像素去凑。
          *
          * 凑法是这样的：量出标题多高、卡片多高，把留白一处处调小，直到刚好放下 ——
          * 换一号字体、多一行描述、加一款界面，全部作废，而且是静悄悄地作废。
@@ -671,7 +673,7 @@
          * 改成让第一屏自己是一个定高的 flex 列：顶栏和标题占多少算多少，
          * 网格 flex:1 吃掉剩下的全部高度，三行均分，每张卡里缩略图再吃掉
          * 卡片减去标题栏和文字之后剩下的。于是「放不放得下」不再是算术题 ——
-         * 内容多了就是缩略图矮一点，永远不会把第九张卡挤到屏幕外面去。
+         * 内容多了就是缩略图矮一点，永远不会把最后一张卡挤到屏幕外面去。
          *
          * 放在样式表最末尾，别往上挪：媒体查询**不加权重**，
          * 写在 .shot / .card 那些基础规则前面的话，同权重后来者赢，
@@ -682,7 +684,7 @@
                 display: flex;
                 flex-direction: column;
                 /* 减两样：顶上那道内边距（底下那道在安装说明之后，不占第一屏），
-                   再留 26px 喘气 —— 不留的话第九张卡的底边正好压在屏幕最下沿，
+                   再留 26px 喘气 —— 不留的话最后一张卡的底边正好压在屏幕最下沿，
                    看着像被裁掉一截，也不给人「下面还有东西」的暗示 */
                 min-height: calc(100dvh - clamp(12px, 2.2vh, 26px) - 26px);
             }
@@ -722,7 +724,7 @@
 </head>
 <body>
 <div class="wrap">
-<!-- 第一屏：顶栏 + 大标题 + 九张卡。包这一层是为了让网格「吃掉剩下的高度」而不是
+<!-- 第一屏：顶栏 + 大标题 + 十一张卡。包这一层是为了让网格「吃掉剩下的高度」而不是
      反过来按内容把页面顶高 —— 详见 .screen 那段 CSS。安装说明在这一层外面，
      本来就该往下滚一点才看见。 -->
 <section class="screen">
@@ -903,7 +905,7 @@
             <div class="meta">
                 <div class="name">Argon <em>argon</em></div>
                 <p class="desc">博客的排法：毛玻璃顶栏 + 居中正文栏 + 右侧小挂件，每条订阅是一张会浮起来的大圆角卡。
-                    九款里位移最大、手感最软的一款。</p>
+                    十一款里位移最大、手感最软的一款。</p>
                 <div class="tags"><span>居中正文栏</span><span>悬停浮起</span></div>
             </div>
         </article>
@@ -951,6 +953,50 @@
                 <div class="tags"><span>顶部任务栏</span><span>窗内左侧栏</span><span>资源监控挂件</span></div>
             </div>
         </article>
+
+        <article class="card" style="--a:#6c4ab6;--b:#8b6cc7">
+            <a class="go" href="ab/" aria-label="打开 ab 预览"></a>
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/ab/</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-ab.zip"
+                   title="下载 ab 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
+            </div>
+            <div class="shot" data-src="ab/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">AutoBangumi <em>ab</em></div>
+                <p class="desc">照 Auto_Bangumi 复刻：顶栏、侧栏、内容各是一张浮起的圆角板，缝里透出底色；
+                    番剧卡是 5:7 的海报、名字在图外面，落地页是它那张一周七列的放送日历。</p>
+                <div class="tags"><span>三块浮板</span><span>放送日历</span><span>聚焦才出描边</span></div>
+            </div>
+        </article>
+
+        <article class="card" style="--a:#8d51f9;--b:#28243d">
+            <a class="go" href="mp/" aria-label="打开 mp 预览"></a>
+            <div class="chrome">
+                <div class="dots"><i></i><i></i><i></i></div>
+                <div class="addr">webui/mp/</div>
+                <a class="dl" href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest/download/ani-rss-webui-mp.zip"
+                   title="下载 mp 的压缩包（Releases 里的最新版，约 14 MB）">⤓ zip</a>
+                <span class="open">打开 →</span>
+            </div>
+            <div class="shot" data-src="mp/">
+                <div class="ph"><b></b>
+                    <div><i></i><i></i><i></i></div>
+                </div>
+            </div>
+            <div class="meta">
+                <div class="name">MoviePilot <em>mp</em></div>
+                <p class="desc">照 MoviePilot 复刻：260px 侧栏，选中项是右半边的药丸加一道紫色渐变；
+                    海报 2:3、悬停整张罩渐变，内容封在 1440px 里。</p>
+                <div class="tags"><span>半药丸导航</span><span>滚动才糊毛玻璃</span><span>紫</span></div>
+            </div>
+        </article>
     </div>
 </section>
 
@@ -979,7 +1025,7 @@
     </div>
 
     <footer>
-        九款是同一套代码的不同外观，装一款就够，装第二款会覆盖第一款 ——
+        十一款是同一套代码的不同外观，装一款就够，装第二款会覆盖第一款 ——
         <a href="https://github.com/zzzwannasleep/ani-rss-themes/releases/latest" rel="noopener">全部压缩包</a> ·
         <a href="https://github.com/zzzwannasleep/ani-rss-themes" rel="noopener">源码与说明</a> ·
         <a href="../">旧版主题（给自带界面换肤的 CSS）</a>
@@ -1002,7 +1048,7 @@
         if (n) document.querySelectorAll('.js-count').forEach(el => el.textContent = n)
     })()
 
-    /* 缩略图里跑的是真界面。为了不让九个 Vue 应用同时开跑，做两件事：
+    /* 缩略图里跑的是真界面。为了不让十一个 Vue 应用同时开跑，做两件事：
        1) 滚到跟前才建 iframe；2) 一次只建一个，等它 load 完再放下一个。
        窄屏和「省流量」模式下干脆不建，留骨架图 —— 手机上没人为了看缩略图愿意下 5 MB。
 
@@ -1010,13 +1056,13 @@
        这一行以 `(` 开头，中间的换行不会被自动补分号 —— 两段被粘成
        `})()(function(){...})()`，也就是「把上一个 IIFE 的返回值（undefined）当函数调用」，
        抛 TypeError，从这里往下一行都不执行。
-       表现极其阴：九张卡永远停在骨架图上（看着像「缩略图还没加载完」），
+       表现极其阴：所有卡永远停在骨架图上（看着像「缩略图还没加载完」），
        下面两颗「复制」按钮点了没反应，而控制台之外一点提示都没有。
        preview-fit 里那条「iframe 有没有被建出来」就是拿来盯这个的。 */
     ;(function () {
         const boxes = [...document.querySelectorAll('.shot')]
         // iframe 内部按这个宽度渲染，再整体缩到卡片宽度。窄屏上给它手机的宽度 ——
-        // 硬塞 1440 再缩到 0.27 只剩一团糊，而这九款本来就是同一套响应式代码，
+        // 硬塞 1440 再缩到 0.27 只剩一团糊，而这十一款本来就是同一套响应式代码，
         // 手机上正好让它把自己的手机版布局摆出来。
         const narrow = matchMedia('(max-width: 720px)').matches
         // 至少给它一个手机的宽度，同时不小于卡片本身 —— 取 max 是为了永远只缩不放，

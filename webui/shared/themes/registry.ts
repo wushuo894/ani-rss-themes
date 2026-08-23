@@ -1,7 +1,7 @@
 import type {ThemeDef} from './types'
 
 /**
- * 9 款主题。
+ * 11 款主题。
  *
  * 前 6 款由仓库里的 Element Plus 主题迁移而来：带过来的是设计决策本身
  * （字体栈、主色、圆角尺度、背景与装饰），不是原来的选择器 —— 类名体系已经换成 Vuetify。
@@ -19,7 +19,7 @@ import type {ThemeDef} from './types'
  * （util/colorUtils.js 的 getForeground）。浅色模式下这套没问题：主色够深，一律白字。
  * 深色模式下就不对了 —— 深色主题的 primary / success / warning 本身就是亮色
  * （#42d392 这种），推出来是**纯黑**。纯黑压在饱和的蓝绿红上看着是把字凿进去的，
- * 九款一起这么干，整个界面都透着一股廉价。
+ * 十一款一起这么干，整个界面都透着一股廉价。
  *
  * M3 不这么配：它的深色 on-primary 是 #381e72 —— 同一个色相压到 tone 20 的深紫，不是黑。
  * 所以下面凡是 Vuetify 会推出纯黑的地方，都显式钉一个「同色相的深色」。
@@ -858,6 +858,107 @@ body::before {
 .v-field--focused { box-shadow: 0 0 0 1px rgb(var(--v-theme-primary)); }
 
 ::selection { background: rgba(15,110,205,.28); }
+`,
+    },
+
+    {
+        id: 'ab',
+        name: 'Auto_Bangumi',
+        desc: 'Soft Ink 紫：填充式控件、聚焦才长描边，Tailwind 那套软阴影',
+        base: 'auto',
+        light: {
+            background: '#fafafa', surface: '#ffffff', 'surface-variant': '#f1f4f8',
+            primary: '#6c4ab6', secondary: '#64748b', success: '#22c55e',
+            warning: '#f59e0b', error: '#ef4444', info: '#64748b',
+        },
+        dark: {
+            background: '#0f172a', surface: '#1e293b', 'surface-variant': '#26334a',
+            primary: '#8b6cc7', secondary: '#94a3b8', success: '#4ade80',
+            warning: '#fbbf24', error: '#f87171', info: '#94a3b8',
+            /* 这三个在深色下本身就亮，字要暗但不用纯黑 —— 见本文件开头「on-*」那段 */
+            'on-success': '#0a2e17', 'on-warning': '#3a2606', 'on-error': '#3f0d0d',
+        },
+        vars: {
+            /* AB 自己 public/fonts 下放的就是 Inter 的拉丁子集，中文交给系统字 */
+            font: `Inter, -apple-system, ${CN}, system-ui, sans-serif`,
+            fontMono: MONO,
+            /* 三档圆角：控件 4、卡片 8、外壳容器 12（外壳那档由预设自己用） */
+            radius: '8px', radiusPill: '4px', radiusInput: '4px',
+            shadow: '0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1)',
+        },
+        css: `
+/* 卡片是「描边 + 一层极淡阴影」，不是靠投影浮起来的 —— shadow-sm 那一档 */
+.v-card {
+    border: 1px solid rgba(128,128,128,.2);
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+/* 选中项：主色的字压在主色的浅色底上，没有指示条 */
+.v-list-item--active {
+    color: rgb(var(--v-theme-primary));
+    background: rgba(var(--v-theme-primary), .14);
+    border-radius: 8px;
+}
+
+/* Soft Ink 的招牌：平时一条边都没有，聚焦才长出主色描边 + 2px 光环 */
+.v-field--focused { box-shadow: inset 0 0 0 1px rgb(var(--v-theme-primary)), 0 0 0 2px rgba(var(--v-theme-primary),.2); }
+
+.v-btn { text-transform: none; letter-spacing: 0; font-weight: 500; }
+
+::selection { background: rgba(108,74,182,.26); }
+`,
+    },
+
+    {
+        id: 'mp',
+        name: 'MoviePilot',
+        desc: 'Materio 紫：紫底紫面，12px 圆角卡，三层叠出来的软阴影',
+        base: 'auto',
+        light: {
+            background: '#f4f5fa', surface: '#ffffff', 'surface-variant': '#f0f2f8',
+            primary: '#8d51f9', secondary: '#8a8d93', success: '#56ca00',
+            warning: '#ffb400', error: '#ff4c51', info: '#16b1ff',
+            'on-background': '#3a3541', 'on-surface': '#3a3541',
+        },
+        dark: {
+            /* 取它的 purple 皮肤（那才是 defaultTheme），不是那个近黑的 dark */
+            background: '#28243d', surface: '#312d4b', 'surface-variant': '#3d3759',
+            primary: '#8d51f9', secondary: '#8a8d93', success: '#56ca00',
+            warning: '#ffb400', error: '#ff4c51', info: '#16b1ff',
+            'on-background': '#e7e3fc', 'on-surface': '#e7e3fc',
+            /*
+             * MP 四套皮肤全都写死 on-primary 是白色。#8d51f9 上白字 4.5:1、黑字 4.7:1，
+             * Vuetify 会挑黑的 —— 那就不是 MP 了，这一处按原版钉住。
+             */
+            'on-primary': '#ffffff', 'on-success': '#ffffff', 'on-warning': '#ffffff',
+        },
+        vars: {
+            font: `Inter, ${CN}, -apple-system, "Segoe UI", Roboto, sans-serif`,
+            fontMono: MONO,
+            /* $border-radius-root 是 6px，所以 lg（卡片和输入框）= 12、默认（按钮）= 6 */
+            radius: '12px', radiusPill: '6px', radiusInput: '12px',
+            shadow: '0 4px 14px -4px rgba(20,18,33,.16), 0 4px 8px -4px rgba(20,18,33,.12)',
+        },
+        css: `
+/* Materio 的边是「几乎看不见」那一档：app-surface-border-opacity 就是 .06 */
+.v-card { border: 1px solid rgba(var(--v-theme-on-surface), .06); }
+
+/* 选中项是紫色渐变（不是纯色填充）+ 一层 elevation 3，这是 MP 最好认的一处 */
+.v-list-item--active {
+    background: linear-gradient(270deg, rgb(var(--v-theme-primary)) 0%, #fff 300%);
+    color: rgb(var(--v-theme-on-primary));
+    border-radius: 12px;
+    box-shadow: 0 4px 14px -4px rgba(20,18,33,.16), 0 4px 8px -4px rgba(20,18,33,.12);
+}
+
+.v-list-item--active .v-list-item__overlay { opacity: 0; }
+
+/* 输入框聚焦垫一层 8% 主色底，边框也换成主色 */
+.v-field--focused { background-color: rgba(var(--v-theme-primary), .08); }
+
+.v-btn { text-transform: none; letter-spacing: 0; font-weight: 500; }
+
+::selection { background: rgba(141,81,249,.28); }
 `,
     },
 ]

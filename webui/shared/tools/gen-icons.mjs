@@ -12,7 +12,7 @@ import {resolve, join} from 'node:path'
 const OUT = resolve(import.meta.dirname, '../../public')
 mkdirSync(OUT, {recursive: true})
 
-/** 底色取 vue 那款的 primary —— 九款里最中性的一个绿 */
+/** 底色取 vue 那款的 primary —— 十一款里最中性的一个绿 */
 const BG = [0x2b, 0x73, 0x52]
 const FG = [0xff, 0xff, 0xff]
 

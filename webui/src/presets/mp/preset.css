@@ -1,0 +1,49 @@
+/*
+ * MoviePilot 的动作语言：短、带一点点缩放，没有回弹。
+ *
+ * 原版 common.scss 里页面切换是 180ms + cubic-bezier(.2,.8,.2,1)，
+ * 卡片悬停是 0.3s ease 抬 0.25rem（4px）。曲线末端不过冲 —— Materio 的层级
+ * 靠三层阴影（umbra / penumbra / ambient）表达，弹一下反而会把那层质感抖散。
+ */
+:root {
+    --m-dur: 180ms;
+    --m-dur-slow: 300ms;
+    --m-ease: cubic-bezier(.2, .8, .2, 1);
+    --m-ease-out: cubic-bezier(.2, .8, .2, 1);
+    --m-rise: 8px;
+    --m-scale: .992;
+    --m-stagger: 20ms;
+    /* 原版 app-hover-lift-card：translate3d(0, -0.25rem, 0) */
+    --m-lift: -4px;
+    --m-lift-shadow: 0 4px 14px -4px rgba(20, 18, 33, .22), 0 4px 8px -4px rgba(20, 18, 33, .14);
+    --m-press: .98;
+
+    /* Materio 的 elevation 3 —— 侧栏选中项和悬停卡片都用它 */
+    --mp-elev-3: 0 4px 14px -4px rgba(20, 18, 33, .16), 0 4px 8px -4px rgba(20, 18, 33, .12),
+    0 4px 8px -4px rgba(20, 18, 33, .06);
+    /* 内容区封顶宽度：$layout-boxed-content-width = 90rem */
+    --mp-content-max: 1440px;
+}
+
+/*
+ * Inter。MP 的字体栈第一位就是它（_variables.scss 的 $font-family-custom），
+ * 中文交给后面的思源黑体 —— 字体文件是仓库里已有的拉丁子集，不额外再塞一个。
+ */
+@font-face {
+    font-family: 'Inter';
+    src: url('../../fonts/inter-latin-wght.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* 标题一律 500，不是 Vuetify 默认的 400/700 混着来 —— Materio 六级标题全是 medium */
+.v-card-title,
+.text-h4, .text-h5, .text-h6 {
+    font-weight: 500;
+}
+
+/* 输入框聚焦时垫一层 8% 的主色底，原版 app-responsive-input 的做法 */
+.v-field.v-field--variant-outlined.v-field--focused {
+    background-color: rgba(var(--v-theme-primary), .08);
+}

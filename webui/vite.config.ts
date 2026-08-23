@@ -7,13 +7,13 @@ import {mdiUsedIcons} from './shared/vite-mdi-svg'
 import {PRESET_IDS} from './src/presets/ids'
 
 /**
- * 一套源码，构建出九款界面。
+ * 一套源码，构建出十一款界面。
  *
  *   VITE_PRESET=vue npm run build     → dist/vue/
  *
- * 九款的差别不只是配色：外壳（导航形态）、订阅页的呈现方式、控件密度各不相同，
+ * 十一款的差别不只是配色：外壳（导航形态）、订阅页的呈现方式、控件密度各不相同，
  * 由 src/presets/<id>/ 提供，通过 @preset 别名接进来。共用的状态层、接口层、
- * 弹窗、设置页只有一份 —— 复制九遍源码那种「九款」，改一个 bug 要改九次。
+ * 弹窗、设置页只有一份 —— 复制十一遍源码那种「十一款」，改一个 bug 要改十一次。
  */
 const preset = process.env.VITE_PRESET || 'vue'
 if (!PRESET_IDS.includes(preset)) {

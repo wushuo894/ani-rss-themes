@@ -5,14 +5,14 @@
 | 目录 | 是什么 | 换掉的是 |
 | --- | --- | --- |
 | `legacy/` | 17 款自定义 CSS 主题（+ 3 个 JS 附加件） | 自带界面的**皮** —— 字体、按钮、背景 |
-| `webui/` | 9 款完整的替代 WebUI（Vue 3 + Vuetify 3） | 自带界面**本身** —— 换页面结构、换交互 |
+| `webui/` | 11 款完整的替代 WebUI（Vue 3 + Vuetify 3） | 自带界面**本身** —— 换页面结构、换交互 |
 
 两条路互不相干，各用各的。
 
 **👉 [CSS 主题在线预览](https://zzzwannasleep.github.io/ani-rss-themes/)** ·
-**[WebUI 在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)**（九款都能点开试）
+**[WebUI 在线预览](https://zzzwannasleep.github.io/ani-rss-themes/webui/)**（十一款都能点开试）
 
-## 九款替代 WebUI
+## 十一款替代 WebUI
 
 上游 `test` 分支加了「备用 webui」——把文件放进 `{configDir}/webui/` 就能整个替换掉自带界面。
 
@@ -27,9 +27,11 @@
 | `argon` | Argon | 博客的排法：毛玻璃顶栏 + 居中正文栏 + 右侧小挂件，每条订阅是一张会浮起来的大圆角卡 |
 | `macintosh` | 经典 Macintosh | 只有黑白：屏幕顶上的苹果菜单栏 + 条纹标题栏方窗，订阅页是 Finder 图标视图，界面字是 12px 点阵 |
 | `synology` | 群晖 DSM | DSM 7 的桌面：顶部任务栏 + 九宫格主菜单，应用在一扇带左侧栏的窗里，总览是资源监控挂件 |
+| `ab` | AutoBangumi | 照 [Auto_Bangumi](https://github.com/EstrellaXD/Auto_Bangumi) 复刻：顶栏、侧栏、内容各是一张浮起的圆角板，番剧卡 5:7、名字在图外面，落地页是一周七列的放送日历 |
+| `mp` | MoviePilot | 照 [MoviePilot](https://github.com/jxxghp/MoviePilot) 复刻：260px 侧栏，选中项是右半边的药丸加一道紫色渐变，海报 2:3、悬停整张罩渐变，内容封在 1440px 里 |
 
-**不是九套配色，是九种界面。** 导航形态、订阅页的呈现方式、控件密度都不一样 ——
-但底下是同一份状态层、接口层和弹窗，一处修好九款同时好。
+**不是十一套配色，是十一种界面。** 导航形态、订阅页的呈现方式、控件密度都不一样 ——
+但底下是同一份状态层、接口层和弹窗，一处修好十一款同时好。
 
 一套响应式代码同时适配手机和 PC（不是另做的手机版）。后端 66 个接口全部接上，
 上游 64 个 `.vue` 的功能面对齐。在线播放接的是
@@ -262,7 +264,7 @@ import("https://raw.githack.com/zzzwannasleep/ani-rss-themes/main/legacy/js/gens
 
 - 本仓库是**第三方个人项目**，与 ani-rss 官方、Element Plus、米哈游、Bangumi 及各壁纸接口的提供方**均无隶属或背书关系**。ani-rss 是 [wushuo894](https://github.com/wushuo894/ani-rss) 的作品，本仓库只提供外观样式。
 - 主题**只改外观**，不修改 ani-rss 程序、不读写你的订阅数据、不上传任何信息。出问题清空自定义 CSS/JS 框并刷新即可完全还原。
-- 壁纸主题会向**第三方公共接口**发起图片请求（地址见上），这些接口的可用性、内容与隐私政策**不由本仓库控制**。介意就用纯 CSS 那 9 款。
+- 壁纸主题会向**第三方公共接口**发起图片请求（地址见上），这些接口的可用性、内容与隐私政策**不由本仓库控制**。介意就用纯 CSS 那 9 款主题。
 - 「原神启动」是**非商业同人移植**，《原神》相关名称、商标、美术资产的权利归米哈游所有；本仓库不转存任何官方文件，仅热链引用。权利方如认为不妥，提 issue 即撤。
 - 本仓库按**现状（AS IS）**提供，不作任何明示或默示担保。ani-rss 版本更新可能导致样式失效。使用风险自负。
 

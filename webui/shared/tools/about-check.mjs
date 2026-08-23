@@ -2,7 +2,7 @@
  * 关于页那两段「更新内容」的体检。
  *
  *   npm run build:all -- --demo                        # 先出演示产物，测的是真产物
- *   npm run test:about                                 # 九款轮流跑
+ *   npm run test:about                                 # 十一款轮流跑
  *   node webui/shared/tools/about-check.mjs synology   # 只跑一款
  *
  * 为什么单独有这么一条：这一页上有两段更新说明，一段是 ani-rss 那个程序的，

@@ -24,7 +24,7 @@ async function stickToBottom() {
  * 切回来再搬回文档 —— 浏览器在这一搬一搬之间把滚动容器的 scrollTop 抹成 0。
  * 组件本身没有重新挂载，reload() 拉回来的又常常是同样条数的日志，
  * 于是下面那个 watch 一次都不响，人回到这一页看到的就是**第一行**。
- * 量出来是「距底 8385，停在 0」，九款都一样。
+ * 量出来是「距底 8385，停在 0」，十一款都一样。
  *
  * follow 要自己存一份带过去：那一下 scrollTop 归零是会派 scroll 事件的，
  * onScroll 收到就把 follow 判成 false（离底 8385，远大于 40）——
@@ -187,7 +187,7 @@ function levelColor(l?: string) {
      *
      * base.css 里本来就有一条 `html[data-ani-theme] .log-box { font-family: var(--ani-font-mono) }`，
      * 但这条是 scoped 的（带 data-v 属性，权重 0,2,0），压过那边的 0,1,1 ——
-     * 结果是九款皮肤给的 fontMono 一个都没生效，日志框永远是浏览器默认的等宽字。
+     * 结果是十一款皮肤给的 fontMono 一个都没生效，日志框永远是浏览器默认的等宽字。
      * 直接在这里读变量最省事，缺省值还是原来那串。
      */
     font-family: var(--ani-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);

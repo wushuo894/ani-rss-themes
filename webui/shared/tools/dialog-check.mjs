@@ -2,7 +2,7 @@
  * 「添加订阅」这条链路的行为体检。
  *
  *   npm run build:all -- --demo     # 先出演示产物，测的是真产物不是源码
- *   npm run test:dialogs            # 九款轮流跑
+ *   npm run test:dialogs            # 十一款轮流跑
  *   node webui/shared/tools/dialog-check.mjs synology   # 只跑一款
  *
  * 为什么单独有这么一个东西：这条链路的毛病不长在样式上，长在**状态跟着人跑**上 ——
@@ -27,7 +27,7 @@
  *
  * 不看像素、不比截图，只把 window.fetch 包一层记流水，最后核对 URL 和请求体。
  *
- * 九款都跑而不是只跑一款：这三条走的是同一批共用组件，但入口按钮是各款自己画的 ——
+ * 十一款都跑而不是只跑一款：这三条走的是同一批共用组件，但入口按钮是各款自己画的 ——
  * 同一颗「添加订阅」，群晖那款叫「新增」，麦金塔那款叫「新建订阅…」。
  * 只测一款的话，另外八款的入口什么时候断了都不知道。
  *
@@ -176,7 +176,7 @@ const KIT = String.raw`(() => {
     e.click()
     return true
   }
-  /* 同一颗按钮九款起了三个名字（添加订阅 / 新建订阅… / 新增），挨个试 */
+  /* 同一颗按钮十一款起了三个名字（添加订阅 / 新建订阅… / 新增），挨个试 */
   window.__clickOne = (sel, txts) => {
     for (const t of txts) {
       const e = window.__vis(sel).filter(x => x.textContent.includes(t))[0]
@@ -267,7 +267,7 @@ const SOURCE_PROBES = [
 
 const open = async () => {
     /* 先去 about:blank 再回来：只有片段不同的地址是同文档跳转，不会重新加载 ——
-       换款是靠换静态目录的，文档不重载就等于把同一款量了九遍 */
+       换款是靠换静态目录的，文档不重载就等于把同一款量了十一遍 */
     await send('Page.navigate', {url: 'about:blank'})
     await sleep(200)
     await send('Page.navigate', {url: `http://127.0.0.1:${PORT}/index.html#/subscriptions`})
@@ -278,7 +278,7 @@ const open = async () => {
 /**
  * 跑一款。返回这一款的问题清单。
  *
- * 请求流水攒着不直接打：九款全绿时那是三百行噪音；哪一款红了再把它那份摊开，
+ * 请求流水攒着不直接打：十一款全绿时那是三百行噪音；哪一款红了再把它那份摊开，
  * 一眼就能看出发出去的到底是什么。
  */
 async function checkPreset(id) {
@@ -379,7 +379,7 @@ async function checkPreset(id) {
          *
          * 走的是「挑一个组 → 解析」这条路，落地的编辑框就是 AniEditDialog 本体
          * （新建和编辑是同一个组件），所以这里量到的同时也是「编辑订阅」那条路。
-         * 不去订阅列表上找「编辑」按钮：那颗是九款各画各的，认文案迟早认岔。
+         * 不去订阅列表上找「编辑」按钮：那颗是十一款各画各的，认文案迟早认岔。
          */
         await open()
         note('▶ 场景四：解析出编辑框 → 主 RSS / 备用 RSS 两排各点开三家番剧列表')

@@ -2,7 +2,7 @@
  * 手机宽度下的版式体检。
  *
  *   npm run build:all -- --demo          # 先出演示产物，体检的是真产物不是源码
- *   node webui/shared/tools/mobile-audit.mjs                 # 九款 × 360/390/414
+ *   node webui/shared/tools/mobile-audit.mjs                 # 十一款 × 360/390/414
  *   node webui/shared/tools/mobile-audit.mjs material 390    # 只测一款一个宽度
  *
  * 为什么要有这么一个东西：手机上的毛病肉眼看截图很难发现 ——
@@ -94,7 +94,7 @@ const server = createServer(async (req, res) => {
     /*
      * 不给 Service Worker。
      *
-     * 九款是轮流从同一个 127.0.0.1:4173 上发出去的，装上 SW 之后它会横插进每一个请求，
+     * 十一款是轮流从同一个 127.0.0.1:4173 上发出去的，装上 SW 之后它会横插进每一个请求，
      * 量到的就不是「这套界面本身排得怎么样」了，而且每换一款都要重新装一遍，慢得离谱。
      * 直接 404，注册会失败 —— main.ts 里那句 catch 就是为这种场合留的，页面照常。
      */
@@ -193,7 +193,7 @@ const run = async expression => {
 }
 await send('Page.enable')
 await send('Runtime.enable')
-/* 九款轮流从同一个地址发出去，文件名带哈希不会撞，但 index.html 会 ——
+/* 十一款轮流从同一个地址发出去，文件名带哈希不会撞，但 index.html 会 ——
    关掉缓存，免得第二款拿到第一款的那份 */
 await send('Network.enable')
 await send('Network.setCacheDisabled', {cacheDisabled: true})
@@ -208,7 +208,7 @@ for (const preset of presets) {
         await send('Emulation.setDeviceMetricsOverride',
             {width: w, height: 844, deviceScaleFactor: 2, mobile: true, screenWidth: w, screenHeight: 844})
         await send('Emulation.setTouchEmulationEnabled', {enabled: true, maxTouchPoints: 5})
-        /* 报一下进度：九款 × 三个宽度 × 十三条路由要跑二十几分钟，
+        /* 报一下进度：十一款 × 三个宽度 × 十三条路由要跑二十几分钟，
            不出声的话看起来跟卡死了一样，人就会去按 Ctrl-C */
         console.log(`· ${preset} @${w}px …`)
         /*
@@ -216,8 +216,8 @@ for (const preset of presets) {
          *
          * Page.navigate 到一个只有**片段**不同的地址（上一轮停在 #/login，这里要去 #/），
          * 浏览器当成同文档跳转：不重新加载，只改 hash。而每一款是靠 `root` 换目录发出去的，
-         * 文档不重载 = 换的那一款根本没被打开 —— 一次跑九款，量的是同一款九遍，
-         * 而且九次全绿。这种「假绿」比报错危险得多：它看着像做过了。
+         * 文档不重载 = 换的那一款根本没被打开 —— 一次跑十一款，量的是同一款十一遍，
+         * 而且十一次全绿。这种「假绿」比报错危险得多：它看着像做过了。
          *
          * 先跳去 about:blank，地址就不再是「只有片段不同」，下一跳必然是真加载。
          * （一款一款分开跑时碰不到这个坑，所以它藏了很久。）

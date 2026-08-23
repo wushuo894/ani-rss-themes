@@ -1,0 +1,64 @@
+/*
+ * Auto_Bangumi 的动作语言：快、短、不弹。
+ *
+ * 原版三档时长写死在 var.scss 里 —— fast 150ms / normal 200ms / slow 300ms，
+ * 缓动**全部**是 ease-out，一处过冲都没有。所以这一款的曲线不许带回弹：
+ * 它的层级来自 1px 描边和填充色，位移只是「确认你点到了」，不是表演。
+ */
+:root {
+    --m-dur: 150ms;
+    --m-dur-slow: 300ms;
+    --m-ease: ease-out;
+    --m-ease-out: ease-out;
+    --m-rise: 6px;
+    --m-scale: .98;
+    --m-stagger: 18ms;
+    /* 卡片悬停只抬 2px：原版 ab-bangumi-card 就是 translateY(-2px) */
+    --m-lift: -2px;
+    /* shadow-md → shadow-lg，两档都照抄 var.scss，是 Tailwind 那套软阴影 */
+    --m-lift-shadow: 0 10px 15px -3px rgba(0, 0, 0, .1), 0 4px 6px -4px rgba(0, 0, 0, .1);
+    --m-press: .95;
+
+    /* 三块浮板之间的缝。窄屏 12px，宽屏 16px —— 原版 --layout-gap 就这两档 */
+    --ab-gap: 12px;
+    --ab-radius: 12px;
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --ab-gap: 16px;
+    }
+}
+
+/*
+ * Inter。字体文件是仓库里已有的那一份（Vue 文档那款也用它），
+ * 不额外再塞一个 —— AB 自己 public/fonts 下放的同样是 Inter 的拉丁子集。
+ */
+@font-face {
+    font-family: 'Inter';
+    src: url('../../fonts/inter-latin-wght.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/*
+ * Soft Ink 的招牌交互：输入框平时一条边都没有，聚焦时才长出主色描边 + 2px 光环。
+ *
+ * 接在 .v-field--focused 上而不是 :focus-within —— Vuetify 的输入框内部有好几个
+ * 可聚焦元素（清除按钮、下拉箭头），:focus-within 会让点清除按钮也亮一圈。
+ */
+.v-field.v-field--variant-solo-filled {
+    box-shadow: none;
+    transition: background-color var(--m-dur) var(--m-ease), box-shadow var(--m-dur) var(--m-ease);
+}
+
+.v-field.v-field--variant-solo-filled.v-field--focused {
+    background: rgb(var(--v-theme-surface)) !important;
+    box-shadow: inset 0 0 0 1px rgb(var(--v-theme-primary)), 0 0 0 2px rgba(var(--v-theme-primary), .2);
+}
+
+/* 分割线用 --color-border 那一档灰，不用 Vuetify 默认的 12% 黑 */
+.v-divider {
+    border-color: rgba(var(--v-theme-on-surface), .12);
+}

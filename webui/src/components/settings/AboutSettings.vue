@@ -462,7 +462,7 @@ async function doStop(status: number) {
 <style scoped>
 /*
  * 更新说明的版式。内容是 v-html 塞进来的，拿不到 scoped 的那个属性，所以要 :deep。
- * 一律用 :deep(.md xxx) 收口在这张卡里，别写成全局的 h2/li —— 那会波及九款皮肤的所有页面。
+ * 一律用 :deep(.md xxx) 收口在这张卡里，别写成全局的 h2/li —— 那会波及十一款皮肤的所有页面。
  */
 .md {
     font-size: .875rem;
@@ -553,7 +553,7 @@ async function doStop(status: number) {
     border-top: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
 }
 
-/* 表格同理：九款界面里最窄的手机版只有 360px，写死宽度必然溢出 */
+/* 表格同理：十一款界面里最窄的手机版只有 360px，写死宽度必然溢出 */
 .md :deep(table) {
     display: block;
     width: max-content;

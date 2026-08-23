@@ -2,7 +2,7 @@
  * 版式体检：把每一个弹窗真的打开、每一页真的翻到，量里面有没有东西被容器裁掉。
  *
  *   npm run build:all -- --demo     # 先出演示产物，测的是真产物不是源码
- *   npm run test:layout             # 九款 × 宽屏/手机 × 全部弹窗
+ *   npm run test:layout             # 十一款 × 宽屏/手机 × 全部弹窗
  *   node webui/shared/tools/dialog-layout.mjs vue 1400   # 只跑一款一个宽度
  *
  * 为什么版式体检（mobile-audit）盖不住这一片：那一份拿**视口**当尺子。
@@ -37,7 +37,7 @@ const PRESETS = process.argv[2] ? [process.argv[2]] : ALL
 const WIDTHS = process.argv[3] ? [+process.argv[3]] : [1400, 390]
 /*
  * 第三个参数：只跑名字里带这些字的场景（逗号分隔）。
- * 一整轮九款要跑接近一小时，改完脚本再从头跑一遍纯属浪费 ——
+ * 一整轮十一款要跑接近一小时，改完脚本再从头跑一遍纯属浪费 ——
  * 上一轮哪几格没量到，就只补那几格。
  */
 const ONLY = process.argv[4] ? process.argv[4].split(',').map(s => s.trim()).filter(Boolean) : null
@@ -146,7 +146,7 @@ const ev = async (expression, wait = 400) => {
 await send('Page.enable')
 await send('Runtime.enable')
 await send('Network.enable')
-/* 九款轮流从同一个地址发出去，文件名带哈希不会撞，但 index.html 会 */
+/* 十一款轮流从同一个地址发出去，文件名带哈希不会撞，但 index.html 会 */
 await send('Network.setCacheDisabled', {cacheDisabled: true})
 
 const PROBE = await readFile(join(HERE, 'dialog-layout-probe.js'), 'utf8')
@@ -200,7 +200,7 @@ const KIT = String.raw`(() => {
   }
   /*
    * 一条订阅的动作：窄的那几款把大半收进「更多」菜单里，所以先在图标行上找，
-   * 找不到就召出菜单再找。见 aniActions.ts —— 动作名九款是同一份。
+   * 找不到就召出菜单再找。见 aniActions.ts —— 动作名十一款是同一份。
    */
   const act = async (title) => {
     const sleep = ms => new Promise(r => setTimeout(r, ms))
@@ -421,7 +421,7 @@ const SCENES = [
 
 async function goto(hash) {
     /* 先回 about:blank 再进去：只有片段不同的地址是同文档跳转，不重新加载 ——
-       而换款是靠换静态目录的，文档不重载就等于把同一款量了九遍，还九次全绿 */
+       而换款是靠换静态目录的，文档不重载就等于把同一款量了十一遍，还十一次全绿 */
     await send('Page.navigate', {url: 'about:blank'})
     await sleep(150)
     /*
@@ -467,7 +467,7 @@ for (const preset of PRESETS) {
                      *
                      * 探针只量 .v-overlay--active 里的东西 —— 一个都没开着的时候它返回空数组，
                      * 而空数组和「量过了，没问题」长得一模一样。之前「通知编辑」那一条的选择器
-                     * 在九款里全是空点（列表根本不是 v-list-item），十八轮全绿，
+                     * 在十一款里全是空点（列表根本不是 v-list-item），十八轮全绿，
                      * 实际一次都没量过。这种假绿比报错危险得多：它看着像做过了。
                      */
                     /* 三款自画窗框的没有 .v-main（群晖 / win98 / 麦金塔），

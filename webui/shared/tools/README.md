@@ -46,7 +46,7 @@ node webui/shared/tools/extract-api.mjs upstream
 npm run test:preview --prefix webui
 ```
 
-三档桌面分辨率下量三件事：九张卡是不是都落在第一屏内（留 8px 余量，
+三档桌面分辨率下量三件事：十一张卡是不是都落在第一屏内（留 8px 余量，
 正好压在下沿不算）、宽屏上是不是三列、每张卡的 ⤓ zip 是不是指向自己那一款的包。
 
 不用先构建：卡片高度由 CSS 定，缩略图起没起来都不影响版式，
@@ -61,7 +61,7 @@ npm run test:preview --prefix webui
 
 ```bash
 npm run build:all -- --demo                          # 先出产物
-node webui/shared/tools/mobile-audit.mjs             # 九款 × 360/390/414 × 13 条路由
+node webui/shared/tools/mobile-audit.mjs             # 十一款 × 360/390/414 × 13 条路由
 node webui/shared/tools/mobile-audit.mjs material 390 # 只测一款一个宽度
 ```
 
@@ -78,7 +78,7 @@ node webui/shared/tools/mobile-audit.mjs material 390 # 只测一款一个宽度
 
 ```bash
 npm run build:all -- --demo                             # 先出演示产物
-npm run test:dialogs                                    # 九款轮流跑
+npm run test:dialogs                                    # 十一款轮流跑
 node webui/shared/tools/dialog-check.mjs synology       # 只跑一款
 ```
 
@@ -113,7 +113,7 @@ node webui/shared/tools/dialog-check.mjs synology       # 只跑一款
 
 四样在界面上都看不出来，vue-tsc 和版式体检也都看不见。
 
-九款轮流跑：四条路走的是同一批共用组件，但入口按钮是各款自己画的（「添加订阅」/
+十一款轮流跑：四条路走的是同一批共用组件，但入口按钮是各款自己画的（「添加订阅」/
 「新增」/「新建订阅…」），只测一款的话别的款入口断了不会有人知道。
 
 弹窗会摞起来（编辑框上面再开一层番剧列表），所以场景四一律用 `__topClick` 只点
@@ -135,7 +135,7 @@ node webui/shared/tools/dialog-check.mjs synology       # 只跑一款
 
 ```bash
 npm run build:all -- --demo                            # 先出演示产物
-npm run test:layout                                    # 九款 × 1400/390 × 全部场景
+npm run test:layout                                    # 十一款 × 1400/390 × 全部场景
 node webui/shared/tools/dialog-layout.mjs vue 1400     # 只跑一款一个宽度
 node webui/shared/tools/dialog-layout.mjs vue 1400 页面 # 再筛场景名（逗号分隔）
 ```
@@ -181,7 +181,7 @@ node webui/shared/tools/dialog-layout.mjs vue 1400 页面 # 再筛场景名（�
 天生该横滚的容器（标签栏、星期条、宽表格）整片排除。
 第四条另外还排两种「看着像、其实不是」的：**藏起来的**（海报卡右下角那排操作键静止时
 是 `opacity: 0` 且被 translate 到贴边，鼠标移上去才归位到 `bottom: 8px`）——
-所以看不看得见要连着祖先一起判，只看元素自己会把九款海报流全报一遍；
+所以看不看得见要连着祖先一起判，只看元素自己会把十一款海报流全报一遍；
 以及**容器只比控件大一点点的**（分段按钮为了圆角要 `overflow: hidden`，
 里面的按钮本来就该填满它），那种容器是控件自己的外框，不是裁剪边。
 

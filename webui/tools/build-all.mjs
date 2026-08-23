@@ -1,11 +1,11 @@
 /**
- * 一口气构建九款界面。
+ * 一口气构建十一款界面。
  *
- *   node tools/build-all.mjs            → dist/<id>/    九款正式产物
+ *   node tools/build-all.mjs            → dist/<id>/    十一款正式产物
  *   node tools/build-all.mjs --demo     → 演示构建（假数据，给 GitHub Pages 预览用）
  *   node tools/build-all.mjs --only vue,acg
  *
- * 类型检查只跑一次：九款共用同一份 tsconfig，跑九遍是白等八遍。
+ * 类型检查只跑一次：十一款共用同一份 tsconfig，跑十一遍是白等十遍。
  */
 import {execFileSync} from 'node:child_process'
 import {readdirSync, statSync} from 'node:fs'

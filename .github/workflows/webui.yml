@@ -25,7 +25,7 @@ permissions:
 jobs:
   # ─────────────────────────────────────────────────────────
   build:
-    name: 构建九款界面
+    name: 构建十一款界面
     runs-on: ubuntu-latest
     outputs:
       presets: ${{ steps.meta.outputs.presets }}
@@ -112,7 +112,7 @@ jobs:
         working-directory: webui
 
       # build:all 里已经串了 vue-tsc，类型错误会让构建直接失败
-      - name: 构建九款
+      - name: 构建十一款
         run: npm run build:all
         working-directory: webui
 
@@ -238,7 +238,7 @@ jobs:
         with:
           path: art
 
-      # 九款各打各的包 —— 一款一个 zip，装谁下谁，不必为一款界面下九份。
+      # 十一款各打各的包 —— 一款一个 zip，装谁下谁，不必为一款界面下十一份。
       # 但播放器不单独拆包：在线播放本来就是 ani-rss 的功能，我们只是把它自带的
       # 播放器换成支持 ASS 特效字幕和 HDR 的那个，拆开只会让人少装一个然后以为坏了。
       # 资产名不带版本号：install 脚本用 releases/latest/download/<固定名> 取，
@@ -300,7 +300,7 @@ jobs:
           或者在本界面的「设置 → 关于 → 更换界面」里传这个 zip，传完刷新就换好了。
           同一张卡上的「还原自带界面」可以随时退回 ani-rss 原来那套。
 
-          手动装：九款挑一款，解压到 ani-rss **配置目录**下的 \`webui/\` 里（没有就新建一个），
+          手动装：十一款挑一款，解压到 ani-rss **配置目录**下的 \`webui/\` 里（没有就新建一个），
           刷新页面即可（**3.2.15 以下要重启 ani-rss**，那之前的版本静态资源带缓存）。
           **每个包都自带在线播放器**，不用再单独下一个。
 
@@ -326,8 +326,10 @@ jobs:
           | \`ani-rss-webui-argon.zip\`        | Argon：毛玻璃顶栏 + 居中正文栏 + 右侧挂件，一列会浮起来的大圆角卡 |
           | \`ani-rss-webui-macintosh.zip\`    | 经典 Macintosh：黑白两色，苹果菜单栏 + 条纹标题栏，Finder 图标视图 |
           | \`ani-rss-webui-synology.zip\`     | 群晖 DSM：顶部任务栏 + 主菜单，应用在一扇带左侧栏的窗里 |
+          | \`ani-rss-webui-ab.zip\`           | AutoBangumi：浮起的三块板 + 一周七列的放送日历，照 Auto_Bangumi 复刻 |
+          | \`ani-rss-webui-mp.zip\`           | MoviePilot：260px 侧栏 + 半药丸紫渐变选中态，照 MoviePilot 复刻 |
 
-          九款是同一套功能的不同外观，**装一款就够**，装第二款会覆盖第一款。
+          十一款是同一套功能的不同外观，**装一款就够**，装第二款会覆盖第一款。
           想换回自带界面：清空（或删掉）\`webui/\` 目录再重启。
 
           ### 一行装好
@@ -346,7 +348,7 @@ jobs:
 
           ### 先在线看看
 
-          <https://zzzwannasleep.github.io/ani-rss-themes/webui/> —— 九款都能点开试，数据是内置的假数据。
+          <https://zzzwannasleep.github.io/ani-rss-themes/webui/> —— 十一款都能点开试，数据是内置的假数据。
 
           ---
           构建自 \`${GITHUB_SHA:0:7}\`，webplayer 构建自 \`zzzwannasleep/webplayer@${{ needs.player.outputs.sha }}\`

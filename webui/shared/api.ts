@@ -230,7 +230,7 @@ export const webuiUpdate = () => http.post<void>('api/webui/update')
  *
  * upload：收一个 zip，**根目录必须有 webui.json**（后端只用 ZipFile#getEntry 查这一个条目，
  * 多套一层目录就报「上传 WebUI 失败」），先删掉整个 {configDir}/webui 再解压过去。
- * 本仓库九个发布包都是照这个形状打的，下下来直接选中就能传。
+ * 本仓库十一个发布包都是照这个形状打的，下下来直接选中就能传。
  *
  * delete：把 {configDir}/webui 整个删掉。静态资源的第二个来源是 classpath，
  * 目录一没，后端就退回 ani-rss 自带的那套界面 —— 这就是「还原」。

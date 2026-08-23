@@ -107,7 +107,7 @@ export async function fetchLatest(meta: WebuiMeta): Promise<WebuiLatest | null> 
         const latest = (release.tag_name ?? '').replace(/^[Vv]/, '')
         if (!latest) return null
 
-        // 认包名，不认「第一个资产」：一次 Release 里九款界面各一个包，
+        // 认包名，不认「第一个资产」：一次 Release 里十一款界面各一个包，
         // 挑错了就是更新一次被换成另一款界面
         const asset = (release.assets ?? []).find(a => a.name === meta.filename)
 
