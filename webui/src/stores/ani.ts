@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
+import {clearableText} from '@/composables/clearableText'
 import * as api from '@shared/api'
 import type {Ani, ListAni} from '@shared/types'
 import {useUiStore} from './ui'
@@ -18,7 +19,9 @@ function matches(a: Ani, k: string): boolean {
 export const useAniStore = defineStore('ani', () => {
     const raw = ref<ListAni>({})
     const loading = ref(false)
-    const keyword = ref('')
+    /* 九款顶栏的搜索框都带 clearable，清空时写回的是 null 而不是 ''
+       —— 见 clearableText 里那段。兜在这一处，九款一起管。 */
+    const keyword = clearableText()
     /*
      * 上游批量管理页有「全部 / 已启用 / 未启用」和季度两个下拉，主列表顶栏也有启用状态那个。
      * 我们之前只有关键词 —— 订阅上百条以后，「哪些被我停用了」只能一条条翻。

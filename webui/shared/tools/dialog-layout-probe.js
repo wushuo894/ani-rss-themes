@@ -1,11 +1,17 @@
 /*
- * 在页面里跑的那一段：量当前打开的弹窗，看有没有东西被容器裁掉、或者左右留白不对称。
+ * 在页面里跑的那一段：量有没有东西被容器裁掉、或者啃进了容器的留白。
  * 用 ES5 写法 —— 它是被塞进 Runtime.evaluate 的，没有构建这一步。
  *
  * 和 mobile-audit-probe.js 的分工：那一份拿**视口**当尺子，量的是「有没有被顶出屏幕」；
- * 这一份拿**最近一个会裁剪的祖先**当尺子。弹窗里的毛病全是后一种 ——
- * 卡片自己 overflow: hidden，被切掉的按钮从来不会跑到视口外面去，
+ * 这一份拿**最近一个会裁剪的祖先**当尺子。这类毛病全是后一种 ——
+ * 容器自己 overflow: hidden，被切掉的按钮从来不会跑到视口外面去，
  * 所以视口那把尺子一次都没响过，而人眼看到的就是「按钮只剩半截」。
+ *
+ * ── 为什么不只量弹窗 ──
+ *
+ * 原来这份只扫 .v-overlay--active 里的东西。于是「登录设置页右边的开关被切掉 4px」
+ * 这种**页面上**的裁剪，十八轮体检一次都没量过 —— 不是量过了没响，是压根没进过取景框。
+ * 现在弹窗和页面（.v-main）一起扫：同一把尺子，量到哪算哪。
  */
 (function () {
     function cls(el) {
@@ -26,22 +32,58 @@
         return el.tagName.toLowerCase() + (c ? '.' + c : '') + (t ? ' 「' + t + '」' : '')
     }
 
+    /*
+     * 看不看得见，要连着祖先一起看。
+     *
+     * 只看元素自己的话，装在 opacity: 0 的容器里的按钮会被当成「看得见」——
+     * 海报卡右下角那排操作键就是这样：静止时整条 .acts 是
+     * `opacity: 0; transform: translateY(8px)`，被推到贴着卡片下沿；
+     * 鼠标移上去才淡入并归位到 bottom: 8px，真正露面时离边有 8px。
+     * 拿它静止时那个「藏起来的位置」去量，量出来全是「贴着裁剪边」——
+     * 九款海报流一起报，一条真的都没有。
+     */
     function visible(el) {
-        var s = getComputedStyle(el)
-        if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false
+        for (var n = el; n && n.nodeType === 1; n = n.parentElement) {
+            var s = getComputedStyle(n)
+            if (s.display === 'none' || s.visibility === 'hidden' || s.opacity === '0') return false
+        }
         var r = el.getBoundingClientRect()
         return r.width > 0 && r.height > 0
     }
 
+    /*
+     * 最近一个会裁剪的祖先。
+     *
+     * 走到 html / body 就算没有 —— 那两个是**视口**，不是「容器」。
+     * 这一份的立身之本就是「拿容器当尺子，不拿视口当尺子」（视口那把在 mobile-audit
+     * 手里）。不停在这儿的话，收起来的侧边抽屉（translate 到屏幕外 248px）、
+     * 钉在顶上的任务栏按钮，全会被算成「被 html 切掉了」—— 群晖那款一翻一大片，
+     * 一条真的都没有。
+     */
+    function stopAtViewport(p) {
+        return p && p !== document.documentElement && p !== document.body ? p : null
+    }
+
     function clipperX(el) {
         for (var p = el.parentElement; p; p = p.parentElement) {
+            if (p === document.documentElement || p === document.body) return null
             if (getComputedStyle(p).overflowX !== 'visible') return p
         }
         return null
     }
 
     var out = []
-    var roots = document.querySelectorAll('.v-overlay--active .v-overlay__content')
+    /*
+     * 取景框 = 所有开着的弹窗 + 页面正文。
+     *
+     * 页面正文优先取 .v-main。但**有三款根本没有 .v-main**：群晖、win98、麦金塔
+     * 自己画窗框（任务栏 / 菜单栏 / 带侧栏的窗），页面直接挂在自己的容器里。
+     * 只认 .v-main 的话这三款一个元素都扫不到 —— 而「扫到 0 个」和「扫过了没问题」
+     * 长得一模一样，正是上一版把整页漏掉的那种假绿。
+     * 所以退回 body：反正顶栏/侧栏那些 fixed 的元素第一条规则就跳过了。
+     */
+    var roots = [].slice.call(document.querySelectorAll('.v-overlay--active .v-overlay__content'))
+    roots.push(document.querySelector('.v-main') || document.body)
 
     for (var i = 0; i < roots.length; i++) {
         var all = roots[i].querySelectorAll('*')
@@ -69,9 +111,24 @@
              * 左边那一截是滚也滚不出来的：LTR 下 scrollWidth 只算内容原点右边的部分，
              * 伸到原点左边的东西永远看不见。所以它比「右边溢出」更严重，单独一类。
              */
+            /*
+             * 会横滚的容器不报。
+             *
+             * 自己声明了 overflow-x: auto 的容器是在说「我这儿的内容本来就要横着拖」——
+             * 星期条、麦金塔那排标签（注释里写着「五个标签在 360px 上排不下，横着滚」）、
+             * 宽表格，九款里有十来处，全是设计如此。滚得到 = 看得见 = 不是被挡住。
+             *
+             * 原来这儿还有一类「要横滚才看得全」。它在只扫弹窗的时候一直是绿的 ——
+             * 弹窗里没有横滑条。改成连页面一起扫之后，它把上面那十来处designed 的
+             * 横滑条全报了一遍。试过拿「溢出多少」当筛子（意外多出来的只有十来像素，
+             * 设计如此的动辄上百），可麦金塔那排在 390px 上正好只溢出 23px ——
+             * 分不开。索性去掉：它本来也没有独立的价值，
+             * 当初逮住 v-row 那个 bug 的是下面「左边被切掉」那一条 ——
+             * 伸到内容原点左边的那一截是**滚也滚不出来**的，那才是真的看不见。
+             */
             var kind = null
             if (under > 1) kind = '左边被切掉（滚也滚不出来）'
-            else if (over > 1) kind = scrolls ? '要横滚才看得全' : '右边被切掉'
+            else if (over > 1 && !scrolls) kind = '右边被切掉'
             if (!kind) continue
 
             out.push({k: kind, px: Math.max(over, under), el: desc(el), box: desc(p)})
@@ -125,6 +182,93 @@
                     })
                 }
             }
+        }
+    }
+
+    /*
+     * ── 贴着裁剪边的控件 ──
+     *
+     * 上面两条量的是「已经被切掉了多少」。但有一整类毛病它们量不到：
+     * 控件**静止时**严丝合缝地贴着裁剪边，只在 hover / focus 的那一下才越出去。
+     *
+     *   · 添加订阅那颗「浏览 XX 番剧列表」，hover 抬 1px —— 静止时上方余量正好 0，
+     *     抬起来的那一下被削掉，人看到的是「动效坏了」；而探针量的是静止态，全绿。
+     *   · 登录设置里靠右的开关，静止时右边余量也是 0，涟漪一亮就缺一块。
+     *
+     * 所以尺子换成「控件离裁剪边还有几个像素」：贴着（≤2px）就算一条引线，
+     * 迟早会在某个状态下被切。修法不是挪那颗控件，是给容器补一圈 padding
+     * （见 spacing.css 里 .v-tabs-window 那条）。
+     *
+     * 只认摸得着的控件，不认排版容器：卡片为了圆角本来就要 overflow: hidden，
+     * 里面铺满的封面图贴边是设计如此，不是毛病。
+     * 会滚的那条边也不算：滚动容器的内容本来就该顶到边上去。
+     */
+    var LIVE = '.v-btn, .v-field, .v-selection-control, .v-switch, button, a[href], [role="button"]'
+    for (var t = 0; t < roots.length; t++) {
+        var lives = roots[t].querySelectorAll(LIVE)
+        for (var t2 = 0; t2 < lives.length; t2++) {
+            var lv = lives[t2]
+            if (!visible(lv) || DECOR.test(cls(lv))) continue
+            var ls = getComputedStyle(lv)
+            if (ls.position === 'fixed') continue
+            /* 嵌在别的控件里的（输入框 append 槽里的小按钮）由外层那个代表 */
+            if (lv.parentElement && lv.parentElement.closest('.v-field, .v-btn')) continue
+
+            /* 最近一个会裁剪的祖先 */
+            var box2 = null
+            for (var q = lv.parentElement; q; q = q.parentElement) {
+                if (!stopAtViewport(q)) break
+                var qs = getComputedStyle(q)
+                if (qs.overflowX !== 'visible' || qs.overflowY !== 'visible') { box2 = q; break }
+            }
+            if (!box2 || box2.closest(SCROLLER)) continue
+
+            var b2s = getComputedStyle(box2)
+            var b2r = box2.getBoundingClientRect()
+            var lr = lv.getBoundingClientRect()
+            var scrollX = b2s.overflowX === 'auto' || b2s.overflowX === 'scroll'
+            var scrollY = b2s.overflowY === 'auto' || b2s.overflowY === 'scroll'
+            var bl = b2r.left + box2.clientLeft, bt = b2r.top + box2.clientTop
+
+            /*
+             * 容器只比控件大一点点的，那它就是这颗控件自己的外框，不是「裁剪边」。
+             *
+             * 分段按钮（v-btn-group）为了两头的圆角要 overflow: hidden，里面的按钮
+             * 本来就该填满它；输入框的 v-field、图标按钮的外壳也都是这个形状。
+             * 不排掉的话，每一颗分段按钮、每一个输入框都会报一条 —— 全是设计如此。
+             * 留 8px 的判据：真正的裁剪容器（v-tabs-window、卡片正文）总比里面的
+             * 单个控件宽出一大截。
+             */
+            var roomX = box2.clientWidth - lr.width, roomY = box2.clientHeight - lr.height
+            var sides = []
+            if (!scrollX && roomX > 8 && Math.round(lr.left - bl) <= 2) sides.push('左')
+            if (!scrollX && roomX > 8 && Math.round(bl + box2.clientWidth - lr.right) <= 2) sides.push('右')
+            if (!scrollY && roomY > 8 && Math.round(lr.top - bt) <= 2) sides.push('上')
+            if (!scrollY && roomY > 8 && Math.round(bt + box2.clientHeight - lr.bottom) <= 2) sides.push('下')
+            if (!sides.length) continue
+
+            /*
+             * 自己什么都不画的控件不算。
+             *
+             * 番剧浏览器里那颗 .tile-head 是铺满整张卡片的点击区：背景 none、没有边框，
+             * 卡片自己的圆角 + overflow: hidden 就是它的外框 —— 设计如此。
+             * 它被切掉的只有浏览器默认的焦点圈，不是「按钮缺了一块」。
+             * 而真要拦的那颗（.browse）自己有底色也有边框：那是一个看得见的盒子，
+             * 被削掉一角是肉眼可见的。以「它自己画不画东西」分界，
+             * 比往下面记一张类名清单可靠 —— 清单会跟着改名漂掉。
+             */
+            var paints = ls.backgroundColor !== 'rgba(0, 0, 0, 0)' && ls.backgroundColor !== 'transparent'
+            if (!paints && parseFloat(ls.borderTopWidth) < 0.5 && ls.boxShadow === 'none') continue
+
+            out.push({
+                k: '贴着裁剪边（' + sides.join('') + '），hover/focus 一动就被切',
+                px: 0,
+                el: desc(lv),
+                box: desc(box2) + '（padding=' + Math.round(parseFloat(b2s.paddingTop) || 0) + ' '
+                    + Math.round(parseFloat(b2s.paddingRight) || 0) + ' '
+                    + Math.round(parseFloat(b2s.paddingBottom) || 0) + ' '
+                    + Math.round(parseFloat(b2s.paddingLeft) || 0) + '，overflow=' + b2s.overflow + '）',
+            })
         }
     }
 

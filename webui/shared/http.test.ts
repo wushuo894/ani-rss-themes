@@ -22,7 +22,7 @@ function at(href: string) {
 
 // getBaseUrl() 每次调用都现读 location，所以换「当前页面」只要改这个对象，不用重新 import
 at('http://ani.local:7789/index.html')
-const {toApiUrl, http, setErrorHandler} = await import('./http.ts')
+const {toApiUrl, http, setErrorHandler, posterUrl} = await import('./http.ts')
 
 /* ── path 里自带查询串 ── */
 assert.equal(toApiUrl('api/stop?status=0'), 'http://ani.local:7789/api/stop?status=0')
@@ -75,5 +75,27 @@ at('http://ani.local:7789/')
     assert.equal(errors.length, 1, '普通 post 仍然要弹提示')
 }
 
+/* ── posterUrl：Mikan 那层「裁成正方形」的缩放参数必须摘掉 ──
+   Mikan 列表里发的是 ?width=400&height=400，它的图床按这个框中心裁一刀；
+   原图是 850×1200 的竖版海报，裁完再被我们 3:4 的封面框裁第二刀，剩不下半张。
+   只删 height、保留 width，Mikan 就按原比例算高（实测 width=300 回 300×424）。 */
+{
+    const mikan = 'https://mikanani.me/images/Bangumi/202604/b6a83131.jpg?width=400&height=400&format=webp'
+    const fixed = new URL(posterUrl(mikan))
+    assert.equal(fixed.searchParams.get('height'), null, 'height 必须摘掉，否则还是方的')
+    assert.equal(fixed.searchParams.get('width'), '300')
+    assert.equal(fixed.searchParams.get('format'), 'webp', '别把人家其它参数一起弄丢')
+    assert.equal(fixed.pathname, '/images/Bangumi/202604/b6a83131.jpg')
+
+    // 没有查询串的（bgm 原图就是这样）原样返回，别平白给人加参数
+    const bgm = 'https://lain.bgm.tv/pic/cover/l/aa/bb/1234_x.jpg'
+    assert.equal(posterUrl(bgm), bgm)
+
+    // 只给了一边的本来就保比例，不要多事
+    const oneSide = 'https://mikanani.me/images/Bangumi/202604/x.jpg?width=200&format=webp'
+    assert.equal(posterUrl(oneSide), oneSide)
+}
+
 console.log('✓ toApiUrl 全部断言通过')
 console.log('✓ postQuiet 静默行为断言通过')
+console.log('\u2713 posterUrl 断言通过')

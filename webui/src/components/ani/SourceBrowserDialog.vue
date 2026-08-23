@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue'
+import {clearableText} from '@/composables/clearableText'
 import {useDisplay} from 'vuetify'
 import type {
   Ani, AniBTGroup, AniBTItem, AnimeGardenGroup, AnimeGardenItem, GroupRegexRegexItem,
   MikanGroup, MikanItem, MikanSeason,
 } from '@shared/types'
 import * as api from '@shared/api'
-import {proxyImage} from '@shared/http'
+import {posterUrl, proxyImage} from '@shared/http'
 import {formatSize, formatTime, fromNow} from '@shared/format'
 import {useAniStore} from '@/stores/ani'
 import {useUiStore} from '@/stores/ui'
@@ -86,15 +87,20 @@ const meta = computed(() => SOURCES[props.source])
  * 后端那一跳还能顺带走代理。
  * 演示构建例外 —— 演示是靠替换 fetch 伪造后端的，而 <img src> 不走 fetch，
  * 拦不住，只能让地址直接用。
+ *
+ * 先过一道 posterUrl：Mikan 发的地址自带「裁成正方形」的缩放参数，
+ * 不摘掉的话它先裁一刀、我们的封面框再裁一刀，剩不下半张海报。
  */
-const coverOf = (url?: string) => (!url ? '' : __DEMO__ ? url : proxyImage(url))
+const coverOf = (url?: string) =>
+  !url ? '' : __DEMO__ ? url : proxyImage(posterUrl(url))
 
 /* ── 状态 ── */
 const loading = ref(false)
 const weeks = ref<Week[]>([])
 const seasons = ref<{label: string; value: MikanSeason | string}[]>([])
 const season = ref('')
-const keyword = ref('')
+/* clearable 清空时写回的是 null，而 @click:clear 紧接着就去 trim —— 见 clearableText */
+const keyword = clearableText()
 const weekTab = ref(0)
 
 /**

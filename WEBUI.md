@@ -146,9 +146,14 @@ node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 
 单款产物在 `webui/dist/<id>/`，组装结果在 `dist-webui/<id>/`。
 推上 `main` 会由 GitHub Actions 自动构建并发布上面那九个包。
-Release 的标签就是 `webui/package.json` 里的版本号本身（`1.0.0`，不带前缀）——
-包里的 `webui.json` 写的是同一个号，ani-rss 拿两者比对来判断有没有新版，
-所以版本号必须是三段数字，改了它才会发出新的 Release。
+Release 的标签就是版本号本身（`1.0.37`，不带前缀）—— 包里的 `webui.json`、
+关于页显示的那个号、Release 的 tag，三者是同一个数，ani-rss 拿它跟 tag 比对来判断有没有新版。
+
+**补丁位由 CI 自己涨**：`大.小` 取自 `webui/package.json`，补丁位换成
+GitHub 的 `run_number`，于是每推一次 main 就是一个更大的新版本号。
+以前直接用 `package.json` 里那个手写常量，结果每次都发同一个 `1.0.2` ——
+两个数永远相等，装过一次的人此后再也收不到更新提示。
+想发大小版本就改 `package.json`（比如 `1.1.0`），补丁位它自己接着涨。
 
 ## 开发
 
@@ -255,7 +260,7 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 - 登录、Bangumi OAuth 回调
 - 订阅：列表（海报/表格、按星期分组、拼音与首字母搜索）、增删改、批量启用/禁用/刮削/更新总集数
 - 添加订阅五个来源：RSS 地址、Bangumi 搜索、Mikan、AniBT、AnimeGarden
-- 订阅编辑三个标签页（基本 / 自定义 / 其它），含备用 RSS、自定义集数规则、路径、上传、完结迁移、重命名模版、标签、优先保留
+- 订阅编辑四个标签页（基本 / 备用 RSS / 自定义 / 其它），含自定义集数规则、路径、上传、完结迁移、重命名模版、标签、优先保留
 - 预览匹配结果（含遗漏集数推断）、合集下载、导入订阅、封面重抓、Bangumi 评分、视频列表
 - 下载器任务（可见时轮询，3 秒）、删除任务
 - 日志（可见时轮询、级别过滤、跟随最新、下载、清空）

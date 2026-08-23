@@ -1,5 +1,5 @@
 /**
- * 弹窗版式体检：把每一个弹窗真的打开，量里面有没有东西被容器裁掉。
+ * 版式体检：把每一个弹窗真的打开、每一页真的翻到，量里面有没有东西被容器裁掉。
  *
  *   npm run build:all -- --demo     # 先出演示产物，测的是真产物不是源码
  *   npm run test:layout             # 九款 × 宽屏/手机 × 全部弹窗
@@ -336,6 +336,8 @@ const SCENES = [
         name: '备用 RSS 一行', route: '/subscriptions',
         steps: [
             ['点编辑', `window.__act('编辑')`, 1400],
+            /* 备用 RSS 从「基本」页里搬出来单开了一页，不先切过去就点不到「手填一条」 */
+            ['切备用 RSS 页', `window.__click('.v-tab', '备用 RSS')`, 700, '空的时候'],
             ['手填一条备用 RSS', `window.__hit(['手填一条'])`, 800, ''],
         ],
     },
@@ -379,6 +381,41 @@ const SCENES = [
     {
         name: '清空日志确认', route: '/logs',
         steps: [['点清空日志', `window.__hit(['清空日志', '清空'])`, 900, '']],
+    },
+
+    /*
+     * ── 页面 ──
+     *
+     * 上面全是弹窗。而「登录设置右边的开关被切掉 4px」是**页面上**的裁剪 ——
+     * 探针原来只扫 .v-overlay，十八轮体检从来没把页面放进过取景框，
+     * 于是这条一次都没量过，看着却和「量过了没问题」一模一样。
+     * 设置页八个标签逐个翻：每一个都是一个独立的 v-tabs-window-item，
+     * 里面的控件贴着哪条边只有翻过去才知道。
+     */
+    {
+        name: '页面 · 订阅列表', route: '/subscriptions', page: true,
+        steps: [['落地', `1`, 900, '']],
+    },
+    {
+        name: '页面 · 下载', route: '/downloads', page: true,
+        steps: [['落地', `1`, 1200, '']],
+    },
+    {
+        name: '页面 · 日志', route: '/logs', page: true,
+        steps: [['落地', `1`, 1200, '']],
+    },
+    {
+        name: '页面 · 设置', route: '/settings/download', page: true,
+        steps: [
+            ['落地下载设置', `1`, 1200, '下载设置'],
+            ['切基本设置', `window.__click('.v-tab', '基本设置')`, 900, '基本设置'],
+            ['切全局排除', `window.__click('.v-tab', '全局排除')`, 800, '全局排除'],
+            ['切代理设置', `window.__click('.v-tab', '代理设置')`, 800, '代理设置'],
+            ['切登录设置', `window.__click('.v-tab', '登录设置')`, 900, '登录设置'],
+            ['切通知', `window.__click('.v-tab', '通知')`, 900, '通知'],
+            ['切捐赠', `window.__click('.v-tab', '捐赠')`, 800, '捐赠'],
+            ['切关于', `window.__click('.v-tab', '关于')`, 1200, '关于'],
+        ],
     },
 ]
 
@@ -433,9 +470,14 @@ for (const preset of PRESETS) {
                      * 在九款里全是空点（列表根本不是 v-list-item），十八轮全绿，
                      * 实际一次都没量过。这种假绿比报错危险得多：它看着像做过了。
                      */
-                    const open = await ev(
-                        `window.__vis('.v-overlay--active .v-overlay__content').length`, 0)
-                    if (!open) throw new Error(`「${label}」之后一个弹窗都没开着，这一步是空点`)
+                    /* 三款自画窗框的没有 .v-main（群晖 / win98 / 麦金塔），
+                       所以「落地了没有」只能问页面上有没有真的画出东西来 */
+                    const open = await ev(scene.page
+                        ? `window.__vis('.v-main, .v-application__wrap').length`
+                        : `window.__vis('.v-overlay--active .v-overlay__content').length`, 0)
+                    if (!open) throw new Error(scene.page
+                        ? `「${label}」之后页面正文是空的，这一步没落地`
+                        : `「${label}」之后一个弹窗都没开着，这一步是空点`)
                     const hits = await ev(PROBE, 0)
                     if (!hits.length) continue
                     bad += hits.length
@@ -457,16 +499,17 @@ for (const preset of PRESETS) {
 }
 
 console.log('')
-if (bad) console.error(`弹窗版式体检不通过：共 ${bad} 处`)
+if (bad) console.error(`版式体检不通过：共 ${bad} 处`)
 else if (skipped) {
     /* 走不通 = 那个弹窗压根没被量过。它和「量过了没问题」长得一样，必须单独说清楚，
        不能混进那句「没有被裁掉的东西」里 —— 那就成了自己骗自己 */
     console.error(`量到的都没问题，但有 ${skipped} 处入口没走通（见上）—— 那几个弹窗这一轮没被量过`)
 } else {
     const scenes = ONLY ? SCENES.filter(s => ONLY.some(k => s.name.includes(k))) : SCENES
-    console.log(`✓ ${PRESETS.length} 款 × ${WIDTHS.length} 个宽度 × ${scenes.length} 个弹窗`
-        + (ONLY ? `（只跑了：${scenes.map(s => s.name).join('、')}）` : '')
-        + '，每一个都真的打开过，没有被裁掉的东西')
+    console.log(`✓ ${PRESETS.length} 款 × ${WIDTHS.length} 个宽度 × ${scenes.length} 个场景`
+        + `（其中 ${scenes.filter(s => s.page).length} 个是页面）`
+        + (ONLY ? `，只跑了：${scenes.map(s => s.name).join('、')}` : '')
+        + '，每一个都真的翻到过，没有被裁掉的东西')
 }
 
 ws.close(); proc.kill(); server.close()

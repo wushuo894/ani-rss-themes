@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
+import {clearableText} from '@/composables/clearableText'
 import * as api from '@shared/api'
 import type {Log} from '@shared/types'
 import {useUiStore} from './ui'
@@ -7,7 +8,8 @@ import {useUiStore} from './ui'
 export const useLogsStore = defineStore('logs', () => {
     const items = ref<Log[]>([])
     const loading = ref(false)
-    const keyword = ref('')
+    /* 过滤框带 clearable，清空时写回 null —— 见 clearableText */
+    const keyword = clearableText()
     /* 级别和类名都是多选：上游级别是 checkbox 组、类名是 multiple select。
        单选筛不出「只看 WARN 和 ERROR」这种最常用的组合。空数组 = 不筛 */
     const level = ref<string[]>([])

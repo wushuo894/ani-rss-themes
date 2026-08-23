@@ -121,6 +121,9 @@ function mergeMatch(sub: string, match: string[]) {
  */
 const newStandby = (url = '', label = '') => ({label, url, offset: form.value.offset ?? 0})
 
+/** 挂在标签上的条数：不点进这一页也知道配没配、配了几条 */
+const standbyCount = computed(() => form.value.standbyRssList?.length ?? 0)
+
 /** 备用源是按顺序往下试的，所以顺序本身是配置项，得能调 */
 function moveStandby(i: number, d: -1 | 1) {
   const list = form.value.standbyRssList
@@ -290,6 +293,17 @@ async function fillDownloadPath() {
 
       <v-tabs v-model="tab" density="comfortable">
         <v-tab value="basic">基本</v-tab>
+        <!--
+          备用 RSS 单开一页 —— 上游就是单独一个弹窗，不是塞在主 RSS 底下。
+          挤在「基本」页里的时候，主源那一栏和备用源那一整片中间没有任何分界，
+          翻到一半分不清正在配的是哪一个；而它自己又是「一行四个控件 + 三颗图标」
+          的重控件，一条就顶掉半屏，把下面的日期、季、集数偏移全推到看不见的地方。
+          条数挂在标签上，不点进来也知道配没配、配了几条。
+        -->
+        <v-tab value="standby">
+          备用 RSS
+          <v-chip v-if="standbyCount" class="ml-2" size="x-small" variant="tonal">{{ standbyCount }}</v-chip>
+        </v-tab>
         <v-tab value="custom">自定义</v-tab>
         <v-tab value="other">其它</v-tab>
       </v-tabs>
@@ -375,46 +389,6 @@ async function fillDownloadPath() {
                 </div>
               </v-col>
 
-              <v-col cols="12">
-                <div class="text-caption text-medium-emphasis mb-2">备用 RSS</div>
-
-                <!-- 主源抽了或字幕组咕了才会走到备用源，全局开关关着的话这一栏配了也不生效 -->
-                <v-alert v-if="config.loaded && !config.config.standbyRss" class="mb-3" density="compact"
-                         icon="mdi-alert-outline" type="warning" variant="tonal">
-                  <span class="text-caption">备用 RSS 总开关没开，这里配了也不会用上 —— 去「设置 → RSS」打开。</span>
-                </v-alert>
-
-                <!-- 和主 RSS 一样的三颗：挑一个组直接追加成备用源，顺带把它的匹配规则也带过来。
-                     上游备用订阅弹窗里就有这三颗，缺了就只能自己去站上找地址粘回来。 -->
-                <div class="d-flex flex-wrap align-center ga-2 mb-3">
-                  <v-btn prepend-icon="mdi-plus" size="small" variant="tonal"
-                         @click="form.standbyRssList = [...(form.standbyRssList || []), newStandby()]">
-                    手填一条
-                  </v-btn>
-                  <span class="text-caption text-medium-emphasis mx-1">或从番剧站挑：</span>
-                  <v-btn v-for="src in SOURCES" :key="src.id" :prepend-icon="src.icon"
-                         size="small" variant="tonal" @click="browse(src.id, 'standby')">
-                    {{ src.name }}
-                  </v-btn>
-                </div>
-
-                <div v-if="!form.standbyRssList?.length" class="text-caption text-disabled">未配置</div>
-                <div v-for="(s, i) in form.standbyRssList || []" :key="i" class="d-flex align-center ga-3 mb-3">
-                  <v-text-field v-model="s.label" density="compact" hide-details placeholder="未知字幕组"
-                                label="名称" style="max-width: 180px"/>
-                  <v-text-field v-model="s.url" density="compact" hide-details label="地址"/>
-                  <v-text-field v-model.number="s.offset" density="compact" hide-details label="偏移"
-                                style="max-width: 90px" type="number"/>
-                  <!-- 顺序 = 优先级，上游给了上下移；没有的话想调顺序只能删了重加 -->
-                  <v-btn :disabled="i === 0" density="comfortable" icon="mdi-arrow-up" size="small"
-                         title="上移" variant="text" @click="moveStandby(i, -1)"/>
-                  <v-btn :disabled="i === (form.standbyRssList?.length ?? 0) - 1" density="comfortable"
-                         icon="mdi-arrow-down" size="small" title="下移" variant="text" @click="moveStandby(i, 1)"/>
-                  <v-btn color="error" density="comfortable" icon="mdi-close" size="small" title="删除"
-                         variant="text" @click="form.standbyRssList!.splice(i, 1)"/>
-                </div>
-              </v-col>
-
               <v-col cols="6" md="3">
                 <v-text-field v-model="form.releaseDate" label="日期" placeholder="yyyy-MM-dd"/>
               </v-col>
@@ -448,6 +422,45 @@ async function fillDownloadPath() {
                 </div>
               </v-col>
             </v-row>
+          </v-tabs-window-item>
+
+          <!-- ══ 备用 RSS ══ -->
+          <v-tabs-window-item value="standby">
+            <!-- 主源抽了或字幕组咕了才会走到备用源，全局开关关着的话这一栏配了也不生效 -->
+            <v-alert v-if="config.loaded && !config.config.standbyRss" class="mb-3" density="compact"
+                     icon="mdi-alert-outline" type="warning" variant="tonal">
+              <span class="text-caption">备用 RSS 总开关没开，这里配了也不会用上 —— 去「设置 → RSS」打开。</span>
+            </v-alert>
+
+            <!-- 和主 RSS 一样的三颗：挑一个组直接追加成备用源，顺带把它的匹配规则也带过来。
+                 上游备用订阅弹窗里就有这三颗，缺了就只能自己去站上找地址粘回来。 -->
+            <div class="d-flex flex-wrap align-center ga-2 mb-3">
+              <v-btn prepend-icon="mdi-plus" size="small" variant="tonal"
+                     @click="form.standbyRssList = [...(form.standbyRssList || []), newStandby()]">
+                手填一条
+              </v-btn>
+              <span class="text-caption text-medium-emphasis mx-1">或从番剧站挑：</span>
+              <v-btn v-for="src in SOURCES" :key="src.id" :prepend-icon="src.icon"
+                     size="small" variant="tonal" @click="browse(src.id, 'standby')">
+                {{ src.name }}
+              </v-btn>
+            </div>
+
+            <div v-if="!form.standbyRssList?.length" class="text-caption text-disabled">未配置</div>
+            <div v-for="(s, i) in form.standbyRssList || []" :key="i" class="d-flex align-center ga-3 mb-3">
+              <v-text-field v-model="s.label" density="compact" hide-details placeholder="未知字幕组"
+                            label="名称" style="max-width: 180px"/>
+              <v-text-field v-model="s.url" density="compact" hide-details label="地址"/>
+              <v-text-field v-model.number="s.offset" density="compact" hide-details label="偏移"
+                            style="max-width: 90px" type="number"/>
+              <!-- 顺序 = 优先级，上游给了上下移；没有的话想调顺序只能删了重加 -->
+              <v-btn :disabled="i === 0" density="comfortable" icon="mdi-arrow-up" size="small"
+                     title="上移" variant="text" @click="moveStandby(i, -1)"/>
+              <v-btn :disabled="i === (form.standbyRssList?.length ?? 0) - 1" density="comfortable"
+                     icon="mdi-arrow-down" size="small" title="下移" variant="text" @click="moveStandby(i, 1)"/>
+              <v-btn color="error" density="comfortable" icon="mdi-close" size="small" title="删除"
+                     variant="text" @click="form.standbyRssList!.splice(i, 1)"/>
+            </div>
           </v-tabs-window-item>
 
           <!-- ══ 自定义 ══ -->
@@ -665,26 +678,6 @@ async function fillDownloadPath() {
 </template>
 
 <style scoped>
-/*
- * 标签页里那张栅格（<v-row> + <v-col>）的负外边距得有东西接着。
- *
- * v-row 自带 margin: -12px，v-col 自带 padding: 12px —— 一负一正抵消，
- * 靠的是「父级有 12px 以上的 padding」这个前提。这里的父级是 v-window，
- * 它没有 padding，而且 overflow: hidden：左边那 12px 直接被切掉、滚都滚不出来，
- * 右边那 12px 变成一条只有 12px 行程的横向滚动条挂在表单底下 ——
- * 一拖，整排字段和右边那几颗按钮（用 TMDB 名 / 获取 / 选择）就跟着错位。
- *
- * 补法是把 v-window 往两边各撑出 12px 再自己留 12px 的 padding：
- * 撑出去的部分落在 v-card-text 自己的 24px 留白里（padding 区不参与裁剪），
- * 字段的位置一个像素都没动，负外边距却终于有东西接着了。
- *
- * 不改 v-row/v-col、也不动 spacing.css 里的对话框留白 —— 那两处是九款共用的。
- */
-:deep(.v-tabs-window) {
-    margin-inline: -12px;
-    padding-inline: 12px;
-}
-
 /* TMDB 名右边那颗外链图标：贴在输入框内侧，不占 append 的位置 */
 .tmdb-link {
     display: inline-flex;

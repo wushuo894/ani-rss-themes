@@ -2,7 +2,7 @@
 import {ref} from 'vue'
 import type {Ani} from '@shared/types'
 import * as api from '@shared/api'
-import {toApiFile} from '@shared/http'
+import {posterUrl, toApiFile} from '@shared/http'
 import {useAniStore} from '@/stores/ani'
 import {useUiStore} from '@/stores/ui'
 
@@ -25,10 +25,17 @@ const bust = ref(Date.now())
  *
  * 后端 refreshCover 会返回新的本地路径，要接住 —— 之前把返回值丢了，
  * 靠整表刷新兜住；在这个对话框里编辑的是本地副本，兜不住，图换了但预览还是旧的。
+ *
+ * 抓之前先把地址过一道 posterUrl。Mikan 页面上复制下来的图片地址自带
+ * `?width=400&height=400`，它的图床照这个框把竖版海报**中心裁**成正方形 ——
+ * 这里抓下来是要**存到服务器上长期用**的，裁过的那张一旦落盘，
+ * 往后每一处封面都是那张缺了上下的方图，只能再手动换一次。
+ * 摘掉高度、把宽度提到 600（原图 850×1200，回的是 600×847），存的就是完整海报。
  */
 async function reload() {
   busy.value = 'reload'
   try {
+    if (form.value.image) form.value.image = posterUrl(form.value.image, 600)
     const cover = await api.refreshCover(form.value)
     if (cover) form.value.cover = cover
     bust.value = Date.now()

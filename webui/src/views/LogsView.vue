@@ -9,15 +9,51 @@ const confirmClear = ref(false)
 const follow = ref(true)
 const box = ref<HTMLElement | null>(null)
 
-onActivated(() => logs.startPolling(5000))
-onDeactivated(() => logs.stopPolling())
-
-watch(() => logs.filtered.length, async () => {
+/** 贴回底部。跟随关掉时（用户自己往上翻了）什么都不做 */
+async function stickToBottom() {
   if (!follow.value) return
   await nextTick()
   const el = box.value
   if (el) el.scrollTop = el.scrollHeight
+}
+
+/*
+ * 切走再切回来也要贴底 —— 这是「日志一直停在最顶上」的真正来源。
+ *
+ * 这一页在 keep-alive 里（见各款 Shell）。切走时整块 DOM 被搬进隐藏容器，
+ * 切回来再搬回文档 —— 浏览器在这一搬一搬之间把滚动容器的 scrollTop 抹成 0。
+ * 组件本身没有重新挂载，reload() 拉回来的又常常是同样条数的日志，
+ * 于是下面那个 watch 一次都不响，人回到这一页看到的就是**第一行**。
+ * 量出来是「距底 8385，停在 0」，九款都一样。
+ *
+ * follow 要自己存一份带过去：那一下 scrollTop 归零是会派 scroll 事件的，
+ * onScroll 收到就把 follow 判成 false（离底 8385，远大于 40）——
+ * 不存这一份的话，回到这一页永远是「已暂停跟随」，贴底那一步自己把自己拦掉。
+ */
+let wasFollowing = true
+onActivated(() => {
+  logs.startPolling(5000)
+  follow.value = wasFollowing
+  void stickToBottom()
 })
+onDeactivated(() => {
+  wasFollowing = follow.value
+  logs.stopPolling()
+})
+
+/*
+ * 盯整个数组而不是 filtered.length。
+ *
+ * 后端日志是有上限的：满了以后每来一条就挤掉最老的一条，**条数一直不变**。
+ * 只盯 length 的话，这种最常见的情形一次都不会触发，新日志进来了却不往下走。
+ * 行高也会变（一段堆栈顶好几行），条数没变高度却变了，同样漏。
+ * filtered 每轮轮询都是一个新数组，盯它就是「只要内容动过就贴一次」——
+ * 贴一次的成本是一次赋值，比漏掉划算。
+ */
+watch(() => logs.filtered, stickToBottom)
+
+/* 从「已暂停跟随」按回「跟随最新」时立刻追上去，别等下一轮轮询 */
+watch(follow, v => v && void stickToBottom())
 
 function onScroll() {
   const el = box.value

@@ -47,13 +47,32 @@ jobs:
           ids=$(node --experimental-strip-types -e "import('./webui/src/presets/ids.ts').then(m => console.log(m.PRESET_IDS.join(' ')))")
           test -n "$ids" || { echo "::error::没能从 ids.ts 读出款式清单"; exit 1; }
           echo "presets=$ids" >> "$GITHUB_OUTPUT"
-          # 版本号必须是三段数字：ani-rss 的在线更新拿包里 webui.json 的 version
-          # 跟 Release 的 tag 直接比字符串，tag 就是版本号本身，多个 -beta 就永远比不上。
-          version=$(node -p "require('./webui/package.json').version")
-          echo "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$' \
-            || { echo "::error::版本号 $version 不是 1.0.0 这样的三段数字，在线更新会失效"; exit 1; }
+          #
+          # ── 版本号 ──
+          #
+          # ani-rss 的在线更新是这么判的：读装好的那份 webui.json 里的 version，
+          # 跟本仓库 Release 的 tag 比字符串，不一样才提示更新。
+          #
+          # 原来这个数直接取 webui/package.json，而那是个要人手改的常量 ——
+          # 于是每次推 main 都发同一个 1.0.2，tag 删了又建，version 一动不动。
+          # 装过一次的人此后**永远**收不到更新提示：两个数永远相等。
+          # 「需要人记得做的步骤等于不会做」，上面发版那段已经栽过一次，这儿是第二次。
+          #
+          # 改成补丁位跟着 run_number 走：它由 GitHub 维护、只增不减，
+          # 每一次发版必定是一个没出现过的、比上一次大的版本号。
+          # 大小版本还是留给人：想发 1.1 就把 package.json 改成 1.1.0，
+          # 补丁位它自己接着涨。
+          base=$(node -p "require('./webui/package.json').version")
+          echo "$base" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$' \
+            || { echo "::error::package.json 里的 $base 不是 1.0.0 这样的三段数字"; exit 1; }
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            version="${base%.*}.${GITHUB_RUN_NUMBER}"
+          else
+            version="$base"        # PR 上不发版，原样用，免得看着像要发版
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "款式：$ids"
+          echo "版本：$version（package.json 是 $base）"
 
       - run: npm ci
         working-directory: webui
@@ -64,6 +83,24 @@ jobs:
       - name: 自检
         run: npm test
         working-directory: webui
+
+      # 关于页显示的界面版本号是构建期从 package.json 注进去的（见 vite.config.ts 的
+      # __VERSION__）。上面把发版用的版本号算出来了，这里得写回 package.json，
+      # 否则包里的 webui.json 写着 1.0.37、关于页却还挂着 1.0.2 —— 两个数对不上，
+      # 人根本没法判断自己装的是哪一版。
+      # 放在 npm ci 之后：npm ci 会核对 package.json 和 lock 里的版本，先改会让它罢工。
+      - name: 版本号写回 package.json
+        run: |
+          set -e
+          node -e "
+            const fs = require('fs')
+            const p = './webui/package.json'
+            const j = JSON.parse(fs.readFileSync(p, 'utf8'))
+            j.version = process.argv[1]
+            fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n')
+          " "${{ steps.meta.outputs.version }}"
+          test "$(node -p "require('./webui/package.json').version")" = "${{ steps.meta.outputs.version }}" \
+            || { echo "::error::版本号没写进去"; exit 1; }
 
       # build:all 里已经串了 vue-tsc，类型错误会让构建直接失败
       - name: 构建九款
@@ -85,6 +122,11 @@ jobs:
             if grep -rq '喵萌奶茶屋' "$d/assets"; then
               echo "::error::$d 里混进了演示数据，检查 VITE_DEMO"; exit 1
             fi
+            # 关于页那个版本号是构建期注进去的字符串常量，注错了只会显示成旧版，
+            # 没有任何报错。在产物里找一遍，找不到就当构建失败 ——
+            # 「版本号不会跟着涨」这件事已经让在线更新彻底失灵过一次。
+            grep -rq "${{ steps.meta.outputs.version }}" "$d/assets" \
+              || { echo "::error::$d 里找不到版本号 ${{ steps.meta.outputs.version }}，__VERSION__ 没注进去"; exit 1; }
             echo "$id: $(du -sh "$d" | cut -f1)"
           done
 

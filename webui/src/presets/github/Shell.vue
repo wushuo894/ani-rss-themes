@@ -25,6 +25,7 @@ const menu = ref(false)
         v-if="!mobile"
         v-model="s.ani.keyword"
         class="gh-search"
+        clearable
         density="compact"
         hide-details
         :placeholder="s.searchHint.value"

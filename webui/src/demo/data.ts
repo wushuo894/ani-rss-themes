@@ -143,7 +143,7 @@ export const TORRENTS: TorrentsInfo[] = ANI_LIST.slice(0, 5).map((a, i) => ({
 } as unknown as TorrentsInfo))
 
 /* 日志里的番剧名跟着真实数据走 —— 写死的名字和列表里对不上，一眼就露馅 */
-export const LOGS: Log[] = [
+const LOG_SEED: Log[] = [
     {level: 'INFO', loggerName: 'ani.rss.Demo', threadName: 'main', message: '演示模式：这些日志是内置的假数据'},
     {level: 'INFO', loggerName: 'ani.rss.task.RssTask', threadName: 'rss-1', message: '订阅刷新完成，新增 2 条待下载'},
     {
@@ -156,6 +156,21 @@ export const LOGS: Log[] = [
     },
     {level: 'ERROR', loggerName: 'ani.rss.Demo', threadName: 'main', message: '演示模式下所有写操作都不会真的执行'},
 ]
+
+/*
+ * 铺到 60 条 —— 一定要装不下一屏。
+ *
+ * 原来只给 5 条，日志框的 scrollHeight 和 clientHeight 一样大，压根滚不起来。
+ * 结果是「自动滚到最后一行」这件事在演示产物上既复现不了也体检不了：
+ * 切走再切回来 scrollTop 被浏览器抹成 0 的那个毛病，就是这么一直没被发现的。
+ * 行号写在每条前面，末尾那条标出来 —— 全是一模一样的行的话，
+ * 「有没有真的停在最后一行」肉眼和探针都分不出来。
+ */
+export const LOGS: Log[] = Array.from({length: 60}, (_, i) => {
+    const seed = LOG_SEED[i % LOG_SEED.length]
+    const tail = i === 59 ? '（最后一行）' : ''
+    return {...seed, message: `#${String(i + 1).padStart(2, '0')} ${seed.message}${tail}`}
+})
 
 /** 设置页要的完整配置。字段太多，只给会被显示的那些，其余交给控件的默认值 */
 export const CONFIG = {

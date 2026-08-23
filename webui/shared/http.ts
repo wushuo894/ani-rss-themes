@@ -83,6 +83,34 @@ export function proxyImage(imgUrl: string): string {
     return toApiUrl('api/proxyImage', {imgUrl: base64Encode(imgUrl), s: getToken()})
 }
 
+/**
+ * 番剧站给的封面地址，去掉它自己那层「裁成正方形」的缩放参数。
+ *
+ * Mikan 在列表里发的是 `xxx.jpg?width=400&height=400&format=webp` —— 同时给了宽和高，
+ * 它的图床就按这个框**中心裁**一刀。原图是 850×1200 的竖版海报，裁成 400×400 之后
+ * 上下已经被切掉一大截；我们这边的封面框又是 54×74（3:4），再 object-fit: cover 一次，
+ * 左右还要再切掉四分之一。两刀叠起来，剩下的连半张海报都不到 —— 就是「mikan 的封面
+ * 只剩四分之三、占不满」的由来。
+ *
+ * AniBT 和 AnimeGarden 直接给 bgm 的原图（本来就是竖版海报），所以那两家没这个毛病。
+ *
+ * 只删 height，保留（或补上）width：Mikan 的图床给了 width 就按原比例算高
+ * —— 实测 `?width=300&format=webp` 回的是 300×424，正是原图的 850:1200。
+ * 不整个删掉缩放是因为原图有 260KB，一屏三十张就是 8MB。
+ *
+ * 认地址而不是认来源：别处要是也拿到这种带方框参数的图，一样归这里管。
+ */
+export function posterUrl(imgUrl: string, width = 300): string {
+    const i = imgUrl.indexOf('?')
+    if (i < 0) return imgUrl
+    const q = new URLSearchParams(imgUrl.slice(i + 1))
+    // 只有「宽高都给了」才是在裁方框；单给一边的本来就保比例，不要多事
+    if (!q.has('width') || !q.has('height')) return imgUrl
+    q.delete('height')
+    q.set('width', String(width))
+    return imgUrl.slice(0, i) + '?' + q.toString()
+}
+
 /** 文件下载地址，同样用查询参数带令牌 */
 export function toApiFile(filename: string): string {
     /* 已经是一个完整地址就原样返回，不再套一层 api/file。
