@@ -74,7 +74,7 @@ const scale = computed(() => Math.max(1, ...d.stats.value.map(s => Number(s.valu
         <v-icon class="row-icon" icon="mdi-arrow-down-bold-box-outline" size="14"/>
         <span class="row-name">{{ t.name }}</span>
         <span class="meter-track meter-track-sm">
-          <span :style="{width: `${(t.progress ?? 0) * 100}%`}" class="meter-fill"/>
+          <span :style="{width: `${t.progress}%`}" class="meter-fill"/>
         </span>
         <span class="row-info">{{ formatPercent(t.progress) }}</span>
       </div>

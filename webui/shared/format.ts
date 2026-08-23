@@ -4,7 +4,7 @@
 export function formatSize(bytes?: number): string {
     if (bytes === undefined || bytes === null || Number.isNaN(bytes)) return '-'
     if (bytes < 1024) return `${bytes} B`
-    const units = ['KB', 'MB', 'GB', 'TB', 'PB']
+    const units = ['KiB', 'MiB', 'GiB', 'TiB', 'PiB']
     let v = bytes / 1024
     let i = 0
     while (v >= 1024 && i < units.length - 1) {
@@ -51,7 +51,7 @@ export function formatTime(ts?: number): string {
 /** 进度 0~1 → 百分比字符串 */
 export function formatPercent(v?: number): string {
     if (v === undefined || v === null) return '-'
-    return `${(v * 100).toFixed(v >= 1 ? 0 : 1)}%`
+    return `${v.toFixed(v >= 1 ? 0 : 1)}%`
 }
 
 /** 集数显示：已更新 / 总数，总数未知时用 * —— 与上游一致 */

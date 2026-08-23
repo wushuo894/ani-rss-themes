@@ -82,7 +82,7 @@ const router = useRouter()
           <li v-for="(t, i) in d.torrents.downloading.slice(0, 6)" :key="t.hash" :style="{'--i': i}" class="ani-in">
             <div class="cell-title">{{ t.name }}</div>
             <div class="d-flex align-center ga-2 mt-1">
-              <v-progress-linear :model-value="(t.progress ?? 0) * 100" color="primary" height="3" rounded/>
+              <v-progress-linear :model-value="t.progress" color="primary" height="3" rounded/>
               <span class="pct">{{ formatPercent(t.progress) }}</span>
             </div>
           </li>

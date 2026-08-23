@@ -85,7 +85,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
                class="line ani-in">
             <div class="ellipsis">{{ t.name }}</div>
             <div class="d-flex align-center ga-3 mt-2">
-              <v-progress-linear :model-value="(t.progress ?? 0) * 100" color="primary" height="4" rounded/>
+              <v-progress-linear :model-value="t.progress" color="primary" height="4" rounded/>
               <span class="num">{{ formatPercent(t.progress) }}</span>
             </div>
           </div>
