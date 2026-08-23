@@ -6,8 +6,9 @@
  * 上游是裸模板串拼接（`api/searchBgm?name=${name}`），番剧名里有 & 就会截断，
  * getSubtitles 传 base64 时里面的 '+' 还会被服务端解成空格。
  *
- * 端点清单来源：从 test 分支源码实抽并自校验，共 70 个 —— 用 shared/tools/extract-api.mjs
- * 对着上游源码重跑，它会核对「抽出来的」和「源码里声明的」是不是一一对上。
+ * 端点清单来源：从 test 分支源码实抽并自校验，共 70 个，成表在 webui/spec-api.md ——
+ * 用 shared/tools/extract-api.mjs 对着上游源码重跑就能更新，
+ * 它会核对「抽出来的」和「源码里声明的」是不是一一对上，对不上直接失败。
  * 其中 file / proxyImage 这两个走 <img src>、设不了请求头的在 http.ts 里，不在这份。
  */
 import {md5} from 'js-md5'

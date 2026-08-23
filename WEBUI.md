@@ -375,6 +375,8 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 
 端点数用 `shared/tools/extract-api.mjs` 同样核过：70 个 / 23 个 controller，
 和源码里声明的路径一一对上，`/api/webui/*` 那四个都在。
+抽出来的表就是 [`webui/spec-api.md`](webui/spec-api.md)（方法 / 路径 / 鉴权 / 返回 / 入参），
+和 `types.ts` 一样入库 —— 下次同步重跑一遍，diff 就是这一轮上游动了什么。
 
 ## 主题
 
