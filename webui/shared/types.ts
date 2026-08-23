@@ -12,26 +12,9 @@
  */
 
 /** About —— 关于 */
-export interface About {
+export interface About extends UpdateInfo {
     /** 版本 */
     version?: string
-    /** 最新版本 */
-    latest?: string
-    /** 是否需要更新 */
-    update?: boolean
-    /** 是否允许自动更新 */
-    autoUpdate?: boolean
-    /** 下载地址 */
-    downloadUrl?: string
-    /** sha256 */
-    sha256?: string
-    /** size */
-    size?: number
-    formatSize?: string
-    /** 更新内容 */
-    markdownBody?: string
-    /** 发布时间 */
-    date?: string
 }
 
 /** Ani —— 订阅 */
@@ -1096,6 +1079,29 @@ export interface TryOut {
     renewal?: boolean
     day?: number
     message?: string
+}
+
+/** UpdateInfo */
+export interface UpdateInfo {
+    latest?: string
+    downloadUrl?: string
+    update?: boolean
+    autoUpdate?: boolean
+    sha256?: string
+    size?: number
+    formatSize?: string
+    /** 更新内容 */
+    markdownBody?: string
+    /** 发布时间 */
+    date?: string
+}
+
+/** WebUI */
+export interface WebUI {
+    owner?: string
+    repo?: string
+    version?: string
+    filename?: string
 }
 
 /** AniBTQueryDTO */

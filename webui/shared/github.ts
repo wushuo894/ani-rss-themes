@@ -20,14 +20,16 @@
  * 所以下载只能交给用户点一下链接（<a> 导航不受同源策略管）。
  * api.github.com 本身是带 `Access-Control-Allow-Origin: *` 的，查得动。
  */
+import type {WebUI} from './types'
 
-/** 发布包根目录下的 webui.json —— 后端认的也是这一份 */
-export interface WebuiMeta {
-    owner: string
-    repo: string
-    version: string
-    filename: string
-}
+/*
+ * 发布包根目录下的 webui.json —— 后端认的也是这一份。
+ *
+ * 字段不手抄：上游 e497071 起有个 WebUI 实体就是它（owner/repo/version/filename），
+ * types.ts 从那个类生成。生成的字段全是可选（Gson 的 null 字段不出现在 JSON 里），
+ * 而这里四个缺一个都查不了，所以在 readWebuiMeta 里挨个验过之后收成 Required。
+ */
+export type WebuiMeta = Required<WebUI>
 
 export interface WebuiLatest {
     /** 最新一版的版本号（tag 去掉开头的 v） */
@@ -73,7 +75,7 @@ export async function readWebuiMeta(baseUrl: string): Promise<WebuiMeta | null> 
     try {
         const res = await fetch(baseUrl + 'webui.json', {cache: 'no-store'})
         if (!res.ok) return null
-        const meta = await res.json() as Partial<WebuiMeta>
+        const meta = await res.json() as WebUI
         if (!meta?.owner || !meta.repo || !meta.version || !meta.filename) return null
         return meta as WebuiMeta
     } catch {

@@ -320,7 +320,7 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 
 ## 功能覆盖
 
-后端 66 个接口（22 个 controller）全部封装，界面侧对齐上游 64 个 `.vue`：
+后端 70 个接口（23 个 controller）全部封装，界面侧对齐上游 64 个 `.vue`：
 
 - 登录、Bangumi OAuth 回调
 - 订阅：列表（海报/表格、按星期分组、拼音与首字母搜索）、增删改、批量启用/禁用/刮削/更新总集数
@@ -358,7 +358,7 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 
 ## 类型是生成的，不是手抄的
 
-`webui/shared/types.ts`（77 个 interface / 11 个枚举）由 `webui/shared/tools/gen-types.mjs`
+`webui/shared/types.ts`（79 个 interface / 11 个枚举）由 `webui/shared/tools/gen-types.mjs`
 从上游 Java 实体直接抽取，带字段数自校验：生成结果和源码里的 `private` 字段数对不上就直接失败。
 
 这么做是因为 `Config` 有 121 个字段、`Ani` 55 个、`NotificationConfig` 52 个 —— 手抄必错。
@@ -366,6 +366,15 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 类注释会吞掉每个类的第一个字段等），全都不报错、只是少东西。
 
 上游改了字段就重跑一次生成器，diff 即本次接口变更。用法见 [`webui/shared/tools/README.md`](webui/shared/tools/README.md)。
+
+最近一次重跑（对上游 `81f43b5`）diff 出来的就是这次的变更：`About` 里那堆更新字段被抽成了
+独立的 `UpdateInfo`（`About` 现在是 `extends UpdateInfo` 再加一个 `version`），
+另外多了一个 `WebUI`（`owner` / `repo` / `version` / `filename`）—— 正是 `webui.json` 的形状。
+所以 `webuiGetUpdate()` 的返回类型从 `About` 改成了 `UpdateInfo`，
+`shared/github.ts` 里那个 `WebuiMeta` 也不再手写字段，直接 `Required<WebUI>`。
+
+端点数用 `shared/tools/extract-api.mjs` 同样核过：70 个 / 23 个 controller，
+和源码里声明的路径一一对上，`/api/webui/*` 那四个都在。
 
 ## 主题
 
@@ -407,7 +416,7 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 webui/
 ├── shared/                九款共用，不含 UI 组件
 │   ├── http.ts            传输层：Result 拆包、令牌、子路径自适应
-│   ├── api.ts             66 个端点的具名封装
+│   ├── api.ts             70 个端点的具名封装
 │   ├── types.ts           从 Java 实体生成
 │   ├── format.ts          体积/时间/集数格式化
 │   ├── player.ts          webplayer 接入：地址拼装与部署探测

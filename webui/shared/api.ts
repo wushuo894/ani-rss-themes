@@ -6,7 +6,9 @@
  * 上游是裸模板串拼接（`api/searchBgm?name=${name}`），番剧名里有 & 就会截断，
  * getSubtitles 传 base64 时里面的 '+' 还会被服务端解成空格。
  *
- * 端点清单来源：从 test 分支源码实抽并自校验，共 66 个（见 scratchpad/spec-api.md）。
+ * 端点清单来源：从 test 分支源码实抽并自校验，共 70 个 —— 用 shared/tools/extract-api.mjs
+ * 对着上游源码重跑，它会核对「抽出来的」和「源码里声明的」是不是一一对上。
+ * 其中 file / proxyImage 这两个走 <img src>、设不了请求头的在 http.ts 里，不在这份。
  */
 import {md5} from 'js-md5'
 import {http, toApiUrl, getToken, base64Encode} from './http'
@@ -14,7 +16,7 @@ import type {
     About, Ani, AniBT, AniBTGroup, AniBTQueryDTO, AnimeGardenGroup, AnimeGardenWeek,
     BgmInfo, BgmMe, CollectionInfo, Config, EmbyViews, ImportAniDataDTO, Item, ListAni,
     Log, Login, Mikan, MikanGroup, MikanSeason, NotificationConfig, PlayItem,
-    PlayItemSubtitles, ProxyTest, RssToAniDTO, ThemoviedbVO, TorrentsInfo,
+    PlayItemSubtitles, ProxyTest, RssToAniDTO, ThemoviedbVO, TorrentsInfo, UpdateInfo,
 } from './types'
 
 /** 把查询参数拼到路径上，值一律转义 */
@@ -215,10 +217,11 @@ export const about = () => http.post<About>('api/about')
  * 拿 GitHub 上 releases/latest 的 tag 跟 version 比，对得上 filename 的那个资产
  * 校验 size + sha256 后**整个删掉 webui 目录再解压**。所以：
  *  - 老版本 ani-rss 上这两个端点是 404，getUpdate 用 postQuiet 探测，失败就当不支持；
- *  - 返回的是 UpdateInfo，字段和 About 一模一样、只少一个 version ——
- *    界面自己的版本号后端根本不知道，用构建期注入的 __VERSION__（与包里 webui.json 同源）。
+ *  - 返回的是 UpdateInfo：上游 e497071 把 About 里那堆更新字段抽成了它，
+ *    About 现在是 `extends UpdateInfo` 再加一个 version —— 界面自己的版本号后端根本不知道，
+ *    用构建期注入的 __VERSION__（与包里 webui.json 同源）。
  */
-export const webuiGetUpdate = () => http.postQuiet<About>('api/webui/getUpdate')
+export const webuiGetUpdate = () => http.postQuiet<UpdateInfo>('api/webui/getUpdate')
 export const webuiUpdate = () => http.post<void>('api/webui/update')
 
 /*

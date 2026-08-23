@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from 'vue'
-import type {About} from '@shared/types'
+import type {About, UpdateInfo} from '@shared/types'
 import * as api from '@shared/api'
 import {ApiError, getBaseUrl} from '@shared/http'
 import {fetchLatest, readWebuiMeta, type WebuiLatest} from '@shared/github'
@@ -24,8 +24,8 @@ const pkg = ref<File[]>([])
 /* 这套界面自己的版本号：构建期注入，和发布包里 webui.json 的 version 同一个数 ——
    后端就是拿那个数跟 Release 的 tag 比来判断有没有新版的 */
 const WEBUI_VERSION = __VERSION__
-/** 后端返回的 UpdateInfo（字段同 About，只是没有 version） */
-const webui = ref<About | null>(null)
+/** 后端返回的 UpdateInfo。About 现在就是 `UpdateInfo + version`，两边字段天然对得上 */
+const webui = ref<UpdateInfo | null>(null)
 
 /*
  * 后端那条更新检查的状态。原来只有一个布尔 webuiSupported，把两种完全不同的情况
@@ -58,7 +58,7 @@ const showWebuiActions = computed(() => webuiCheck.value === 'ok'
 
 /* 两条路查出来的字段是对得上的，合成一个给下面的卡片用 ——
    不然版本号、发布时间、更新内容每一处都要写两遍 */
-const webuiInfo = computed<About | null>(() => webui.value ?? (fallback.value ? {
+const webuiInfo = computed<UpdateInfo | null>(() => webui.value ?? (fallback.value ? {
   latest: fallback.value.latest,
   update: fallback.value.update,
   downloadUrl: fallback.value.downloadUrl,
