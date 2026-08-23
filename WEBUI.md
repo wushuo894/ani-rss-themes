@@ -117,9 +117,34 @@ irm .../install.ps1 | iex
 **更新界面到 x.y.z** —— 点了后端去 GitHub 取对应的包，校验大小和 sha256，
 **清空 `config/webui/` 再解压**，完事页面自己刷新，这一路不用重启 ani-rss。
 
-两个前提：ani-rss 得是带 `/api/webui/*` 的版本（上游 `test` 分支 2026-08-22 之后），
-包里的 `webui.json` 不能删。缺任何一个，关于页只显示版本号，不给更新按钮。
+两个前提：ani-rss 得是带 `/api/webui/*` 的版本（3.2.16 起），包里的 `webui.json` 不能删。
 往 `config/webui/` 里放过自己的文件的话先备份 —— 更新是整个目录换掉。
+
+#### 3.2.17 上后端查不了，界面自己查
+
+3.2.17 那次重构把 `webui.json` 的路径写成了 `new File(webuiDir, "webui/webui.json")`，
+而 `webuiDir` 本身就是 `config/webui` —— 多了一级。后端因此**一律回「无 WebUI 更新」**，
+不是真没有更新，是它没找到那份版本信息。
+
+关于页现在把三种情况分开说，不再一律甩一句「当前 ani-rss 不支持在线更新界面」：
+
+| 状态 | 什么情况 | 界面怎么做 |
+|---|---|---|
+| `ok` | 后端查得到 | 照旧，有新版给「更新界面到 x.y.z」，下载解压都在服务器上跑 |
+| `unsupported` | 3.2.16 以前，压根没这两个端点（回 `{code: 404}`） | 只显示版本号，提示去 Releases 手动装 |
+| `broken` | 有端点但后端找不到 `webui.json`（3.2.17） | 界面**自己**去 `api.github.com` 问一次，照样显示「有新版本 x.y.z」和更新内容，主按钮换成「下载 x.y.z 的包」 |
+
+备胎只查版本、不下载：GitHub 的发布资产最终落在 `release-assets.githubusercontent.com`，
+那个响应**不带 `Access-Control-Allow-Origin`**（实测 302 之后的 206 里没有这个头），
+浏览器 `fetch` 拿不到；`api.github.com` 本身是带 CORS 的，所以查得动。
+下载只能让浏览器自己去（`<a>` 导航不受同源策略管），下完在「更换界面」里传上去。
+
+`webui.json` 从哪来：备胎读的是 `config/webui/webui.json`（自己这个源上的静态文件，
+不走接口），owner / repo / filename 都在里面，所以九款各查各的包，不会串。
+
+**1.0.56 起的发布包在两个位置各放了一份 `webui.json`** —— 根目录那份是上传时校验用的
+（后端查的是 `ZipFile#getEntry("webui.json")`），`webui/` 下那份正是 3.2.17 找的那个位置。
+所以在 3.2.17 上下载新包传一次，后端那条路就自己好了，不用等上游修。
 
 关于页上有**两段**更新内容，各归各的：「ani-rss 更新内容」是上游那个程序的，
 「〈款名〉WebUI 更新内容」才是这套界面的。两段都常显，不再要求「有新版才显示」——

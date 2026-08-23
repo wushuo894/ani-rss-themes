@@ -159,8 +159,8 @@ let skewWarned = false
 /**
  * quiet：失败时不弹全局提示，只抛 ApiError 给调用方。
  * 给「这个后端有没有这个端点」这类探测用 —— 老版本 ani-rss 没有 /api/webui/*，
- * 返回的是 Spring 的 404 包（没有 code、没有 message），照常走全局提示就是
- * 每次打开关于页弹一句「undefined」。
+ * 回的是 {code: 404, message: "404 Not Found !"}，照常走全局提示就是
+ * 每次打开关于页弹一句「404 Not Found !」，而这只是探测的正常结果。
  */
 async function request<T>(path: string, method: string, body?: unknown, quiet = false): Promise<T> {
     const headers: Record<string, string> = {}
@@ -194,12 +194,14 @@ async function request<T>(path: string, method: string, body?: unknown, quiet = 
 
     if (json.code >= 200 && json.code < 300) return json.data
 
-    /* 后端的错误包一定有 code 和 message，但**不是所有 JSON 都出自后端**：
-       端点不存在时回的是 Spring 自己那份 {timestamp, status, error, path}，两个字段都没有。
-       照原样往下抛就是一个 code=undefined、message=undefined 的 ApiError ——
-       提示弹出来是「undefined」，调用方也没法按状态码分情况说话
-       （关于页那个「换界面」就要靠 404 认出「这版 ani-rss 还没这个功能」）。
-       没有 code 就退回 HTTP 状态码，没有 message 就退回 Spring 的 error。 */
+    /* 后端的错误包一定有 code 和 message，但**不是所有 JSON 都出自后端**。
+       ani-rss 自己的 CustomExceptionHandler 把「没有这个端点」也包成了 {code: 404}
+       （HTTP 仍是 200），所以老版本上探测 /api/webui/* 拿到的是正常信封 ——
+       关于页就是靠这个 404 认出「这版 ani-rss 还没这个功能」的。
+       但请求不一定走得到它：反代挡在前面、容器没起来、路径被别的东西接管，
+       回来的可能是别人家的 JSON，两个字段都没有。照原样往下抛就是一个
+       code=undefined、message=undefined 的 ApiError，提示弹出来是「undefined」。
+       没有 code 就退回 HTTP 状态码，没有 message 就退回 error 字段。 */
     const code = typeof json.code === 'number' ? json.code : res.status
     const message = json.message || (json as {error?: string}).error || `HTTP ${res.status}`
 

@@ -2,7 +2,8 @@
 import {computed, onMounted, ref} from 'vue'
 import type {About} from '@shared/types'
 import * as api from '@shared/api'
-import {ApiError} from '@shared/http'
+import {ApiError, getBaseUrl} from '@shared/http'
+import {fetchLatest, readWebuiMeta, type WebuiLatest} from '@shared/github'
 import {formatSize} from '@shared/format'
 import {renderMarkdown} from '@shared/markdown'
 import {useConfigStore} from '@/stores/config'
@@ -25,12 +26,46 @@ const pkg = ref<File[]>([])
 const WEBUI_VERSION = __VERSION__
 /** 后端返回的 UpdateInfo（字段同 About，只是没有 version） */
 const webui = ref<About | null>(null)
-/** 老版本 ani-rss 没有 /api/webui/*，探测失败就只显示版本号、不给更新入口 */
-const webuiSupported = ref(true)
+
+/*
+ * 后端那条更新检查的状态。原来只有一个布尔 webuiSupported，把两种完全不同的情况
+ * 混成了同一句「当前 ani-rss 不支持在线更新界面」：
+ *
+ *   unsupported  真没有 /api/webui/*（3.2.16 以前），那句话是对的
+ *   broken       有这两个端点，但后端找不到 webui.json —— 3.2.17 把路径写成了
+ *                config/webui/webui/webui.json（多了一级），于是它永远回「无 WebUI 更新」。
+ *                这一版恰恰是**支持**换界面的，说成「不支持」等于把人劝走。
+ */
+const webuiCheck = ref<'ok' | 'unsupported' | 'broken'>('ok')
+/** 后端查不动时，自己拿装着的这份 webui.json 去 GitHub 问一次 */
+const fallback = ref<WebuiLatest | null>(null)
+/** 备胎也没查到时是卡在哪一步：meta = 包里没有 webui.json，net = GitHub 没问到 */
+const fallbackFail = ref<'meta' | 'net' | null>(null)
+
+/*
+ * 「手动下载」这颗在后端查不动时是主按钮，标题也不一样：
+ * 有新版就是「下载 x 的包」，已经是最新版还给这颗，是因为**重新装一次就能把后端那条路修好**
+ * —— 1.0.56 起的包在 3.2.17 找的那个位置也放了一份 webui.json。
+ */
+const downloadLabel = computed(() => {
+  if (webuiCheck.value !== 'broken') return '手动下载'
+  return `${webuiInfo.value?.update ? '下载' : '重新下载'} ${webuiInfo.value?.latest} 的包`
+})
+
+/* 两条路查出来的字段是对得上的，合成一个给下面的卡片用 ——
+   不然版本号、发布时间、更新内容每一处都要写两遍 */
+const webuiInfo = computed<About | null>(() => webui.value ?? (fallback.value ? {
+  latest: fallback.value.latest,
+  update: fallback.value.update,
+  downloadUrl: fallback.value.downloadUrl,
+  size: fallback.value.size,
+  markdownBody: fallback.value.markdownBody,
+  date: fallback.value.date,
+} : null))
 
 /* 两段更新说明都是 Markdown。渲染器自己先把整段转义成纯文本再拼标签，所以 v-html 是安全的 */
 const aniRssNotes = computed(() => renderMarkdown(info.value?.markdownBody ?? ''))
-const webuiNotes = computed(() => renderMarkdown(webui.value?.markdownBody ?? ''))
+const webuiNotes = computed(() => renderMarkdown(webuiInfo.value?.markdownBody ?? ''))
 
 onMounted(load)
 
@@ -48,11 +83,19 @@ async function load() {
 async function loadWebui() {
   try {
     webui.value = await api.webuiGetUpdate()
-    webuiSupported.value = true
-  } catch {
+    webuiCheck.value = 'ok'
+    fallback.value = null
+    return
+  } catch (e) {
     webui.value = null
-    webuiSupported.value = false
+    webuiCheck.value = notSupported(e) ? 'unsupported' : 'broken'
   }
+
+  /* 后端查不动，自己查。只查版本不下载 ——
+     GitHub 的发布资产不带 CORS 头，浏览器 fetch 不下来，下载得让用户点链接。 */
+  const meta = await readWebuiMeta(getBaseUrl())
+  fallback.value = meta ? await fetchLatest(meta) : null
+  fallbackFail.value = fallback.value ? null : (meta ? 'net' : 'meta')
 }
 
 async function doWebuiUpdate() {
@@ -234,36 +277,58 @@ async function doStop(status: number) {
         <div class="d-flex align-center flex-wrap ga-2 mb-2">
           <span class="text-h6">{{ presetMeta.name }} WebUI</span>
           <v-chip size="small" variant="tonal">{{ WEBUI_VERSION }}</v-chip>
-          <v-chip v-if="webui?.update" color="warning" size="small" variant="tonal">
-            有新版本 {{ webui.latest }}
+          <v-chip v-if="webuiInfo?.update" color="warning" size="small" variant="tonal">
+            有新版本 {{ webuiInfo.latest }}
           </v-chip>
-          <v-chip v-else-if="webui" color="success" size="small" variant="tonal">已是最新</v-chip>
+          <v-chip v-else-if="webuiInfo" color="success" size="small" variant="tonal">已是最新</v-chip>
+          <!-- 这一版是自己去 GitHub 查的，跟后端查的不是一回事，得让人看得出来 -->
+          <v-chip v-if="fallback" size="x-small" variant="text">来自 GitHub</v-chip>
         </div>
 
-        <div v-if="!webuiSupported" class="text-caption text-medium-emphasis">
+        <!-- 真没有这两个端点（3.2.16 以前） -->
+        <div v-if="webuiCheck === 'unsupported'" class="text-caption text-medium-emphasis">
           当前 ani-rss 不支持在线更新界面，去 Releases 下压缩包解压到 config/webui/ 覆盖即可。
         </div>
-        <template v-else>
-          <div v-if="webui?.date" class="text-caption text-medium-emphasis">发布时间：{{ webui.date }}</div>
-          <div v-if="webui?.size" class="text-caption text-medium-emphasis">
-            压缩包：{{ webui.formatSize || formatSize(webui.size) }}
+
+        <!-- 有端点但后端找不到 webui.json：3.2.17 那个路径写多了一级。
+             这一版是支持换界面的，别把人劝去 SSH —— 传一次新包就恢复正常了 -->
+        <div v-else-if="webuiCheck === 'broken'" class="text-caption text-medium-emphasis mb-1">
+          这版 ani-rss 读 <code>webui.json</code> 时多找了一级目录（<code>config/webui/webui/</code>），
+          后端的更新检查用不了。
+          <template v-if="fallback">上面这版是本界面自己去 GitHub 问来的。</template>
+          <template v-else-if="fallbackFail === 'meta'">
+            而且这份界面的目录里没有 <code>webui.json</code>，两边都无从比起 —— 去 Releases 下一个完整的包。
+          </template>
+          <template v-else>GitHub 也没问到（限流或者网络不通），过一会儿再看。</template>
+          1.0.56 起的包在它找的那个位置也放了一份，下载下来用下面的「上传并切换」传一次，这条路就恢复正常。
+        </div>
+
+        <template v-if="webuiCheck !== 'unsupported'">
+          <div v-if="webuiInfo?.date" class="text-caption text-medium-emphasis">发布时间：{{ webuiInfo.date }}</div>
+          <div v-if="webuiInfo?.size" class="text-caption text-medium-emphasis">
+            压缩包：{{ webuiInfo.formatSize || formatSize(webuiInfo.size) }}
           </div>
           <!-- 更新是「删掉整个 webui 目录再解压」，放进去的额外文件会一起没 -->
-          <div v-if="webui?.update" class="text-caption text-medium-emphasis">
+          <div v-if="webuiInfo?.update" class="text-caption text-medium-emphasis">
             更新会先清空 config/webui/ 再解压，自己往里放过的文件请先备份。
           </div>
         </template>
       </v-card-text>
     </v-card>
 
-    <div v-if="webuiSupported && (webui?.update || webui?.downloadUrl)" class="d-flex flex-wrap ga-2 mb-4">
-      <v-btn v-if="webui?.update" :loading="busy === 'webui'" color="primary" prepend-icon="mdi-download"
-             variant="flat" @click="doWebuiUpdate">
-        更新界面到 {{ webui.latest }}
+    <div v-if="webuiCheck !== 'unsupported' && (webuiInfo?.update || webuiInfo?.downloadUrl)"
+         class="d-flex flex-wrap ga-2 mb-4">
+      <!-- 后端那条路能用才给这颗：下载解压都在服务器上跑，认代理也认 githubToken -->
+      <v-btn v-if="webuiCheck === 'ok' && webuiInfo?.update" :loading="busy === 'webui'" color="primary"
+             prepend-icon="mdi-download" variant="flat" @click="doWebuiUpdate">
+        更新界面到 {{ webuiInfo.latest }}
       </v-btn>
-      <v-btn v-if="webui?.downloadUrl" :href="webui.downloadUrl" prepend-icon="mdi-open-in-new" target="_blank"
-             variant="text">
-        手动下载
+      <!-- 后端查不动时这颗就是主按钮：浏览器下不了这个包（GitHub 的发布资产不带 CORS 头），
+           只能让浏览器自己去下，下完在下面那张卡里传上来 -->
+      <v-btn v-if="webuiInfo?.downloadUrl" :color="webuiCheck === 'broken' ? 'primary' : undefined"
+             :href="webuiInfo.downloadUrl" :variant="webuiCheck === 'broken' ? 'flat' : 'text'"
+             prepend-icon="mdi-open-in-new" target="_blank">
+        {{ downloadLabel }}
       </v-btn>
     </div>
 
@@ -273,10 +338,10 @@ async function doStop(status: number) {
       于是页面上唯一看得见的「更新内容」是 ani-rss 那一段，看着就像界面在拿别人的更新充数。
       已经是最新版时看一眼这一版改了什么，本来也是正当需求。
     -->
-    <v-card v-if="webui?.markdownBody" class="mb-4" variant="flat">
+    <v-card v-if="webuiInfo?.markdownBody" class="mb-4" variant="flat">
       <v-card-title class="d-flex align-center ga-2 text-subtitle-2">
         <span>{{ presetMeta.name }} WebUI 更新内容</span>
-        <v-chip v-if="webui.latest" size="x-small" variant="tonal">{{ webui.latest }}</v-chip>
+        <v-chip v-if="webuiInfo.latest" size="x-small" variant="tonal">{{ webuiInfo.latest }}</v-chip>
       </v-card-title>
       <v-divider/>
       <v-card-text>
