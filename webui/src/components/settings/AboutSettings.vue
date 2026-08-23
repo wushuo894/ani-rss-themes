@@ -32,9 +32,10 @@ const webui = ref<About | null>(null)
  * 混成了同一句「当前 ani-rss 不支持在线更新界面」：
  *
  *   unsupported  真没有 /api/webui/*（3.2.16 以前），那句话是对的
- *   broken       有这两个端点，但后端找不到 webui.json —— 3.2.17 把路径写成了
- *                config/webui/webui/webui.json（多了一级），于是它永远回「无 WebUI 更新」。
- *                这一版恰恰是**支持**换界面的，说成「不支持」等于把人劝走。
+ *   broken       有这两个端点，但后端找不到 config/webui/webui.json，于是一律回
+ *                「无 WebUI 更新」。这种机器往往**是支持**换界面的，说成「不支持」等于把人劝走。
+ *                见过两种：镜像是那版把路径多找了一级的 3.2.17（上游 81f43b5 已修），
+ *                或者 config/webui/ 是自己攒的、没放 webui.json。
  */
 const webuiCheck = ref<'ok' | 'unsupported' | 'broken'>('ok')
 /** 后端查不动时，自己拿装着的这份 webui.json 去 GitHub 问一次 */
@@ -43,14 +44,17 @@ const fallback = ref<WebuiLatest | null>(null)
 const fallbackFail = ref<'meta' | 'net' | null>(null)
 
 /*
- * 「手动下载」这颗在后端查不动时是主按钮，标题也不一样：
- * 有新版就是「下载 x 的包」，已经是最新版还给这颗，是因为**重新装一次就能把后端那条路修好**
- * —— 1.0.56 起的包在 3.2.17 找的那个位置也放了一份 webui.json。
+ * 后端查得动的时候，「手动下载」只是给不想让服务器去下的人留的一条小路（文字按钮）；
+ * 查不动的时候它就是主按钮 —— 更新只能走「下载下来再传上去」这一条路，得说清楚下的是什么。
  */
-const downloadLabel = computed(() => {
-  if (webuiCheck.value !== 'broken') return '手动下载'
-  return `${webuiInfo.value?.update ? '下载' : '重新下载'} ${webuiInfo.value?.latest} 的包`
-})
+const downloadLabel = computed(() =>
+    webuiCheck.value === 'broken' ? `下载 ${webuiInfo.value?.latest} 的包` : '手动下载')
+
+/* 两颗按钮都藏起来时别留一个空的 flex 行在那儿 —— 它自带 mb-4，看着就是凭空多出一段空白。
+   后端查不动而且已经是最新版时就是这种情况：同一个包再下一遍没有意义。 */
+const showWebuiActions = computed(() => webuiCheck.value === 'ok'
+    ? !!(webuiInfo.value?.update || webuiInfo.value?.downloadUrl)
+    : webuiCheck.value === 'broken' && !!webuiInfo.value?.update && !!webuiInfo.value?.downloadUrl)
 
 /* 两条路查出来的字段是对得上的，合成一个给下面的卡片用 ——
    不然版本号、发布时间、更新内容每一处都要写两遍 */
@@ -112,12 +116,11 @@ async function doWebuiUpdate() {
 }
 
 /*
- * 换界面 / 还原自带界面。
+ * 换界面 / 还原自带界面。这两个端点是 3.2.17 才有的。
  *
- * 这两个端点是 3.2.17 才有的，而**同一个版本上 getUpdate 是坏的**
- * （WebUIService 把 webui.json 找去了 config/webui/webui/ 这一层，多了一级），
- * 所以不能跟着 webuiSupported 一起藏 —— 那样恰好在唯一支持换界面的版本上看不见按钮。
- * 老版本上就让它 404，在下面按错误码说人话。
+ * 不跟着更新检查那块一起藏：两件事的前提不一样 —— 更新检查要读得到 webui.json，
+ * 换界面不用。有过一版 3.2.17 的构建正是「更新检查坏了但换界面好使」，
+ * 跟着藏的话按钮恰好在最需要它的那种机器上看不见。老版本就让它 404，按错误码说人话。
  */
 function notSupported(e: unknown): boolean {
   return e instanceof ApiError && (e.code === 404 || e.code === 405)
@@ -290,17 +293,18 @@ async function doStop(status: number) {
           当前 ani-rss 不支持在线更新界面，去 Releases 下压缩包解压到 config/webui/ 覆盖即可。
         </div>
 
-        <!-- 有端点但后端找不到 webui.json：3.2.17 那个路径写多了一级。
-             这一版是支持换界面的，别把人劝去 SSH —— 传一次新包就恢复正常了 -->
+        <!-- 有端点但后端找不到 webui.json。这种机器往往是支持换界面的，
+             别把人劝去 SSH —— 备胎查得到就照常显示新版本，下载下来传上去一样能更新 -->
         <div v-else-if="webuiCheck === 'broken'" class="text-caption text-medium-emphasis mb-1">
-          这版 ani-rss 读 <code>webui.json</code> 时多找了一级目录（<code>config/webui/webui/</code>），
-          后端的更新检查用不了。
+          后端没在 <code>config/webui/</code> 里读到 <code>webui.json</code>，更新检查用不了 ——
+          有一版 3.2.17 的构建把它多找了一级（<code>config/webui/webui/</code>）。
           <template v-if="fallback">上面这版是本界面自己去 GitHub 问来的。</template>
           <template v-else-if="fallbackFail === 'meta'">
             而且这份界面的目录里没有 <code>webui.json</code>，两边都无从比起 —— 去 Releases 下一个完整的包。
           </template>
           <template v-else>GitHub 也没问到（限流或者网络不通），过一会儿再看。</template>
-          1.0.56 起的包在它找的那个位置也放了一份，下载下来用下面的「上传并切换」传一次，这条路就恢复正常。
+          升级一下 ani-rss 就好（作者已经改回来了，同一个版本号重新推的，镜像重新拉一次）。
+          在那之前，下载下来用下面的「上传并切换」照样能更新界面。
         </div>
 
         <template v-if="webuiCheck !== 'unsupported'">
@@ -316,8 +320,7 @@ async function doStop(status: number) {
       </v-card-text>
     </v-card>
 
-    <div v-if="webuiCheck !== 'unsupported' && (webuiInfo?.update || webuiInfo?.downloadUrl)"
-         class="d-flex flex-wrap ga-2 mb-4">
+    <div v-if="showWebuiActions" class="d-flex flex-wrap ga-2 mb-4">
       <!-- 后端那条路能用才给这颗：下载解压都在服务器上跑，认代理也认 githubToken -->
       <v-btn v-if="webuiCheck === 'ok' && webuiInfo?.update" :loading="busy === 'webui'" color="primary"
              prepend-icon="mdi-download" variant="flat" @click="doWebuiUpdate">
@@ -325,7 +328,8 @@ async function doStop(status: number) {
       </v-btn>
       <!-- 后端查不动时这颗就是主按钮：浏览器下不了这个包（GitHub 的发布资产不带 CORS 头），
            只能让浏览器自己去下，下完在下面那张卡里传上来 -->
-      <v-btn v-if="webuiInfo?.downloadUrl" :color="webuiCheck === 'broken' ? 'primary' : undefined"
+      <v-btn v-if="webuiInfo?.downloadUrl && (webuiCheck === 'ok' || webuiInfo.update)"
+             :color="webuiCheck === 'broken' ? 'primary' : undefined"
              :href="webuiInfo.downloadUrl" :variant="webuiCheck === 'broken' ? 'flat' : 'text'"
              prepend-icon="mdi-open-in-new" target="_blank">
         {{ downloadLabel }}

@@ -4,13 +4,15 @@
  * 正常这件事该后端做（POST /api/webui/getUpdate）：它认代理、认 githubToken，
  * 下载和解压也都在服务器上跑，浏览器不用碰 15MB 的压缩包。这份是**那条路坏了时的备胎**。
  *
- * 坏在哪：ani-rss 3.2.17（上游 test 分支 94afa0b）那次重构把 webui.json 的路径写成了
- *
- *     new File(webuiDir, "webui/webui.json")     // webuiDir 本身就是 {configDir}/webui
- *
- * 多了一级，于是装在 3.2.17 上的界面，后端一律回「无 WebUI 更新」——
+ * 什么时候用得上：后端找不到 {configDir}/webui/webui.json 的时候。它会回「无 WebUI 更新」——
  * 不是真没有更新，是它没找到那份版本信息。关于页照着这个结果显示，就成了
- * 「当前 ani-rss 不支持在线更新界面」，而实际上这一版恰恰是支持的。
+ * 「当前 ani-rss 不支持在线更新界面」，而这时换界面那两个端点往往好使着。
+ *
+ * 见过两种：
+ *  - 有过一版 3.2.17 的构建把路径写成了 new File(webuiDir, "webui/webui.json")，
+ *    而 webuiDir 本身就是 {configDir}/webui —— 多了一级。上游 81f43b5 已经改回来，
+ *    同一个版本号重新推的，镜像重新拉一次就好；拉之前就靠这份备胎顶着。
+ *  - config/webui/ 是自己攒的，压根没放 webui.json。
  *
  * 这份备胎只查版本，**不下载**：GitHub 的发布资产最终落在
  * release-assets.githubusercontent.com 上，那个响应不带 Access-Control-Allow-Origin

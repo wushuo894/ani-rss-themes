@@ -258,12 +258,9 @@ jobs:
             printf '{"owner":"%s","repo":"%s","version":"%s","filename":"%s"}\n' \
               "${{ github.repository_owner }}" "${GH_REPO#*/}" "$TAG" "ani-rss-webui-$id.zip" \
               > "$stage/webui.json"
-            # 再抄一份到 webui/ 里。3.2.17 那次重构把读取路径写成了
-            # new File(webuiDir, "webui/webui.json")，而 webuiDir 本身就是 config/webui —— 多了一级，
-            # 只放根目录那份的话，装在 3.2.17 上「检查界面更新」永远说没有更新。
-            # 根目录那份不能省：上传界面时后端查的是 ZipFile#getEntry("webui.json")。
-            mkdir -p "$stage/webui"
-            cp "$stage/webui.json" "$stage/webui/webui.json"
+            # 就这一份，放在包的根目录：在线更新读的是 config/webui/webui.json，
+            # 上传时后端查的也是 ZipFile#getEntry("webui.json") —— 同一个位置，不用抄第二份。
+            # （3.2.17 有过一版把它找去 config/webui/webui/ 的构建，上游 81f43b5 已经改回来了。）
             # 解压后必须直接就是 config/webui/index.html，不能多套一层目录
             test -f "$stage/index.html"           || { echo "::error::$id 包根目录没有 index.html"; exit 1; }
             test -f "$stage/player/play.html"     || { echo "::error::$id 包里没有 player/play.html"; exit 1; }
