@@ -172,17 +172,23 @@ const pin = ref<{text: string; bgmUrl: string}>({text: '', bgmUrl: ''})
 function mapGroups(list: (MikanGroup | AniBTGroup | AnimeGardenGroup)[]): Group[] {
   return list.map(g => {
     const it = g as MikanGroup & AniBTGroup & AnimeGardenGroup
+    const raw = (it.items ?? []).slice(0, 8).map(r => r as MikanItem & AniBTItem & AnimeGardenItem)
+    /* 「最近更新」：AniBT / AnimeGarden 在组上直接给了 lastUpdatedAt，
+       Mikan 没有，就取这个组最新一条资源的时间 —— 三家都能显示出来。 */
+    const stamp = (v?: string | number) => (v == null ? 0 : new Date(v).getTime() || 0)
+    const last = stamp(it.lastUpdatedAt) || Math.max(0, ...raw.map(x => stamp(x.createdAt ?? x.publishedAt)))
     return {
       label: it.label || it.name || '未知字幕组',
       rss: it.rss || '',
       // AniBT / AnimeGarden 只给 bgmId，自己拼成条目地址，否则订阅进来是没有 Bgm 的
       bgmUrl: it.bgmUrl || (it.bgmId ? `https://bgm.tv/subject/${it.bgmId}` : undefined),
-      sub: it.updateDay || it.status
-          || (it.lastUpdatedAt ? `最近更新 ${fromNow(new Date(it.lastUpdatedAt).getTime())}` : ''),
+      /* 原来是 `updateDay || status || 最近更新` —— AniBT 每个组都带 status，
+         后面那截永远轮不到，发布时间明明拿到了却一直不显示。改成两段都要。 */
+      sub: [it.updateDay || it.status, last ? `最近更新 ${fromNow(last)}` : '']
+          .filter(Boolean).join(' · '),
       tags: it.groupRegex?.tags,
       regexList: it.groupRegex?.regexList ?? [],
-      items: (it.items ?? []).slice(0, 8).map(r => {
-        const x = r as MikanItem & AniBTItem & AnimeGardenItem
+      items: raw.map(x => {
         const t = x.createdAt ?? x.publishedAt
         return {
           title: x.title || '',
@@ -480,7 +486,12 @@ function search() {
           <div v-for="it in shownItems" :key="it.key" :class="{open: openKey === it.key}" class="tile">
             <button class="tile-head" type="button" @click="toggleItem(it)">
               <div class="cover">
-                <v-img v-if="it.cover" :src="coverOf(it.cover)" cover>
+                <!-- 必须给 height：不给的话 v-img 按图片的固有比例撑一个 .v-responsive
+                     出来，横版封面（有些站只给横图）算出来才三十来像素高，缩在 74px 的
+                     框子顶上变成一条 —— 剩下的全是灰底。钉死 100% 让它永远占满框，
+                     裁剪交给 object-fit。Vuetify 那条 .v-responsive{max-height:100%}
+                     是组件自己的规则，不去改它。 -->
+                <v-img v-if="it.cover" :src="coverOf(it.cover)" cover height="100%">
                   <template #placeholder>
                     <div class="cover-ph">
                       <v-icon icon="mdi-image-outline" size="20"/>
@@ -494,9 +505,9 @@ function search() {
               </div>
               <div class="tile-meta">
                 <div class="tile-title">{{ it.title }}</div>
-                <div class="tile-sub">
-                  <span v-if="it.score" class="score">★ {{ it.score.toFixed(1) }}</span>
-                  <span>{{ openKey === it.key ? '收起字幕组' : '看字幕组' }}</span>
+                <!-- 展不展开右边那颗箭头已经说清楚了，不用再写一遍「看字幕组」 -->
+                <div v-if="it.score" class="tile-sub">
+                  <span class="score">★ {{ it.score.toFixed(1) }}</span>
                 </div>
               </div>
               <v-icon :class="{flip: openKey === it.key}" class="chev" icon="mdi-chevron-down" size="20"/>
