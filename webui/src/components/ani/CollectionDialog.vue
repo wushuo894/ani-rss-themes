@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import {computed, ref} from 'vue'
 import {useDisplay} from 'vuetify'
-import type {BgmInfo, CollectionInfo, Item} from '@shared/types'
+import type {Ani, BgmInfo, CollectionInfo, Item} from '@shared/types'
 import * as api from '@shared/api'
 import {useUiStore} from '@/stores/ui'
 import {pickedFile} from '@/composables/pickedFile'
@@ -11,13 +11,62 @@ const model = defineModel<boolean>({required: true})
 const ui = useUiStore()
 const {mobile} = useDisplay()
 
+/*
+ * 合集默认排除的东西：特典目录、字体、无字幕 OP/ED、迷你动画。
+ * 抄的是上游 CollectionView 选完 Bangumi 条目之后写死的那两条，
+ * 不是订阅用的那套（720p / 合集 / 特别篇）—— 合集里那几条会把整包过滤光。
+ */
+const COLLECTION_EXCLUDE = ['^(SPs?|CDs|Scans|PV|menu)/', 'Fonts|NCED|NCOP|迷你动画']
+
+/**
+ * 一份「什么都填好了」的空订阅。
+ *
+ * 不能只给 {} —— 后端 CollectionService.preview() 里是直接
+ * `exclude.isEmpty()` / `match.isEmpty()` / `if (globalExclude)` 这么用的，
+ * 三个都不判空，少一个就是
+ * `Cannot invoke "java.util.List.isEmpty()" because "exclude" is null`，
+ * 而预览、开始下载、识别字幕组全都要走 preview()，等于整个合集功能都用不了。
+ * 上游没这问题只是因为它的种子上传藏在「选完条目」后面，条目一到手就把这些字段填上了；
+ * 我们这边允许先传种子，那默认值就得自己备齐。
+ *
+ * 每次现造一个，不要共用一份常量：里面几个数组会被就地改。
+ */
+function blankAni(): Ani {
+  return {
+    title: '', subgroup: '', season: 1, offset: 0,
+    match: [], exclude: [...COLLECTION_EXCLUDE], globalExclude: true,
+    // 日期给今天而不是空串：重命名模板里的 ${year} 要从这儿取
+    releaseDate: new Date().toISOString().slice(0, 10),
+    ova: false, enable: true, omit: true, downloadNew: false, notDownload: [],
+    currentEpisodeNumber: 0, totalEpisodeNumber: 0, score: 0,
+    themoviedbName: '', standbyRssList: [],
+    customDownloadPath: false, customDownloadPathTemplate: '',
+    customEpisode: false, customEpisodeStr: '', customEpisodeGroupIndex: 0,
+    customRenameTemplateEnable: false, customRenameTemplate: '',
+    customTagsEnable: false, customTags: [],
+    customPriorityKeywordsEnable: false, customPriorityKeywords: [],
+    customUploadEnable: false, customUploadPathTarget: '',
+    customCompleted: false, customCompletedPathTemplate: '',
+    completed: false, message: true, upload: false, procrastinating: false,
+  }
+}
+
 const busy = ref('')
 const files = ref<File[]>([])
 /** 后端要的是 .torrent 的 base64，不是文件本身 */
-const data = ref<CollectionInfo>({torrent: '', ani: {}, bgmInfo: {}})
+const data = ref<CollectionInfo>({torrent: '', ani: blankAni(), bgmInfo: {}})
 const keyword = ref('')
 const results = ref<BgmInfo[]>([])
 const preview = ref<Item[]>([])
+/** 预览单开一个窗口：一包合集动辄几十个文件，接在表单下面只能一直往下滚 */
+const previewOpen = ref(false)
+
+/* 从预览结果的文件名里认字幕组（上游预览框也是这么认的），和当前填的不一样就提示换 */
+const detected = computed(() => {
+  const hit = preview.value.map(it => /^\[(.+?)]/.exec(it.title ?? '')).find(Boolean)
+  const sub = hit?.[1]
+  return sub && sub !== data.value.ani?.subgroup ? sub : ''
+})
 
 /**
  * 种子读成 base64。
@@ -55,12 +104,15 @@ async function guessSubgroup() {
   if (!data.value.torrent) return
   try {
     const sub = await api.getCollectionSubgroup(data.value)
-    if (sub) {
-      data.value.ani = {...data.value.ani, subgroup: sub}
-      ui.info(`识别到字幕组：${sub}`)
-    }
-  } catch {
-    // 认不出来不算错，用户可以自己填
+    if (!sub) return
+    data.value.ani = {...data.value.ani, subgroup: sub}
+    // 认不出来时后端回的就是这四个字，别报成「识别到字幕组：未知字幕组」
+    if (sub !== '未知字幕组') ui.info(`识别到字幕组：${sub}`)
+  } catch (e) {
+    /* 认不出来本身不算错（用户可以自己填），但整个失败要说出来 ——
+       原来这里是完全静默的，后端那条 exclude 空指针就是被它咽掉的，
+       表现成「传一次没反应，传第二次才认出来」，看不出是报错。 */
+    ui.warn(`没能识别字幕组，可以自己填：${(e as Error).message || '请求失败'}`)
   }
 }
 
@@ -79,8 +131,24 @@ async function pick(b: BgmInfo) {
   busy.value = 'pick'
   try {
     data.value.bgmInfo = b
-    data.value.ani = {...(await api.getAniBySubjectId(String(b.id))), subgroup: data.value.ani?.subgroup}
+    const sub = data.value.ani?.subgroup
+    /*
+     * 三层叠：默认体兜底（条目回来的 Ani 里 match/exclude 可能是 null）、
+     * 条目本身、再把合集这几项按上游 bgmAdd 的做法压回去。
+     * subgroup 用已经从种子里认出来的那个 —— 上游是先选条目后传种子，
+     * 所以它写死 '未知字幕组'；我们两个顺序都允许，认出来了就别覆盖掉。
+     */
+    data.value.ani = {
+      ...blankAni(),
+      ...(await api.getAniBySubjectId(String(b.id))),
+      subgroup: sub || '未知字幕组',
+      customEpisode: true,
+      match: [],
+      exclude: [...COLLECTION_EXCLUDE],
+    }
     ui.success(`已选择：${b.nameCn || b.name}`)
+    // 种子先传的那种顺序：这会儿才有完整的 ani，之前认不出来的字幕组现在能认了
+    if (data.value.torrent && !sub) await guessSubgroup()
   } finally {
     busy.value = ''
   }
@@ -128,12 +196,19 @@ async function showPath() {
 async function doPreview() {
   if (!data.value.torrent) return ui.error('请先选择种子文件')
   busy.value = 'preview'
+  previewOpen.value = true
   try {
     preview.value = await api.previewCollection(data.value)
     if (!preview.value.length) ui.warn('没有解析出可下载的剧集')
   } finally {
     busy.value = ''
   }
+}
+
+/** 预览里认出来的字幕组和填的不一样：一键改过去，顺便按新名字重算一次 */
+async function applyDetected() {
+  data.value.ani = {...data.value.ani, subgroup: detected.value}
+  await doPreview()
 }
 
 async function start() {
@@ -151,10 +226,11 @@ async function start() {
 
 function reset() {
   files.value = []
-  data.value = {torrent: '', ani: {}, bgmInfo: {}}
+  data.value = {torrent: '', ani: blankAni(), bgmInfo: {}}
   keyword.value = ''
   results.value = []
   preview.value = []
+  previewOpen.value = false
 }
 </script>
 
@@ -240,7 +316,48 @@ function reset() {
           </v-btn>
         </div>
 
-        <v-table v-if="preview.length" density="compact">
+      </v-card-text>
+
+      <v-divider/>
+      <v-card-actions>
+        <v-spacer/>
+        <v-btn variant="text" @click="model = false">取消</v-btn>
+        <v-btn :disabled="!data.torrent" :loading="busy === 'start'" color="primary" variant="flat" @click="start">
+          开始下载
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!--
+    预览单开一窗。
+    一包合集是几十上百个文件，接在表单下面就只能一直往下滚 ——
+    要对照的「原名 → 重命名后」在最下面，而字幕组、季、偏移这些一改就得重看的输入框在最上面。
+    单开之后表格自己滚，关掉就回到表单，两边都不动位置。
+  -->
+  <v-dialog v-model="previewOpen" :fullscreen="mobile" max-width="900" scrollable>
+    <v-card>
+      <v-card-title class="d-flex align-center">
+        合集预览
+        <v-spacer/>
+        <v-btn icon="mdi-close" size="small" variant="text" @click="previewOpen = false"/>
+      </v-card-title>
+      <v-divider/>
+
+      <v-card-text style="min-height: 40vh">
+        <v-alert v-if="detected" class="mb-3" density="compact" type="info" variant="tonal">
+          <div class="d-flex align-center ga-2 flex-wrap">
+            <span>文件名里的字幕组是「{{ detected }}」，和填的不一样</span>
+            <v-spacer/>
+            <v-btn :loading="busy === 'preview'" size="small" variant="tonal" @click="applyDetected">
+              改成它
+            </v-btn>
+          </div>
+        </v-alert>
+
+        <v-skeleton-loader v-if="busy === 'preview' && !preview.length" type="table-row@6"/>
+
+        <v-table v-else-if="preview.length" density="compact">
           <thead>
           <tr>
             <th style="width:56px">集</th>
@@ -259,15 +376,16 @@ function reset() {
           </tr>
           </tbody>
         </v-table>
+
+        <v-empty-state v-else icon="mdi-file-search-outline" text="换个字幕组或者放宽排除条件再试"
+                       title="没有解析出可下载的剧集"/>
       </v-card-text>
 
       <v-divider/>
       <v-card-actions>
+        <span class="text-caption text-medium-emphasis ml-2">共 {{ preview.length }} 项</span>
         <v-spacer/>
-        <v-btn variant="text" @click="model = false">取消</v-btn>
-        <v-btn :disabled="!data.torrent" :loading="busy === 'start'" color="primary" variant="flat" @click="start">
-          开始下载
-        </v-btn>
+        <v-btn variant="text" @click="previewOpen = false">关闭</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

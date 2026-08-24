@@ -101,6 +101,15 @@ export function installDemo(): void {
             case 'api/previewAni':
                 // 预览要拿请求体里的那条订阅来编数据，才有集数、字幕组和下载位置可看
                 return ok(previewAni(JSON.parse(String(init?.body ?? '{}'))))
+            /* 合集：预览和字幕组识别。走 default 的话回的是一句字符串，
+               预览窗里 v-for 会把它按字符铺开 —— 演示站上那一窗就是一列乱码 */
+            case 'api/previewCollection': {
+                const ani = JSON.parse(String(init?.body ?? '{}')).ani ?? {}
+                // 合集是整季打包，新建的那条 ani 集数还是 0，不兜一下预览窗就是空的
+                return ok(previewAni({...ani, currentEpisodeNumber: ani.currentEpisodeNumber || 12}).items)
+            }
+            case 'api/getCollectionSubgroup':
+                return ok('桜都字幕组')
             /* 番剧浏览器：三个源各一个列表接口 + 一个字幕组接口。
                不给假数据的话，演示站里这个新做的按星期浏览面板永远是空的 */
             case 'api/mikan':
