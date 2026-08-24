@@ -2,6 +2,7 @@ import {computed} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useDisplay} from 'vuetify'
 import meta from '@preset/meta'
+import {HOME} from '@/router'
 import {useAuthStore} from '@/stores/auth'
 import {useAniStore} from '@/stores/ani'
 import {useTorrentsStore} from '@/stores/torrents'
@@ -33,18 +34,17 @@ export function useShell() {
 
     const nav = computed<NavItem[]>(() => [
         ...(meta.dashboard
-            ? [{to: '/', icon: 'mdi-view-dashboard-outline', label: '总览', group: '追番' as const, badge: () => 0}]
+            ? [{to: HOME, icon: 'mdi-view-dashboard-outline', label: '总览', group: '追番' as const, badge: () => 0}]
             : []),
-        {
-            to: meta.dashboard ? '/subscriptions' : '/',
-            icon: 'mdi-television-play', label: '订阅', group: '追番', badge: () => ani.total,
-        },
+        {to: '/subscriptions', icon: 'mdi-television-play', label: '订阅', group: '追番', badge: () => ani.total},
         {to: '/downloads', icon: 'mdi-download-outline', label: '下载', group: '追番', badge: () => torrents.items.length},
         {to: '/logs', icon: 'mdi-text-box-outline', label: '日志', group: '系统', badge: () => 0},
         {to: '/settings', icon: 'mdi-cog-outline', label: '设置', group: '系统', badge: () => 0},
     ])
 
-    const isActive = (to: string) => route.path === to || (to !== '/' && route.path.startsWith(to))
+    /* 设置页是 /settings/:tab，选中判定要连子路径一起算；带斜杠比而不是裸 startsWith，
+       否则 /settings 会把将来任何 /settingsXxx 也算进来 */
+    const isActive = (to: string) => route.path === to || route.path.startsWith(to + '/')
 
     const title = computed(() =>
         nav.value.find(n => n.to === route.path)?.label

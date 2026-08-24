@@ -142,3 +142,30 @@
         margin-inline: -8px;
     }
 }
+
+/*
+ * 可点的东西不是正文，别让它被选中。
+ *
+ * .v-btn 和 .v-tab Vuetify 自己写了 user-select: none，.v-list-item 只在 disabled 那一档写了 ——
+ * 于是侧栏、菜单里那些一整条都能点的项，标签文字是可以拖选的：
+ * 鼠标从一条拖到下一条，半个侧栏变成蓝底；手机上连点两下同一项，
+ * 第二下不是导航而是「选中这两个字」，还顺带弹出复制菜单。
+ * 两种都表现成「点了没反应，还多出个选区」。
+ *
+ * 只挑 --link 那一档（本来就是按钮语义的行），静态的列表项照旧可以复制。
+ */
+.v-list-item--link,
+.v-list-item--link .v-list-item-title,
+.v-list-item--link .v-list-item-subtitle {
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/*
+ * 触屏点下去那一下的高亮方块由各控件自己的涟漪负责，交给系统那层灰底只会双份。
+ * Chrome Android 默认是一块半透明灰，压在圆角药丸上是**方的**，
+ * 一点就露出直角 —— 在圆角重的那几款（mp 的药丸、liquid-glass 的胶囊）尤其明显。
+ */
+html {
+    -webkit-tap-highlight-color: transparent;
+}

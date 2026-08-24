@@ -4,21 +4,36 @@ import meta from '@preset/meta'
 
 /**
  * 订阅页与总览页的挂法随预设变：
- * 带总览的界面，根路径是总览、订阅在 /subscriptions；
- * 不带总览的（github 那款走的是「打开就干活」的路子），根路径直接就是订阅列表。
- * 总览页本身也是每款自己一份 —— 它是八款界面的落地页，共用一份的话
- * 「十一款不同界面」有一半时间看的是同一个屏幕。
+ * 带总览的界面，落地页是总览；不带总览的（github 那款走的是「打开就干活」的路子），
+ * 落地页直接就是订阅列表。总览页本身也是每款自己一份 —— 它是八款界面的落地页，
+ * 共用一份的话「十一款不同界面」有一半时间看的是同一个屏幕。
  * 两种情况下订阅页的 name 都是 subscriptions —— 外壳靠这个名字判断要不要显示搜索框。
+ *
+ * ── 落地页必须有自己的路径，不能挂成空路径的子路由 ──
+ *
+ * 空路径的子路由（`{path: ''}`）在 vue-router 里是「和父级同一个路径」，
+ * 而 RouterLink 判活时对这种情况有一条特判：子记录的路径等于父记录的路径时，
+ * 改判**父记录**在不在当前匹配链里 —— 父记录是外壳，永远在。
+ * 于是指向落地页的那个链接在每一页都是 active 的，后果有两种，都是眼睛能看见的：
+ *
+ *   · 侧栏同时亮两条 —— 「总览」和你正在看的那一页（ab / mp 就是这样）
+ *   · 底部导航「总览」那格的字一直是主色 —— v-btn 的**上色**走的是
+ *     router-link 自己的 isActive，外面传 :active 只改类名改不到色（acg 手机上就是这样）
+ *
+ * 所以落地页挂在 /dashboard（或 /subscriptions）上，根路径只留一条重定向。
+ * 各外壳传 :active 仍然要留着：那是设置页 /settings/:tab 那种「子路径也算选中」用的。
  */
 const subs = () => import('@preset/SubsView.vue')
 const dash = () => import('@preset/DashboardView.vue')
 
-const children: RouteRecordRaw[] = meta.dashboard
-    ? [
-        {path: '', name: 'dashboard', component: dash},
-        {path: 'subscriptions', name: 'subscriptions', component: subs},
-    ]
-    : [{path: '', name: 'subscriptions', component: subs}]
+/** 落地页的路径，导航表也从这儿取，两处别各写各的 */
+export const HOME = meta.dashboard ? '/dashboard' : '/subscriptions'
+
+const children: RouteRecordRaw[] = [
+    {path: '', redirect: HOME},
+    ...(meta.dashboard ? [{path: 'dashboard', name: 'dashboard', component: dash}] : []),
+    {path: 'subscriptions', name: 'subscriptions', component: subs},
+]
 
 /**
  * 离开某一页时记下它滚到哪儿了。
@@ -83,8 +98,8 @@ router.beforeEach((to, from) => {
     scrollTops.set(String(from.name), window.scrollY)
     if (to.meta.public) return true
     if (getToken()) return true
-    // 记住原本要去哪，登录后送回去
-    return {name: 'login', query: to.fullPath === '/' ? {} : {redirect: to.fullPath}}
+    // 记住原本要去哪，登录后送回去。落地页本来就是登录后的默认去处，不用再记一遍
+    return {name: 'login', query: to.fullPath === HOME ? {} : {redirect: to.fullPath}}
 })
 
 export default router

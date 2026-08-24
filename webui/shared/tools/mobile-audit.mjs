@@ -52,7 +52,7 @@ const IDS_TS = await readFile(resolve(HERE, '../../src/presets/ids.ts'), 'utf8')
 const PRESETS = [...IDS_TS.match(/PRESET_IDS\s*=\s*\[([^\]]*)]/)[1].matchAll(/'([^']+)'/g)].map(m => m[1])
 const WIDTHS = [360, 390, 414]
 const ROUTES = [
-    ['总览', '/'], ['订阅', '/subscriptions'], ['下载', '/downloads'], ['日志', '/logs'],
+    ['总览', '/dashboard'], ['订阅', '/subscriptions'], ['下载', '/downloads'], ['日志', '/logs'],
     ['设置·下载', '/settings/download'], ['设置·基本', '/settings/basic'],
     ['设置·排除', '/settings/exclude'], ['设置·代理', '/settings/proxy'],
     ['设置·登录', '/settings/login'], ['设置·通知', '/settings/notification'],

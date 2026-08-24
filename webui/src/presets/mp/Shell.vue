@@ -64,7 +64,10 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
       <div v-if="!rail || narrow" class="sec">{{ g.label }}</div>
       <div v-else class="sec-line"/>
       <v-list class="mp-nav" density="compact" nav>
-        <v-list-item v-for="n in g.items" :key="n.to" :prepend-icon="n.icon" :title="n.label" :to="n.to">
+        <!-- :active 自己给：设置页是 /settings/:tab，光靠 router-link 的判活，
+             翻到「基本设置」时侧栏那条就不算选中了 -->
+        <v-list-item v-for="n in g.items" :key="n.to" :active="s.isActive(n.to)"
+                     :prepend-icon="n.icon" :title="n.label" :to="n.to">
           <template v-if="(!rail || narrow) && n.badge()" #append>
             <span class="count">{{ n.badge() }}</span>
           </template>
@@ -122,8 +125,19 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 </template>
 
 <style scoped>
+/*
+ * 侧栏和页面同底色。
+ *
+ * 原来是白的（Vuetify 的 surface），而页面底是 #f4f5fa、顶栏在没滚动时是透明的 ——
+ * 一屏里只有侧栏那一竖条是白的，边界比选中项还显眼，看着像贴上去的另一个应用。
+ * 改成 background 之后侧栏、顶栏、内容区连成一片，浮起来的只有卡片。
+ *
+ * !important 是必须的：base.css 为了让带壁纸的主题能透出背景，
+ * 给 .v-navigation-drawer 的底色写了 !important（顶栏那两条同理）。
+ */
 .mp-side.v-navigation-drawer {
     border: none;
+    background: rgb(var(--v-theme-background)) !important;
 }
 
 .side-head {
@@ -165,6 +179,9 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 .mp-nav {
     padding: 0;
+    /* v-list 自带 surface 底色（白）。侧栏改成页面底色之后，这两段列表就成了
+       两块白方块贴在上面，分节标题和列表之间还错着一道边 —— 让它透出去 */
+    background: transparent;
 }
 
 /*
@@ -228,8 +245,9 @@ onUnmounted(() => window.removeEventListener('scroll', onScroll))
     transition: background-color var(--m-dur) var(--m-ease), box-shadow var(--m-dur) var(--m-ease);
 }
 
+/* 糊的是页面底色不是 surface —— 顶栏底下滚过去的就是页面，跟着它才叫毛玻璃 */
 .mp-bar.stuck.v-toolbar {
-    background: rgba(var(--v-theme-surface), .88) !important;
+    background: rgba(var(--v-theme-background), .88) !important;
     backdrop-filter: blur(12px) saturate(1.2);
     -webkit-backdrop-filter: blur(12px) saturate(1.2);
     box-shadow: 0 1px 3px rgba(0, 0, 0, .04), 0 1px 2px rgba(0, 0, 0, .02);

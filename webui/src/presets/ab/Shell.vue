@@ -69,7 +69,10 @@ const menu = ref(false)
       </div>
 
       <v-list class="side-nav" density="comfortable" nav>
-        <v-list-item v-for="n in s.nav.value" :key="n.to" :prepend-icon="n.icon" :title="n.label" :to="n.to">
+        <!-- :active 自己给：设置页是 /settings/:tab，光靠 router-link 的判活，
+             翻到「基本设置」时侧栏那条就不算选中了 -->
+        <v-list-item v-for="n in s.nav.value" :key="n.to" :active="s.isActive(n.to)"
+                     :prepend-icon="n.icon" :title="n.label" :to="n.to">
           <template v-if="!rail && n.badge()" #append>
             <span class="count">{{ n.badge() }}</span>
           </template>
@@ -93,7 +96,7 @@ const menu = ref(false)
   </v-main>
 
   <v-bottom-navigation v-if="phone" :elevation="0" class="ab-tabs" grow height="68">
-    <v-btn v-for="n in s.nav.value" :key="n.to" :to="n.to" :value="n.to">
+    <v-btn v-for="n in s.nav.value" :key="n.to" :active="s.isActive(n.to)" :to="n.to" :value="n.to">
       <v-icon :icon="n.icon"/>
       <span class="tab-label">{{ n.label }}</span>
     </v-btn>
@@ -199,6 +202,27 @@ const menu = ref(false)
 .side-nav :deep(.v-list-item) {
     margin-bottom: 2px;
     min-height: 40px;
+}
+
+/*
+ * 收起态：图标要落在选中块正中间。
+ *
+ * 不收起时一条导航项是「图标 + 一段间隙 + 标题」，那段间隙是 --v-list-prepend-gap；
+ * 收起后标题被压成 0 宽，那段间隙（comfortable 档是 32px）却还占着 ——
+ * 图标于是被顶到左边，选中块的右半边空出一条。
+ * rail-width 用 Vuetify 默认的 56 时这点偏差正好被吃掉，这一款是 80，就露出来了。
+ *
+ * 所以收起时把间隙归零，再让这条 grid 自己居中 —— 不去写死任何像素，
+ * 换 rail-width 也不用跟着改。
+ */
+.v-navigation-drawer--rail .side-nav :deep(.v-list-item) {
+    --v-list-prepend-gap: 0px;
+    /* 一条导航项是 `max-content 1fr auto` 三栏。中间那条 1fr 会把剩下的宽度全吃掉 ——
+       标题虽然被裁得看不见，那一栏照样占着十来个像素，图标就是被它顶偏的；
+       而 1fr 吃光之后 justify-content 手里一点余量都没有，光写居中不管用。
+       收起态本来就不显示标题，把那一栏压成 0，余量交回给居中。 */
+    grid-template-columns: max-content 0 auto;
+    justify-content: center;
 }
 
 .count {
