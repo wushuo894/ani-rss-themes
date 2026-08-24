@@ -3,21 +3,23 @@ import {ref} from 'vue'
 import * as api from '@shared/api'
 import {useConfigStore} from '@/stores/config'
 import {useUiStore} from '@/stores/ui'
+import {pickedFile} from '@/composables/pickedFile'
 
 const store = useConfigStore()
 const ui = useUiStore()
-const file = ref<File[]>([])
+/** 单选时 v-file-input 给的是 File 本身，不是数组 —— 取值一律经 pickedFile */
+const file = ref<File | File[] | null>(null)
 const busy = ref('')
 
 async function doImport() {
-  const f = file.value?.[0]
+  const f = pickedFile(file.value)
   if (!f) return ui.error('请先选择备份文件')
   busy.value = 'import'
   try {
     await api.importConfig(f)
     ui.success('导入完成，正在重新读取配置')
     await store.load(true)
-    file.value = []
+    file.value = null
   } finally {
     busy.value = ''
   }
@@ -59,7 +61,7 @@ async function doClearCache() {
         prepend-icon="mdi-folder-zip-outline"
         show-size
     />
-    <v-btn :disabled="!file?.length" :loading="busy === 'import'" color="primary"
+    <v-btn :disabled="!pickedFile(file)" :loading="busy === 'import'" color="primary"
            prepend-icon="mdi-download" variant="flat" @click="doImport">
       导入设置
     </v-btn>

@@ -5,6 +5,7 @@ import * as api from '@shared/api'
 import {posterUrl, toApiFile} from '@shared/http'
 import {useAniStore} from '@/stores/ani'
 import {useUiStore} from '@/stores/ui'
+import {pickedFile} from '@/composables/pickedFile'
 
 const props = defineProps<{item: Ani}>()
 const emit = defineEmits<{close: []}>()
@@ -53,8 +54,7 @@ async function reload() {
  * 限制照抄上游：jpg / png，1MB 以内（后端不校验，超了会真的写进 config 目录）。
  */
 async function onPick(picked: File | File[]) {
-  const fs = Array.isArray(picked) ? picked : picked ? [picked] : []
-  const f = fs[0]
+  const f = pickedFile(picked)
   if (!f) return
   if (!['image/jpeg', 'image/png'].includes(f.type)) return ui.error('只支持 jpg / png')
   if (f.size > 1024 * 1024) return ui.error('图片要小于 1MB')

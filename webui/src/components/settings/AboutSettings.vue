@@ -8,6 +8,7 @@ import {formatSize} from '@shared/format'
 import {renderMarkdown} from '@shared/markdown'
 import {useConfigStore} from '@/stores/config'
 import {useUiStore} from '@/stores/ui'
+import {pickedFile} from '@/composables/pickedFile'
 import presetMeta from '@preset/meta'
 
 const store = useConfigStore()
@@ -18,8 +19,8 @@ const loading = ref(false)
 const busy = ref('')
 const confirmStop = ref<number | null>(null)
 const confirmRestore = ref(false)
-/** 要换上去的界面包。v-file-input 的 v-model 是数组，即使只让选一个 */
-const pkg = ref<File[]>([])
+/** 要换上去的界面包。单选时 v-file-input 给的是 File 本身，不是数组，所以经 pickedFile 取 */
+const pkg = ref<File | File[] | null>(null)
 
 /* 这套界面自己的版本号：构建期注入，和发布包里 webui.json 的 version 同一个数 ——
    后端就是拿那个数跟 Release 的 tag 比来判断有没有新版的 */
@@ -152,7 +153,7 @@ async function dropServiceWorker() {
 const MAX_PKG_SIZE = 50 * 1024 * 1024
 
 async function doWebuiUpload() {
-  const f = pkg.value?.[0]
+  const f = pickedFile(pkg.value)
   if (!f) return ui.error('请先选择界面压缩包')
   if (!f.name.toLowerCase().endsWith('.zip')) return ui.error('只认 zip 压缩包')
   if (f.size > MAX_PKG_SIZE) return ui.error('压缩包超过 50MB，后端不收')
@@ -160,7 +161,7 @@ async function doWebuiUpload() {
   busy.value = 'upload'
   try {
     await api.webuiUpload(f)
-    pkg.value = []
+    pkg.value = null
     ui.success('界面已替换，正在重新加载')
     await dropServiceWorker()
     setTimeout(() => location.reload(), 1200)
@@ -376,7 +377,7 @@ async function doStop(status: number) {
         />
 
         <div class="d-flex flex-wrap ga-2">
-          <v-btn :disabled="!pkg?.length" :loading="busy === 'upload'" color="primary"
+          <v-btn :disabled="!pickedFile(pkg)" :loading="busy === 'upload'" color="primary"
                  prepend-icon="mdi-upload" variant="flat" @click="doWebuiUpload">
             上传并切换
           </v-btn>

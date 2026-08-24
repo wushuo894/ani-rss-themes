@@ -4,6 +4,7 @@ import {useDisplay} from 'vuetify'
 import type {BgmInfo, CollectionInfo, Item} from '@shared/types'
 import * as api from '@shared/api'
 import {useUiStore} from '@/stores/ui'
+import {pickedFile} from '@/composables/pickedFile'
 
 const model = defineModel<boolean>({required: true})
 
@@ -34,10 +35,8 @@ const toBase64 = (f: File) => new Promise<string>((resolve, reject) => {
   r.readAsDataURL(f)
 })
 
-// v-file-input 单选时给 File、多选时给 File[]，两种都要接
 async function onPick(picked: File | File[]) {
-  const fs = Array.isArray(picked) ? picked : picked ? [picked] : []
-  const f = fs?.[0]
+  const f = pickedFile(picked)
   if (!f) return
   if (!f.name.endsWith('.torrent')) return ui.error('请选择 .torrent 文件')
   busy.value = 'upload'

@@ -4,6 +4,7 @@ import type {Ani} from '@shared/types'
 import * as api from '@shared/api'
 import {useAniStore} from '@/stores/ani'
 import {useUiStore} from '@/stores/ui'
+import {pickedFile} from '@/composables/pickedFile'
 
 const model = defineModel<boolean>({required: true})
 
@@ -22,10 +23,8 @@ const busy = ref(false)
  * 导出的备份就是一个 JSON 数组，先读出来给用户看清有多少条、再决定冲突策略，
  * 比传上去让后端报错友好。
  */
-// v-file-input 单选时给 File、多选时给 File[]，两种都要接
 async function onPick(picked: File | File[]) {
-  const fs = Array.isArray(picked) ? picked : picked ? [picked] : []
-  const f = fs?.[0]
+  const f = pickedFile(picked)
   aniList.value = []
   filename.value = ''
   if (!f) return
