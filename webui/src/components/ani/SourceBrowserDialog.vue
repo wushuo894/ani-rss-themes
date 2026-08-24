@@ -648,11 +648,20 @@ function search() {
     padding: 20px;
 }
 
-/* 海报网格：auto-fill 让窄屏自己掉到一列，不用写断点 */
+/*
+ * 一行一部番，不排多列。
+ *
+ * 原来是 auto-fill minmax(268px)，宽屏排三到四列。问题不在列表本身，在展开之后：
+ * 一格只有 268px，「最近资源」那几行的种子名
+ *（`[ANi] 转学后班上的清纯可爱美少女 - 08 [1080P][Baha][WEB-DL][AAC AVC][CHT].mp4` 这种）
+ * 只剩不到 200px，一律在第一个方括号那儿就省略号收尾 —— 而看清这一串正是
+ * 「订之前先看一眼这个组的命名、分辨率、字幕语言」的全部意义，看不清等于这块白做。
+ * 单列之后同一位置有近 1000px，配上下面 .res-title 的折行，整串都在。
+ */
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
-    gap: 14px;
+    grid-template-columns: 1fr;
+    gap: 10px;
     align-items: start;
 }
 
@@ -794,6 +803,17 @@ function search() {
     background: rgba(var(--v-theme-on-surface), .04);
 }
 
+/*
+ * 复选框不许抢宽度。
+ *
+ * 它是 .v-selection-control，Vuetify 给的是 `flex: 1 0` —— 摆进一条 flex 行里，
+ * 整行剩下的宽度全归它，字幕组名被推到行的中间去，看着像有人写了 text-align: center。
+ * 多列的时候一格才 268px，没有剩余宽度可抢，这条一直藏着；改成一行一部番就露出来了。
+ */
+.group > .v-checkbox-btn {
+    flex: 0 0 auto;
+}
+
 .group-meta {
     flex: 1 1 auto;
     min-width: 0;
@@ -844,13 +864,23 @@ function search() {
     min-width: 0;
 }
 
-/* 种子名又长又不带空格，不截断会把整张卡撑爆 */
+/*
+ * 种子名要看全，所以折行不省略。
+ *
+ * 原来是一行 + 省略号 —— 那是多列时代的将就：一格 268px，不截就把整张卡撑爆。
+ * 现在一行一部番，横向有的是地方，剩下的问题只是这串字里不一定有空格可断，
+ * 交给 overflow-wrap: anywhere 让它随处断。封两行：三行以上的名字是极少数，
+ * 而每个组最多列 8 条，条条三行会把展开的那块拉得比屏幕还长。
+ */
 .res-title {
     font-size: 11.5px;
     line-height: 1.4;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .res-sub {
