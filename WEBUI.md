@@ -104,6 +104,7 @@ irm .../install.ps1 | iex
 ├── webui.json             版本信息，ani-rss 靠它检查并在线更新这套界面
 ├── manifest.json          装到手机主屏用的清单
 ├── sw.js                  离线兜底，只缓存界面自己，不碰 /api/
+├── favicon.ico            标签页图标；图形取自上游 ani-rss，见 webui/ICONS.md
 ├── icon-*.png             主屏图标（192 / 512 / maskable / apple-touch）
 ├── assets/
 └── player/
@@ -436,6 +437,7 @@ webui/
 │   ├── vite-mdi-svg.ts    构建期插件：扫源码，只把用到的图标打进产物（省 700KB）
 │   ├── themes/            主题系统 + 11 款主题 + 自检
 │   └── tools/             类型/接口生成器、产物组装、手机版式与弹窗体检
+├── public/                原样拷进产物：站点图标、manifest、Service Worker（图标出处见 ICONS.md）
 ├── src/
 │   ├── fonts/             随产物发的三份字体（点阵 / Inter / Roboto），选型见那儿的 README
 │   ├── presets/<id>/      十一款各自的外壳、总览页、订阅页、控件默认值、动作签名

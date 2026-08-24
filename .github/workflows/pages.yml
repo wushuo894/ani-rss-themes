@@ -52,6 +52,8 @@ jobs:
           cp -r legacy/. site/
           mkdir -p site/webui
           cp webui/preview-index.html site/webui/index.html
+          # 预览页自己那层没有产物，图标单独拷一份过去（十一款包里各自带了一张）
+          cp webui/public/favicon.ico site/webui/favicon.ico
           # 款式清单跟 webui.yml 一样只认 ids.ts，别再抄第二份
           ids=$(node --experimental-strip-types -e "import('./webui/src/presets/ids.ts').then(m => console.log(m.PRESET_IDS.join(' ')))")
           test -n "$ids" || { echo "::error::没能从 ids.ts 读出款式清单"; exit 1; }

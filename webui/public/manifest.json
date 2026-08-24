@@ -1,6 +1,6 @@
 {
-  "name": "ani-rss",
-  "short_name": "ani-rss",
+  "name": "ANI-RSS",
+  "short_name": "ANI-RSS",
   "description": "追番订阅管理",
   "lang": "zh-CN",
   "start_url": "./",
@@ -8,8 +8,8 @@
   "id": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#2b7352",
-  "theme_color": "#2b7352",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "icons": [
     {"src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
     {"src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
