@@ -10,7 +10,8 @@
  * 想换成新一季： node tools/fetch-demo-data.mjs
  *
  * 只取展示需要的几样：条目 id、中日文标题、封面、评分、总集数、星期。
- * 封面地址改写成 https —— 接口给的是 http，混合内容会被 Pages 直接拦掉。
+ * 封面地址改写成 https —— 接口给的是 http，混合内容会被 Pages 直接拦掉；
+ * 尺寸见下面 cover 那一段。
  */
 import {writeFile} from 'node:fs/promises'
 
@@ -26,11 +27,16 @@ const items = days.flatMap(d => (d.items ?? []).map(it => ({
     // name_cn 常常是空串，退回原名
     title: it.name_cn || it.name,
     jp: it.name_cn ? it.name : '',
-    /* 取 common（150px，约 11KB）。
-       量过四档：grid 1.2KB / small 3.4KB / common 11KB / medium 5.7KB（比 common 还小）/
-       large 938KB —— large 是原图，113 张就是 100MB 出头，演示站不能这么干。
-       common 放到 206px 宽会略软，但这是这几档里唯一能看的。 */
-    cover: String(it.images?.common || it.images?.medium || '').replace(/^http:/, 'https:'),
+    /* 走 lain 的按宽缩放：/r/<宽>/ 垫在 large 那条路径前面，服务端现缩一张给你。
+       接口给的五档全都不合用：grid 48px / small 78px / medium 100px / common 150px /
+       large 是原图（1200×1696，300KB 上下）。海报框在宽屏上有 200 多 CSS px，
+       2 倍屏就要 400 物理像素 —— common 那 150px 拉上去糊得一眼看得出来，
+       而 large 一张 300KB、113 张 30MB，演示站不该这么发。
+       /r/400/ 量下来 400×565、49KB：够 2 倍屏，体积只有原图的六分之一。
+       只有 large 那条路径支持 /r/，拿 common 拼会直接 400。 */
+    cover: String(it.images?.large || '')
+        .replace(/^http:/, 'https:')
+        .replace('//lain.bgm.tv/pic/', '//lain.bgm.tv/r/400/pic/'),
     score: Number(it.rating?.score ?? 0) || 0,
     eps: Number(it.eps ?? 0) || 0,
     /** 1 = 周一，与接口一致 */
