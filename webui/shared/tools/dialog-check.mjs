@@ -1,8 +1,8 @@
 /**
  * 「添加订阅」这条链路的行为体检。
  *
- *   npm run build:all -- --demo     # 先出演示产物，测的是真产物不是源码
- *   npm run test:dialogs            # 十一款轮流跑
+ *   pnpm run build:all -- --demo     # 先出演示产物，测的是真产物不是源码
+ *   pnpm run test:dialogs            # 十一款轮流跑
  *   node webui/shared/tools/dialog-check.mjs synology   # 只跑一款
  *
  * 为什么单独有这么一个东西：这条链路的毛病不长在样式上，长在**状态跟着人跑**上 ——
@@ -65,7 +65,7 @@ if (!browser) {
     process.exit(0)
 }
 if (!existsSync(join(DIST, PRESETS[0], 'index.html'))) {
-    console.error(`dist/${PRESETS[0]} 不存在，先跑 npm run build:all -- --demo`)
+    console.error(`dist/${PRESETS[0]} 不存在，先跑 pnpm run build:all -- --demo`)
     process.exit(1)
 }
 

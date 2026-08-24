@@ -1,7 +1,7 @@
 /**
  * 手机宽度下的版式体检。
  *
- *   npm run build:all -- --demo          # 先出演示产物，体检的是真产物不是源码
+ *   pnpm run build:all -- --demo          # 先出演示产物，体检的是真产物不是源码
  *   node webui/shared/tools/mobile-audit.mjs                 # 十一款 × 360/390/414
  *   node webui/shared/tools/mobile-audit.mjs material 390    # 只测一款一个宽度
  *
@@ -77,7 +77,7 @@ const only = process.argv[2]
 const onlyWidth = process.argv[3] ? [+process.argv[3]] : WIDTHS
 const presets = only ? [only] : PRESETS
 if (!existsSync(join(DIST, presets[0]))) {
-    console.error(`dist/${presets[0]} 不存在，先跑 npm run build:all -- --demo`)
+    console.error(`dist/${presets[0]} 不存在，先跑 pnpm run build:all -- --demo`)
     process.exit(1)
 }
 

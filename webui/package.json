@@ -12,7 +12,7 @@
     "test:themes": "node --experimental-strip-types shared/themes/apply.test.ts",
     "test:api": "node --experimental-strip-types shared/http.test.ts",
     "test:md": "node --experimental-strip-types shared/markdown.test.ts",
-    "test": "npm run test:themes && npm run test:api && npm run test:md && npm run test:players && npm run test:github",
+    "test": "node --run test:themes && node --run test:api && node --run test:md && node --run test:players && node --run test:github",
     "test:players": "node --experimental-strip-types shared/externalPlayers.test.ts",
     "test:github": "node --experimental-strip-types shared/github.test.ts",
     "test:mobile": "node shared/tools/mobile-audit.mjs",

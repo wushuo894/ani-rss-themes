@@ -43,7 +43,7 @@ node webui/shared/tools/extract-api.mjs upstream
 预览站首页（`webui/preview-index.html`）的一屏体检。
 
 ```bash
-npm run test:preview --prefix webui
+pnpm -C webui run test:preview
 ```
 
 三档桌面分辨率下量三件事：十一张卡是不是都落在第一屏内（留 8px 余量，
@@ -60,7 +60,7 @@ npm run test:preview --prefix webui
 手机宽度下的版式体检，跑的是构建产物不是源码。
 
 ```bash
-npm run build:all -- --demo                          # 先出产物
+pnpm run build:all -- --demo                          # 先出产物
 node webui/shared/tools/mobile-audit.mjs             # 十一款 × 360/390/414 × 13 条路由
 node webui/shared/tools/mobile-audit.mjs material 390 # 只测一款一个宽度
 ```
@@ -77,8 +77,8 @@ node webui/shared/tools/mobile-audit.mjs material 390 # 只测一款一个宽度
 「添加订阅」那条链路的行为体检，跑的也是构建产物。
 
 ```bash
-npm run build:all -- --demo                             # 先出演示产物
-npm run test:dialogs                                    # 十一款轮流跑
+pnpm run build:all -- --demo                             # 先出演示产物
+pnpm run test:dialogs                                    # 十一款轮流跑
 node webui/shared/tools/dialog-check.mjs synology       # 只跑一款
 ```
 
@@ -134,8 +134,8 @@ node webui/shared/tools/dialog-check.mjs synology       # 只跑一款
 版式体检：把每一个弹窗真的打开、每一页真的翻到，量里面有没有东西被容器裁掉。
 
 ```bash
-npm run build:all -- --demo                            # 先出演示产物
-npm run test:layout                                    # 十一款 × 1400/390 × 全部场景
+pnpm run build:all -- --demo                            # 先出演示产物
+pnpm run test:layout                                    # 十一款 × 1400/390 × 全部场景
 node webui/shared/tools/dialog-layout.mjs vue 1400     # 只跑一款一个宽度
 node webui/shared/tools/dialog-layout.mjs vue 1400 页面 # 再筛场景名（逗号分隔）
 ```

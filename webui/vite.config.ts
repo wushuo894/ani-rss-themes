@@ -9,7 +9,7 @@ import {PRESET_IDS} from './src/presets/ids'
 /**
  * 一套源码，构建出十一款界面。
  *
- *   VITE_PRESET=vue npm run build     → dist/vue/
+ *   VITE_PRESET=vue pnpm run build     → dist/vue/
  *
  * 十一款的差别不只是配色：外壳（导航形态）、订阅页的呈现方式、控件密度各不相同，
  * 由 src/presets/<id>/ 提供，通过 @preset 别名接进来。共用的状态层、接口层、
@@ -63,7 +63,7 @@ export default defineConfig({
     server: {
         /*
          * 本地开发把 /api 打到跑着的 ani-rss 上。地址走环境变量，不写进仓库：
-         *   VITE_API_TARGET=http://<host>:<port> npm run dev
+         *   VITE_API_TARGET=http://<host>:<port> pnpm run dev
          * 或写在不进版本控制的 .env.local 里。
          */
         proxy: process.env.VITE_API_TARGET

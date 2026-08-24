@@ -8,7 +8,7 @@
  * 类型检查只跑一次：十一款共用同一份 tsconfig，跑十一遍是白等十遍。
  */
 import {execFileSync} from 'node:child_process'
-import {readdirSync, statSync} from 'node:fs'
+import {readdirSync, readFileSync, statSync} from 'node:fs'
 import {resolve} from 'node:path'
 import {PRESET_IDS} from '../src/presets/ids.ts'
 
@@ -25,18 +25,23 @@ for (const t of targets) {
 }
 
 const root = resolve(import.meta.dirname, '..')
-const run = (cmd, args, env) =>
-    execFileSync(cmd, args, {cwd: root, stdio: 'inherit', shell: process.platform === 'win32', env: {...process.env, ...env}})
+// 直接拿包里的 bin 入口用 node 跑，不经 npx / pnpm exec ——
+// 这样它不关心这棵 node_modules 是谁装的，也就不用 shell 转义。
+const bin = pkg => resolve(root, 'node_modules', pkg, JSON.parse(
+    readFileSync(resolve(root, 'node_modules', pkg, 'package.json'), 'utf8')).bin[pkg])
+
+const run = (pkg, args, env) =>
+    execFileSync(process.execPath, [bin(pkg), ...args], {cwd: root, stdio: 'inherit', env: {...process.env, ...env}})
 
 console.log('▶ 类型检查')
-run('npx', ['vue-tsc', '--noEmit', '-p', 'tsconfig.json'])
+run('vue-tsc', ['--noEmit', '-p', 'tsconfig.json'])
 
 const size = dir => readdirSync(dir, {withFileTypes: true})
     .reduce((n, e) => n + (e.isDirectory() ? size(resolve(dir, e.name)) : statSync(resolve(dir, e.name)).size), 0)
 
 for (const id of targets) {
     console.log(`\n▶ 构建 ${id}${demo ? '（演示）' : ''}`)
-    run('npx', ['vite', 'build'], {VITE_PRESET: id, VITE_DEMO: demo ? '1' : ''})
+    run('vite', ['build'], {VITE_PRESET: id, VITE_DEMO: demo ? '1' : ''})
     const mb = (size(resolve(root, 'dist', id)) / 1024 / 1024).toFixed(1)
     console.log(`  dist/${id}  ${mb} MB`)
 }

@@ -233,12 +233,12 @@ GitHub 的 `run_number`，于是每推一次 main 就是一个更大的新版本
 
 ```bash
 cd webui
-VITE_PRESET=github VITE_API_TARGET=http://<你的 ani-rss> npm run dev
-npm run typecheck
-npm run build:all -- --demo    # 十一款演示构建（假数据，Pages 预览用的就是它）
-npm test                       # 主题 / 接口地址 / 外部播放器的断言
-npm run test:mobile            # 手机宽度版式体检，要先有 --demo 产物
-npm run test:dialogs           # 添加订阅那条链路的行为体检，十一款轮流跑，同样要先有 --demo 产物
+VITE_PRESET=github VITE_API_TARGET=http://<你的 ani-rss> pnpm run dev
+pnpm run typecheck
+pnpm run build:all -- --demo    # 十一款演示构建（假数据，Pages 预览用的就是它）
+pnpm test                       # 主题 / 接口地址 / 外部播放器的断言
+pnpm run test:mobile            # 手机宽度版式体检，要先有 --demo 产物
+pnpm run test:dialogs           # 添加订阅那条链路的行为体检，十一款轮流跑，同样要先有 --demo 产物
 ```
 
 `test:mobile` 用无头 Chrome/Edge 跑十一款 × 360/390/414 × 13 条路由，
@@ -307,7 +307,7 @@ Pixelated MS Sans Serif，是因为**中文版 Windows 98 的界面字根本不�
 这既是硬约束，也正好是原版的样子（那个年代的界面本来就只有一个字号，
 层级靠粗体和位置分）。粗体也不用浏览器合成（合成 = 把 1px 笔画抹粗 = 发虚），
 改成「错开一像素再描一遍」，那正是当年点阵字加粗的做法。
-`npm run test:mobile` 里有一条专门查这个：字号除以 12 不是整数就报出来。
+`pnpm run test:mobile` 里有一条专门查这个：字号除以 12 不是整数就报出来。
 
 ## 几个绕不开的约束
 
@@ -475,7 +475,7 @@ CI 里也有一条检查：正式包里出现演示数据就直接失败。
 「一屏」不是调像素调出来的：第一屏是一个 `min-height: 100dvh` 的 flex 列，
 网格 `flex:1` 吃掉标题之后剩下的全部高度，三行均分，卡片里缩略图再吃掉剩下的 ——
 所以文字多一行只是缩略图矮一点，第九张卡不会被挤到屏幕外。
-`npm run test:preview` 在三档分辨率下量这件事，顺带盯着列数、下载地址，
+`pnpm run test:preview` 在三档分辨率下量这件事，顺带盯着列数、下载地址，
 以及「缩略图 iframe 有没有被建出来」（这一页的脚本挂了是一点迹象都没有的）。
 
 ## 许可

@@ -1,7 +1,7 @@
 /**
  * scope() 的自检。
  *
- * 跑法：npm run test:themes --prefix webui
+ * 跑法：pnpm -C webui run test:themes
  *
  * 这个函数写错不会报错，只会静默生成不生效或越界的 CSS——
  * 比如给 @keyframes 加了前缀（动画直接失效）、或漏了 @media 里的规则（主题在窄屏失灵），

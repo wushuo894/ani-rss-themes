@@ -41,7 +41,7 @@ const player = flag('player') ? resolve(flag('player')) : null
 
 if (!existsSync(appDist)) {
     console.error(`没有找到 ${appDist}
-先在 webui/ 里跑 VITE_PRESET=${which} npm run build`)
+先在 webui/ 里跑 VITE_PRESET=${which} pnpm run build`)
     process.exit(1)
 }
 

@@ -1,8 +1,8 @@
 /**
  * 关于页那两段「更新内容」的体检。
  *
- *   npm run build:all -- --demo                        # 先出演示产物，测的是真产物
- *   npm run test:about                                 # 十一款轮流跑
+ *   pnpm run build:all -- --demo                        # 先出演示产物，测的是真产物
+ *   pnpm run test:about                                 # 十一款轮流跑
  *   node webui/shared/tools/about-check.mjs synology   # 只跑一款
  *
  * 为什么单独有这么一条：这一页上有两段更新说明，一段是 ani-rss 那个程序的，
@@ -53,7 +53,7 @@ if (!browser) {
     process.exit(0)
 }
 if (!existsSync(join(DIST, PRESETS[0], 'index.html'))) {
-    console.error(`dist/${PRESETS[0]} 不存在，先跑 npm run build:all -- --demo`)
+    console.error(`dist/${PRESETS[0]} 不存在，先跑 pnpm run build:all -- --demo`)
     process.exit(1)
 }
 

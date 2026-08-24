@@ -1,8 +1,8 @@
 /**
  * 版式体检：把每一个弹窗真的打开、每一页真的翻到，量里面有没有东西被容器裁掉。
  *
- *   npm run build:all -- --demo     # 先出演示产物，测的是真产物不是源码
- *   npm run test:layout             # 十一款 × 宽屏/手机 × 全部弹窗
+ *   pnpm run build:all -- --demo     # 先出演示产物，测的是真产物不是源码
+ *   pnpm run test:layout             # 十一款 × 宽屏/手机 × 全部弹窗
  *   node webui/shared/tools/dialog-layout.mjs vue 1400   # 只跑一款一个宽度
  *
  * 为什么版式体检（mobile-audit）盖不住这一片：那一份拿**视口**当尺子。
@@ -56,7 +56,7 @@ if (!browser) {
     process.exit(0)
 }
 if (!existsSync(join(DIST, PRESETS[0], 'index.html'))) {
-    console.error(`dist/${PRESETS[0]} 不存在，先跑 npm run build:all -- --demo`)
+    console.error(`dist/${PRESETS[0]} 不存在，先跑 pnpm run build:all -- --demo`)
     process.exit(1)
 }
 
