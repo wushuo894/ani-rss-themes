@@ -381,6 +381,8 @@ export interface Config {
     downloadToolPassword?: string
     /** qb下载时，使用qb自身的保存路径配置(未下载完成的使用临时目录，复制种子文件) */
     qbUseDownloadPath?: boolean
+    /** qb下载时的内容布局：Original 原始 / Subfolder 创建子文件夹 / NoSubfolder 不创建子文件夹 */
+    qbContentLayout?: string
     /** 分享率 */
     ratioLimit?: number
     /** 总做种时长 */

@@ -59,6 +59,15 @@ const TMDB_LANGS = [
 
 const BGM_IMAGE = ['small', 'grid', 'large', 'medium', 'common'].map(v => ({title: v, value: v}))
 
+/* qb 添加任务时的 contentLayout，取值与 qBittorrent 自己的一致（上游 qBittorrent.vue）。
+   3.2.18 之前后端写死 Original，所以老版本上改了也不生效 —— 但配置项本身存得下，
+   不额外按版本藏起来。 */
+const QB_CONTENT_LAYOUT = [
+    {title: '原始', value: 'Original'},
+    {title: '创建子文件夹', value: 'Subfolder'},
+    {title: '不创建子文件夹', value: 'NoSubfolder'},
+]
+
 const is = (t: string) => (c: Config) => c.downloadToolType === t
 
 /* ══════════════ 下载设置 ══════════════ */
@@ -116,14 +125,16 @@ export const DOWNLOAD_SECTIONS: SectionDef[] = [
         ],
     },
     {
-        title: 'qBittorrent 限制',
-        note: '“-1”表示禁用，“-2”表示使用 qBittorrent 的全局设置',
+        title: 'qBittorrent',
+        note: '下面几项数值里，“-1”表示禁用，“-2”表示使用 qBittorrent 的全局设置',
         fields: [
             {key: 'dlLimit', label: '下载速度限制', type: 'number', min: -2, suffix: 'KiB/s'},
             {key: 'upLimit', label: '上传速度限制', type: 'number', min: -2, suffix: 'KiB/s'},
             {key: 'ratioLimit', label: '分享率', type: 'number', min: -2},
             {key: 'seedingTimeLimit', label: '总做种时长', type: 'number', min: -2, suffix: '分钟'},
             {key: 'inactiveSeedingTimeLimit', label: '非活跃时长', type: 'number', min: -2, suffix: '分钟'},
+            {key: 'qbContentLayout', label: '内容布局', type: 'select', items: QB_CONTENT_LAYOUT,
+                hint: '种子内容外面要不要套一层文件夹，「原始」保持种子自带的结构'},
             {key: 'qbUseDownloadPath', label: '使用 qb 自身的保存路径', type: 'switch',
                 hint: '未下载完成的放临时目录，并复制种子文件'},
         ],

@@ -187,6 +187,8 @@ export const CONFIG = {
     downloadPath: '/downloads/anime',
     host: '', port: 0,
     sortType: 'SCORE',
+    /* 后端 ConfigUtil 的默认值。下拉框空着在演示站上看着像坏了 */
+    qbContentLayout: 'Original',
     rename: true, delete: false,
     /* 给两条渠道：空列表的话通知那一页只有一个空状态，
        渠道编辑弹窗（以及里面「获取会话 / 获取媒体库」这两个候选选择器）根本走不到 */
