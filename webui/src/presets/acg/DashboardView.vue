@@ -221,7 +221,8 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 .dl-row {
     padding: 10px 12px;
     border-radius: var(--ani-radius, 14px);
-    background: rgba(var(--v-theme-surface), var(--ani-surface-alpha, 1));
+    /* 这一行是卡片不是外壳，跟 --ani-card-alpha 走（缺省回退到外壳那档） */
+    background: rgba(var(--v-theme-surface), var(--ani-card-alpha, var(--ani-surface-alpha, 1)));
     backdrop-filter: blur(var(--ani-panel-blur, 0px));
     border: 1px solid rgba(255, 255, 255, .22);
     min-width: 0;
@@ -251,7 +252,8 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 .empty-line {
     padding: 14px 12px;
     border-radius: var(--ani-radius, 14px);
-    background: rgba(var(--v-theme-surface), var(--ani-surface-alpha, 1));
+    /* 这一行是卡片不是外壳，跟 --ani-card-alpha 走（缺省回退到外壳那档） */
+    background: rgba(var(--v-theme-surface), var(--ani-card-alpha, var(--ani-surface-alpha, 1)));
     backdrop-filter: blur(var(--ani-panel-blur, 0px));
     border: 1px solid rgba(255, 255, 255, .22);
     font-size: .85rem;

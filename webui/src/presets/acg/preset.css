@@ -33,3 +33,64 @@
 html[data-ani-mode="light"] .v-divider {
     border-color: rgba(16, 24, 48, .16) !important;
 }
+
+/*
+ * 直接落在壁纸上的那几处文字，浅色下要自带一圈白光晕。
+ *
+ * 浅色这一半背景是**不铺遮罩**的（见主题里那一段）—— 壁纸原样露出来，
+ * 好处是图看得清，代价是没有卡片托着的字失去了保底对比度：
+ * 遇上一张夜景图，深色的「周一（今天）」就直接沉进去了。
+ * 光晕是最省事的兜底，桌面图标的名字用了三十年也是这一招。
+ *
+ * 名单只有四处 —— 其余的字都在卡片里，卡片是 .96 的实底，不需要：
+ *   .hero-title  总览页的「今天」
+ *   .sec-title   总览页的「下载中」「疑似停更」
+ *   .week-title  订阅页的星期分组
+ *   v-empty-state  没有订阅 / 没搜到时那一屏
+ * 光晕是白的，压在白卡片上等于没有 —— 将来哪个标题挪进卡片里也不用回来改。
+ * 深色那一半有压暗层兜着，不加这条。
+ */
+html[data-ani-mode="light"] :is(.hero-title, .sec-title, .week-title,
+                                .v-empty-state__headline,
+                                .v-empty-state__title,
+                                .v-empty-state__text) {
+    /* 三层叠出来的是一圈**实的**白边，不是一团雾：同一个小半径重复画，
+       透明度叠上去才压得住底下的花纹；只写一层大半径的话字一小就糊回去了。
+       最后一层放大到 12px，用来把周围一小片底色也提亮，边缘不至于生切 */
+    text-shadow:
+        0 0 2px rgba(255, 255, 255, .95),
+        0 0 4px rgba(255, 255, 255, .9),
+        0 0 12px rgba(255, 255, 255, .75);
+}
+
+/*
+ * 浅色下，没有卡片托着的控件自己垫一层底。
+ *
+ * 背景不铺遮罩之后，页面上「浮着的」那部分控件就是裸奔的：tonal 和 text 这两种变体
+ * 本来就几乎没有底色（Vuetify 把 tonal 的底画在 __underlay 上，元素自己是透明的），
+ * 遇到暗色壁纸整条工具条会直接消失 —— 下载页的「共 5 个任务」「8.38 GiB」「刷新」、
+ * 设置页那排标签，实测都看不见。
+ *
+ * 垫的是 surface，和卡片同一个颜色：看上去就是一颗颗玻璃药丸浮在图上，正是这一款的语言。
+ * 垫在元素自己的 background 上，tonal 的那层 __underlay 仍然压在上面，
+ * 颜色一点不变 —— 只是背后多了一块不透明的底。
+ *
+ * 三处例外：
+ *   卡片和弹窗里的不垫（`:not(.v-card *)` / `:not(.v-overlay *)`）—— 那儿已经有实底，
+ *   垫了也是白垫，而且会让卡片里的状态标签平白多一圈边
+ *   .v-tab 不单垫 —— 整条标签栏在下面一起垫，一颗颗垫会把一条标签栏拆成八块
+ *   深色不垫 —— 那边有压暗层兜着
+ */
+html[data-ani-mode="light"] .v-main :is(
+    .v-chip--variant-tonal, .v-chip--variant-text, .v-chip--variant-plain,
+    .v-btn--variant-tonal, .v-btn--variant-text, .v-btn--variant-plain
+):not(.v-tab):not(.v-card *):not(.v-overlay *) {
+    background-color: rgba(var(--v-theme-surface), .86);
+}
+
+/* 标签栏整条当一块板，不是八颗药丸。
+   不给圆角：设置页那条标签栏本来就是通栏的（下面还压着一条 v-divider），
+   给了圆角只有左边看得见、右边被屏幕边切掉，看着像没对齐 */
+html[data-ani-mode="light"] .v-main .v-tabs:not(.v-card *) {
+    background-color: rgba(var(--v-theme-surface), .86);
+}

@@ -78,10 +78,20 @@ html[data-ani-theme] .v-overlay__content > .v-card {
  * Vuetify 的表面色是 rgb(var(--v-theme-surface))，这里改成 rgba 掺进 alpha，
  * 不透明（alpha=1）时和原来完全一致，所以对不带壁纸的主题无副作用。
  */
-html[data-ani-theme] .v-card:not(.v-card--variant-tonal):not(.v-card--variant-flat),
 html[data-ani-theme] .v-navigation-drawer,
 html[data-ani-theme] .v-toolbar {
     background: rgba(var(--v-theme-surface), var(--ani-surface-alpha)) !important;
+}
+
+/*
+ * 卡片单独留一个口子：--ani-card-alpha，缺省跟随 --ani-surface-alpha。
+ *
+ * 带壁纸的主题里这两样该分开调 —— 外壳可以很透，它上面只有图标和一行标题；
+ * 卡片不行，正文压在上面，壁纸的颜色透上来就直接串到字上。
+ * 不分开调的主题一个字都不用写，回退链自己接上。
+ */
+html[data-ani-theme] .v-card:not(.v-card--variant-tonal):not(.v-card--variant-flat) {
+    background: rgba(var(--v-theme-surface), var(--ani-card-alpha, var(--ani-surface-alpha))) !important;
 }
 
 /* ── 阴影：主题给了就用主题的，没给就保持 Vuetify 的高度体系 ── */
