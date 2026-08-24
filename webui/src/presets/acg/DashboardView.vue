@@ -39,8 +39,12 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
 
       <template v-else-if="d.today.value.length">
         <div v-for="(a, i) in d.today.value" :key="a.id" :style="{'--i': i}"
-             class="rail-item ani-in ani-lift" @click="router.push('/subscriptions')">
-          <div class="tile">
+             class="rail-item ani-in" @click="router.push('/subscriptions')">
+          <!-- ani-lift 挂在 .tile 上，不能挂外面那层 rail-item：
+               悬停抬起的那道阴影是画在挂 ani-lift 的元素身上的，而 rail-item 只是
+               排版用的格子、没有圆角 —— 阴影就按方角铺在圆角海报四周，
+               四个角各露出一块方的。挂在真正有圆角的 .tile 上，阴影才跟着圆角走。 -->
+          <div class="tile ani-lift">
             <v-img :src="cover(a.cover)" aspect-ratio="0.7" class="tile-art" cover>
               <template #placeholder>
                 <div class="fill-height d-flex align-center justify-center bg-surface-variant">

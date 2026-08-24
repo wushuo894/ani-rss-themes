@@ -19,7 +19,8 @@
     "test:dialogs": "node shared/tools/dialog-check.mjs",
     "test:about": "node shared/tools/about-check.mjs",
     "test:layout": "node shared/tools/dialog-layout.mjs",
-    "test:preview": "node shared/tools/preview-fit.mjs"
+    "test:preview": "node shared/tools/preview-fit.mjs",
+    "test:lift": "node shared/tools/lift-audit.mjs"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",
