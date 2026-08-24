@@ -36,5 +36,6 @@
     "vite": "^7.0.0",
     "vite-plugin-vuetify": "^2.1.0",
     "vue-tsc": "^3.3.10"
-  }
+  },
+  "packageManager": "pnpm@11.23.0"
 }

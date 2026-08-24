@@ -28,18 +28,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: webui/package-lock.json
+          cache: pnpm
+          cache-dependency-path: webui/pnpm-lock.yaml
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
         working-directory: webui
 
       - name: 构建十一款演示版
         # VITE_DEMO=1：拦掉所有请求用内置假数据顶上，预览站没有后端
-        run: npm run build:all -- --demo
+        run: pnpm run build:all -- --demo
         working-directory: webui
 
       - name: 组装站点

@@ -33,11 +33,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: npm
-          cache-dependency-path: webui/package-lock.json
+          cache: pnpm
+          cache-dependency-path: webui/pnpm-lock.yaml
 
       # 款式清单只认 ids.ts 一处：以前构建、校验、打包三处各抄了一遍同样的五个 id，
       # 加第六款要记得改三个地方，漏掉打包那处就是「构建出来了但没进压缩包」。
@@ -74,21 +76,21 @@ jobs:
           echo "款式：$ids"
           echo "版本：$version（package.json 是 $base）"
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
         working-directory: webui
 
       # 两类「不会报错、只会悄悄坏掉」的东西：
       #  - 主题的 scope() 有括号配对和 @media 递归，写错只会生成坏 CSS
       #  - 接口 URL 拼接，问号被转义进路径的话按钮照点、请求照发，就是参数到不了后端
       - name: 自检
-        run: npm test
+        run: pnpm test
         working-directory: webui
 
       # 关于页显示的界面版本号是构建期从 package.json 注进去的（见 vite.config.ts 的
       # __VERSION__）。上面把发版用的版本号算出来了，这里得写回 package.json，
       # 否则包里的 webui.json 写着 1.0.37、关于页却还挂着 1.0.2 —— 两个数对不上，
       # 人根本没法判断自己装的是哪一版。
-      # 放在 npm ci 之后：npm ci 会核对 package.json 和 lock 里的版本，先改会让它罢工。
+      # 放在 pnpm install 之后：pnpm install 会核对 package.json 和 lock 里的版本，先改会让它罢工。
       - name: 版本号写回 package.json
         run: |
           set -e
@@ -108,12 +110,12 @@ jobs:
       # 直接进 v-html，转义一旦被改坏就是任何能改那个仓库 Release 的人都能执行脚本。
       # 这种事不该等到有人手动跑测试才发现。
       - name: 单测
-        run: npm test
+        run: pnpm test
         working-directory: webui
 
       # build:all 里已经串了 vue-tsc，类型错误会让构建直接失败
       - name: 构建十一款
-        run: npm run build:all
+        run: pnpm run build:all
         working-directory: webui
 
       - name: 校验产物

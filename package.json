@@ -4,9 +4,10 @@
   "type": "module",
   "description": "仓库分两半：legacy/ 是给 ani-rss 自带界面换肤的 CSS+JS，webui/ 是替代整个界面的 Vue 应用。这里只放几个转手的脚本，依赖装在 webui/。",
   "scripts": {
-    "dev": "npm --prefix webui run dev",
-    "build": "npm --prefix webui run build:all",
-    "build:demo": "npm --prefix webui run build:all -- --demo",
-    "test:themes": "npm --prefix webui run test:themes"
-  }
+    "dev": "pnpm -C webui run dev",
+    "build": "pnpm -C webui run build:all",
+    "build:demo": "pnpm -C webui run build:all -- --demo",
+    "test:themes": "pnpm -C webui run test:themes"
+  },
+  "packageManager": "pnpm@11.23.0"
 }

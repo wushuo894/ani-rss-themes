@@ -1,0 +1,5 @@
+# esbuild / @parcel/watcher 要跑安装脚本才能落下平台二进制，
+# pnpm 默认不给跑，不点名就是 ERR_PNPM_IGNORED_BUILDS 直接把 install 判失败。
+allowBuilds:
+  esbuild: true
+  '@parcel/watcher': true

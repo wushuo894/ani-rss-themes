@@ -209,8 +209,8 @@ Service Worker 只兜界面本身：`/api/` 一个都不缓存（订阅状态、
 ### 自己构建
 
 ```bash
-npm ci --prefix webui
-npm run build:all --prefix webui -- --only vue     # 不带 --only 就是十一款全建
+pnpm -C webui install --frozen-lockfile
+pnpm -C webui run build:all -- --only vue     # 不带 --only 就是十一款全建
 node webui/shared/tools/pack.mjs vue --player ../webplayer/dist
 ```
 
