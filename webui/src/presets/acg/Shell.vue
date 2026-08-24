@@ -113,6 +113,26 @@ const s = useShell()
     background: rgba(var(--v-theme-surface), var(--ani-surface-alpha, 1)) !important;
 }
 
+/*
+ * 侧栏和顶栏是同一块玻璃，所以侧栏不能有圆角。
+ *
+ * base.css 给所有主题的抽屉兜了 `border-radius: var(--ani-radius)`（这一款是 14px）。
+ * 对浮在页面上的抽屉那是对的，但这一款的顶栏是通栏的、侧栏紧贴在它下面 ——
+ * 圆角一拐，顶栏底边和侧栏顶边之间就空出一个 14×14 的角，壁纸从那儿透出来，
+ * 看着像两块没对齐的板。四个角同理：左边两个贴着屏幕边，也是同一个缺口。
+ *
+ * 两条路里选的是「浑然一体」而不是「悬浮隔离」：这一款的外壳本来就是通栏的
+ * —— 顶栏铺满整宽，窄屏的底部导航也铺满整宽。只把侧栏改成悬浮的话，
+ * 它会是这一款里唯一一块浮起来的外壳，和自己的手机版也对不上；
+ * 而「一块块浮板」是 ab 的语言、「悬浮胶囊导航」是 liquid-glass 的语言，
+ * 这一款再去浮，三款就长到一起去了。这一款里浮在图上的是内容卡片，外壳是画框。
+ *
+ * 权重要压过 base.css 那条（0,2,1），所以带上 .v-navigation-drawer 凑到 0,3,0。
+ */
+.glass-rail.v-navigation-drawer {
+    border-radius: 0;
+}
+
 .glass-rail {
     border-right: 1px solid rgba(255, 255, 255, .14);
 }
