@@ -15,12 +15,25 @@ export function useThemeManager() {
     const theme = useTheme()
     const prefs = usePrefsStore()
 
+    /*
+     * 当前明暗写到 <html data-ani-mode>。
+     *
+     * 皮肤的装饰层（壁纸、压暗层、细边）在两个方向上要给不一样的值，而它是一段
+     * 注入的 CSS，看不见 Vuetify 的主题名 —— 主题名挂在 .v-application 上，
+     * 而壁纸和压暗层画在 body 的两个伪元素上，够不着。挂一个属性在 html 上最省事：
+     * 皮肤里写 `html[data-ani-mode="light"] { … }`，scope() 会把它合并成
+     * `html[data-ani-theme="acg"][data-ani-mode="light"]`，两边都收得住。
+     * 没选皮肤时也要写 —— 各预设自己的 preset.css 同样按这个属性分方向。
+     */
+    const markMode = (m: 'light' | 'dark') => (document.documentElement.dataset.aniMode = m)
+
     function sync() {
         const def = prefs.themeId ? THEME_MAP.get(prefs.themeId) : undefined
 
         if (!def) {
             // 没选主题：回到内置的 light / dark
             applyTheme(null)
+            markMode(prefs.resolved)
             theme.change(prefs.resolved)
             return
         }
@@ -30,6 +43,7 @@ export function useThemeManager() {
          * 这时忽略用户的明暗选择，强制用它成立的那一套 —— 上游那 17 款里有 7 款是这样。
          */
         const mode = def.base === 'auto' ? prefs.resolved : def.base
+        markMode(mode)
         const colors = mode === 'dark' ? def.dark : def.light
         const name = `ani-${def.id}-${mode}`
 

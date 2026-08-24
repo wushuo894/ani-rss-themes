@@ -133,8 +133,18 @@ const s = useShell()
     border-radius: 0;
 }
 
+/*
+ * 外壳和内容之间那道发丝线。深色下是白线，浅色下要翻成深线 ——
+ * 白线压在浅色壁纸上等于没画，侧栏和内容之间就没有边界了。
+ * 明暗跟着 <html data-ani-mode> 走（useThemeManager 写的），
+ * 不用 prefers-color-scheme：用户可以手动锁定明暗，系统偏好未必是当前这一档。
+ */
 .glass-rail {
     border-right: 1px solid rgba(255, 255, 255, .14);
+}
+
+html[data-ani-mode="light"] .glass-rail {
+    border-right-color: rgba(16, 24, 48, .12);
 }
 
 /*
@@ -152,5 +162,9 @@ const s = useShell()
 
 .glass-bottom {
     border-top: 1px solid rgba(255, 255, 255, .14);
+}
+
+html[data-ani-mode="light"] .glass-bottom {
+    border-top-color: rgba(16, 24, 48, .12);
 }
 </style>

@@ -26,6 +26,17 @@ assert.equal(
 /* 3. html / :root 开头的要「合并」而不是再嵌一层，否则 html html[...] 永不匹配 */
 assert.equal(norm(scope(':root { --x: 1; }', ID)), norm(`${P}{ --x: 1; }`))
 assert.equal(norm(scope('html.dark .v-card { color: red; }', ID)), norm(`${P}.dark .v-card{ color: red; }`))
+/* 属性选择器同理 —— 皮肤靠 html[data-ani-mode] 分明暗（acg 的压亮层就走这条），
+   要是嵌成 html[data-ani-theme=…] html[data-ani-mode=…]，浅色那一半一条都不生效，
+   而且不报错：只是永远用深色那套 */
+assert.equal(
+    norm(scope('html[data-ani-mode="light"] { --x: 1; }', ID)),
+    norm(`${P}[data-ani-mode="light"]{ --x: 1; }`),
+)
+assert.equal(
+    norm(scope('html[data-ani-mode="light"] .v-card { color: red; }', ID)),
+    norm(`${P}[data-ani-mode="light"] .v-card{ color: red; }`),
+)
 
 /* 4. @keyframes 必须原样保留：加了前缀动画就不生效 */
 {

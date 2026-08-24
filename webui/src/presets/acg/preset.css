@@ -20,7 +20,16 @@
     --m-press: .96;
 }
 
-/* 玻璃面板上的分隔线要比默认亮，否则壁纸一亮就整条消失 */
+/*
+ * 玻璃面板上的分隔线要比默认重，否则壁纸一亮（浅色下一暗）整条就消失。
+ * 两个方向要翻过来：深色下是白线，浅色下白线等于没画。
+ * 明暗跟着 <html data-ani-mode> 走（useThemeManager 写的），
+ * 不用 prefers-color-scheme —— 用户可以手动锁定明暗，系统偏好未必是当前这一档。
+ */
 .v-divider {
     border-color: rgba(255, 255, 255, .28) !important;
+}
+
+html[data-ani-mode="light"] .v-divider {
+    border-color: rgba(16, 24, 48, .16) !important;
 }
