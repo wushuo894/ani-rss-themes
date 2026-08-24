@@ -89,7 +89,10 @@ function openBgm() {
     <v-chip v-if="!item.enable" class="badge-off" size="x-small" variant="flat">未启用</v-chip>
     <v-chip v-else-if="item.ova" class="badge-off" color="secondary" size="x-small" variant="flat">OVA</v-chip>
 
-    <v-checkbox v-if="selectMode" :model-value="selected" class="pick" density="compact" hide-details
+    <!-- 图标换成圆的：默认那对是 mdi-checkbox-blank-outline / -marked，两个都是方块，
+         压在卡片的圆角上就是一个方角顶着一个圆角，选中之后整块填实更像圆角缺了一块 -->
+    <v-checkbox v-if="selectMode" :model-value="selected" class="pick" color="primary" density="compact"
+                false-icon="mdi-circle-outline" hide-details true-icon="mdi-check-circle"
                 @click.stop="s.on.toggle(item)"/>
 
     <!-- 悬停浮出的操作条。触屏下常驻，且只剩一颗「更多」（room=0） -->
@@ -205,12 +208,35 @@ function openBgm() {
     left: 10px;
 }
 
+/*
+ * 多选标记：一颗浮在海报上的圆点。
+ *
+ * 三处都要改，少一处它还是个方块：
+ *  · 底衬得是正圆。v-checkbox 的控件行高是 40、图标才 28 宽，
+ *    border-radius: 50% 画在 28×40 上出来的是立着的椭圆，不是圆。
+ *  · 位置跟另外两个角标对齐到 10px。原来是 2px —— 跟 .badge-score 那条注释同一个道理，
+ *    贴到 6px 以内就整个压在 14px 的圆角上了，看着像从角上溢出去。
+ *  · 没选中时图标得是白的。默认取 on-surface，浅色主题下是深灰，
+ *    压在这块半透明黑底衬上是深压深，基本看不见勾选框在哪。
+ *    选中那一档由 color="primary" 接管（Vuetify 给它挂的 .text-primary 带 !important，
+ *    压得过这条），所以这里只影响未选中。
+ */
 .pick {
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: 10px;
+    left: 10px;
     background: rgba(0, 0, 0, .45);
     border-radius: 50%;
+}
+
+.pick :deep(.v-selection-control) {
+    min-height: 28px;
+}
+
+/* :not(--dirty)：只管未选中那一档。选中之后交给 color="primary"，
+   不这么限一下的话白色会把主色盖掉，选中和没选中只差一个勾的形状 */
+.pick :deep(.v-selection-control:not(.v-selection-control--dirty) .v-selection-control__input) {
+    color: #fff;
 }
 
 /* 多选时角标要给复选框让位，否则两个叠在左上角 */
