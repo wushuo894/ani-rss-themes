@@ -76,9 +76,15 @@ export const useTorrentsStore = defineStore('torrents', () => {
 
     // 注意：后端 TorrentsInfo 只有 progress / size / completed / state，**没有上下行速率**。
     // 不造「速度」这类看着专业但恒为 0 的指标。
-    const downloading = computed(() => items.value.filter(t => (t.progress ?? 0) < 1))
-    const seeding = computed(() => items.value.filter(t => (t.progress ?? 0) >= 1))
-    const totalSize = computed(() => items.value.reduce((s, t) => s + (t.size ?? 0), 0))
+    const downloading = computed(() =>
+        items.value.filter(t => t.state === 'downloading')
+    )
+    const seeding = computed(() =>
+        items.value.filter(t => t.state ? ['forcedUP', 'uploading', 'stalledUP'].includes(t.state) : false)
+    )
+    const totalSize = computed(() =>
+        items.value.reduce((s, t) => s + (t.size ?? 0), 0)
+    )
 
     return {items, loading, loaded, error, reload, startPolling, stopPolling, remove, downloading, seeding, totalSize}
 })

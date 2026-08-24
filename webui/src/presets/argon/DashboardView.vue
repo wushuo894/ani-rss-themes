@@ -107,7 +107,7 @@ function greet(): string {
             <div v-for="t in d.torrents.downloading.slice(0, 5)" :key="t.hash" class="wline">
               <div class="wline-name">{{ t.name }}</div>
               <div class="d-flex align-center ga-2 mt-2">
-                <v-progress-linear :model-value="(t.progress ?? 0) * 100" color="primary" height="6" rounded/>
+                <v-progress-linear :model-value="t.progress" color="primary" height="6" rounded/>
                 <span class="wline-num">{{ formatPercent(t.progress) }}</span>
               </div>
             </div>

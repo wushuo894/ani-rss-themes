@@ -80,7 +80,7 @@ const heroBg = computed(() => {
         <div v-for="t in d.torrents.downloading.slice(0, 5)" :key="t.hash" class="dl">
           <div class="dl-name">{{ t.name }}</div>
           <div class="dl-bar">
-            <div class="dl-fill" :style="{width: `${(t.progress ?? 0) * 100}%`}"/>
+            <div class="dl-fill" :style="{width: `${t.progress}%`}"/>
           </div>
           <div class="dl-pct">{{ formatPercent(t.progress) }}</div>
         </div>

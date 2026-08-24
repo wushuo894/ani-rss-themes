@@ -76,7 +76,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
                class="dl-row ani-in">
             <div class="dl-name">{{ t.name }}</div>
             <div class="d-flex align-center ga-2 mt-1">
-              <v-progress-linear :model-value="(t.progress ?? 0) * 100" color="primary" height="6" rounded/>
+              <v-progress-linear :model-value="t.progress" color="primary" height="6" rounded/>
               <span class="dl-pct">{{ formatPercent(t.progress) }}</span>
             </div>
           </div>

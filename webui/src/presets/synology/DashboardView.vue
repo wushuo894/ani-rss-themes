@@ -115,7 +115,7 @@ const health = computed(() => (d.stalled.value.length
           <div v-for="t in d.torrents.downloading.slice(0, 6)" :key="t.hash" class="dl">
             <div class="row-name">{{ t.name }}</div>
             <div class="d-flex align-center ga-3 mt-2">
-              <v-progress-linear :model-value="(t.progress ?? 0) * 100" color="primary" height="6" rounded/>
+              <v-progress-linear :model-value="t.progress" color="primary" height="6" rounded/>
               <span class="row-info">{{ formatPercent(t.progress) }}</span>
             </div>
           </div>

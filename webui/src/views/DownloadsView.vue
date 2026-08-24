@@ -164,10 +164,10 @@ async function confirmRemove() {
           </div>
         </template>
         <template #item.completed="{item}">{{ formatSize(item.completed ?? 0) }}</template>
-        <template #item.size="{item}">{{ item.formatSize || formatSize(item.size) }}</template>
+        <template #item.size="{item}">{{ formatSize(item.size) }}</template>
         <template #item.progress="{item}">
           <div class="d-flex align-center ga-2">
-            <v-progress-linear :color="stateColor(item.state)" :model-value="(item.progress ?? 0) * 100"
+            <v-progress-linear :color="stateColor(item.state)" :model-value="item.progress"
                                height="6" rounded/>
             <span class="text-caption" style="min-width: 44px">{{ formatPercent(item.progress) }}</span>
           </div>
@@ -201,7 +201,7 @@ async function confirmRemove() {
         <v-card-text class="pb-2">
           <div class="text-body-2 mb-1 ellipsis" :title="item.name">{{ item.name }}</div>
           <div class="d-flex align-center ga-2 mb-1">
-            <v-progress-linear :color="stateColor(item.state)" :model-value="(item.progress ?? 0) * 100"
+            <v-progress-linear :color="stateColor(item.state)" :model-value="item.progress"
                                height="6" rounded/>
             <span class="text-caption">{{ formatPercent(item.progress) }}</span>
           </div>
@@ -217,7 +217,7 @@ async function confirmRemove() {
             <div class="d-flex align-center flex-wrap ga-2 min0">
               <v-chip :color="stateColor(item.state)" size="x-small" variant="tonal">{{ item.state }}</v-chip>
               <span class="text-caption text-medium-emphasis">
-                {{ formatSize(item.completed ?? 0) }} / {{ item.formatSize || formatSize(item.size) }}
+                {{ formatSize(item.completed) }} / {{ formatSize(item.size) }}
               </span>
               <v-chip v-for="tag in item.tagList || []" :key="tag" size="x-small" variant="tonal">{{ tag }}</v-chip>
             </div>
