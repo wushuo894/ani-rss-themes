@@ -154,6 +154,9 @@ function openBgm() {
 .veil {
     position: absolute;
     inset: auto 0 0 0;
+    /* 下两角自己也要圆：这块渐变贴着卡片下沿，跟上面那张图一样不能只靠祖先裁剪。
+       只给下面两个 —— 它的上边在卡片中间，圆了会在渐变里啃出两个缺口。 */
+    border-radius: 0 0 var(--ani-radius, 14px) var(--ani-radius, 14px);
     padding: 34% 10px 9px;
     background: linear-gradient(transparent, rgba(0, 0, 0, .55) 42%, rgba(0, 0, 0, .88));
     color: #fff;

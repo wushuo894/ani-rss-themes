@@ -37,8 +37,18 @@
     }
 }
 
+/*
+ * 填充只要 backwards，不能要 both。
+ *
+ * both 里的 forwards 会让动画**结束之后**继续把最后一帧钉在元素上，而最后一帧写着
+ * `transform: none`；CSS 动画在层叠里压过普通声明 —— 于是同一个元素上的
+ * `.ani-lift:hover { transform: translateY(...) }` 永远打不过它，
+ * 凡是带 .ani-in 的卡片，悬停抬起从来就没生效过（订阅墙、总览的海报轨道全在内）。
+ * backwards 只填「延迟还没走完」那一段（也就是 opacity:0 的起手），
+ * 动画一结束就撒手，落点本来就是元素的常态值，不会闪。
+ */
 .ani-in {
-    animation: ani-in var(--m-dur-slow) var(--m-ease-out) both;
+    animation: ani-in var(--m-dur-slow) var(--m-ease-out) backwards;
     animation-delay: calc(min(var(--i, 0), 8) * var(--m-stagger));
 }
 

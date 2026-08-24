@@ -41,7 +41,7 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
         <div v-for="(a, i) in d.today.value" :key="a.id" :style="{'--i': i}"
              class="rail-item ani-in ani-lift" @click="router.push('/subscriptions')">
           <div class="tile">
-            <v-img :src="cover(a.cover)" aspect-ratio="0.7" cover>
+            <v-img :src="cover(a.cover)" aspect-ratio="0.7" class="tile-art" cover>
               <template #placeholder>
                 <div class="fill-height d-flex align-center justify-center bg-surface-variant">
                   <v-icon icon="mdi-image-outline"/>
@@ -144,10 +144,22 @@ const cover = (c?: string) => (c ? toApiFile(c) : '')
     box-shadow: 0 6px 22px rgba(0, 0, 0, .3);
 }
 
+/*
+ * 海报自己也带上圆角，不能只靠 .tile 的 overflow: hidden。
+ * 带 filter / opacity / transform 的东西会被提成独立合成层，祖先的**圆角**裁剪
+ * 对合成层不一定生效（矩形裁剪一定生效）—— 图就按方角画满，四个角从圆角里支出来。
+ * 悬停抬起给的正是一个 transform，所以这一款最容易在悬停时露馅。
+ */
+.tile-art {
+    border-radius: inherit;
+}
+
 /* 标题压在海报下沿：壁纸这款的重点是图，文字不该另占一块白底 */
 .tile-veil {
     position: absolute;
     inset: auto 0 0 0;
+    /* 只圆下两角：上边在海报中间，圆了会在渐变里啃出缺口 */
+    border-radius: 0 0 var(--ani-radius, 14px) var(--ani-radius, 14px);
     padding: 22px 10px 8px;
     background: linear-gradient(transparent, rgba(0, 0, 0, .82));
     color: #fff;

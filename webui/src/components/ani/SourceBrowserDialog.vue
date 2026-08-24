@@ -725,6 +725,8 @@ function search() {
 .flag {
     position: absolute;
     inset: auto 0 0 0;
+    /* 和封面同一个圆角，别只指望 .cover 的 overflow */
+    border-radius: 0 0 8px 8px;
     padding: 2px 0;
     font-size: 10px;
     text-align: center;
