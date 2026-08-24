@@ -194,6 +194,14 @@ async function request<T>(path: string, method: string, body?: unknown, quiet = 
 
     if (json.code >= 200 && json.code < 300) return json.data
 
+    /* 没有 code 也可能是成功的。
+       已发布的 ani-rss 里，/api/upload 走的是 `new Result<>().setMessage("上传完成")`,
+       那个空构造器不填 code —— 包里 code 是 null，落到下面的错误分支，
+       封面上传每次都弹一句「上传完成」当报错，返回的路径还被丢了。
+       上游 3.2.18 之后的重构给空构造器补上了 200，但已经装在用户机器上的都还是老的。
+       只认自家的信封：t 是后端给每个 Result 盖的时间戳，反代或别人家的 JSON 没有这一项。 */
+    if (json.code == null && typeof json.t === 'number' && res.ok) return json.data
+
     /* 后端的错误包一定有 code 和 message，但**不是所有 JSON 都出自后端**。
        ani-rss 自己的 CustomExceptionHandler 把「没有这个端点」也包成了 {code: 404}
        （HTTP 仍是 200），所以老版本上探测 /api/webui/* 拿到的是正常信封 ——

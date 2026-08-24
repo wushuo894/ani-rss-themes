@@ -279,12 +279,15 @@ export const importConfig = (file: File) => http.post<void>('api/importConfig', 
 export const bgmOauthCallback = (code: string) => http.post<void>(q('api/bgm/oauth/callback', {code}))
 
 /**
- * 上传文件。
- * type='getBase64' 时后端只回 base64 不落盘；否则存进 {configDir}/files/ 并返回相对路径。
- * 自定义封面走的就是这个。
+ * 上传文件：存进 {configDir}/files/ 并返回相对路径。自定义封面走的就是这个。
+ *
+ * 曾经还带一个 type='getBase64'，让后端只回 base64 不落盘。那个开关在上游
+ * 3.2.18 之后的重构里被拆走了（另起 /api/uploadAndReadToBase64 和 /api/uploadAndRead），
+ * 跟着换端点就得按后端版本分叉，而「把文件读成 base64」浏览器自己就干得了 ——
+ * 合集那处已经改成本地读（见 CollectionDialog），这里只留落盘这一个用途。
+ * 落盘这一路两个版本的签名一样，不用挑版本。
  */
-export const upload = (file: File, type?: 'getBase64') =>
-    http.post<string>(q('api/upload', {type}), filePart(file))
+export const upload = (file: File) => http.post<string>('api/upload', filePart(file))
 
 /**
  * 用户在「页面设置」里填的自定义 CSS / JS 的地址（免鉴权）。

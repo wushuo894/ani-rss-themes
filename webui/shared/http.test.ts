@@ -105,6 +105,32 @@ at('http://ani.local:7789/')
     assert.equal(seen?.body, '{"a":1}')
 }
 
+/* ── 信封里没有 code，但确实是成功的 ──
+   已发布的 ani-rss 里 /api/upload 回的是 `new Result<>().setMessage("上传完成")`，
+   那个空构造器不填 code。按「2xx 才算成功」判的话，传封面每次都弹一句「上传完成」
+   当报错，回来的相对路径还被丢掉，封面就永远换不上。
+   放行的条件卡死在自家信封上：HTTP 2xx + 有 t（后端每个 Result 都盖的时间戳）。
+   上面那份 Spring 404 包用的是 timestamp、HTTP 也是 404，两条都不满足，照旧当错误。 */
+{
+    const errors: string[] = []
+    setErrorHandler(m => void errors.push(m))
+    globalThis.fetch = (async () => new Response(
+        JSON.stringify({message: '上传完成', data: '3/3abc.png', t: Date.now()}),
+        {headers: {'Content-Type': 'application/json'}},
+    )) as typeof fetch
+
+    assert.equal(await http.post('api/upload', new FormData()), '3/3abc.png')
+    assert.deepEqual(errors, [], `成功的包不该弹提示，却弹了：${errors}`)
+
+    // 同样没有 code，但 HTTP 不是 2xx —— 这种照旧当错误，别把网关的错误页当成功
+    globalThis.fetch = (async () => new Response(
+        JSON.stringify({message: 'boom', data: null, t: Date.now()}),
+        {status: 502, headers: {'Content-Type': 'application/json'}},
+    )) as typeof fetch
+    await assert.rejects(() => http.post('api/upload', new FormData()),
+        (e: Error & {code: number}) => e.code === 502)
+}
+
 /* ── posterUrl：Mikan 那层「裁成正方形」的缩放参数必须摘掉 ──
    Mikan 列表里发的是 ?width=400&height=400，它的图床按这个框中心裁一刀；
    原图是 850×1200 的竖版海报，裁完再被我们 3:4 的封面框裁第二刀，剩不下半张。
@@ -129,4 +155,5 @@ at('http://ani.local:7789/')
 console.log('✓ toApiUrl 全部断言通过')
 console.log('✓ postQuiet 静默行为断言通过')
 console.log('✓ FormData 请求体断言通过')
+console.log('✓ 缺 code 的成功包断言通过')
 console.log('\u2713 posterUrl 断言通过')

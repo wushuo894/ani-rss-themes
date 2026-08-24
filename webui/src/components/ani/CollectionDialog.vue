@@ -18,6 +18,22 @@ const keyword = ref('')
 const results = ref<BgmInfo[]>([])
 const preview = ref<Item[]>([])
 
+/**
+ * 种子读成 base64。
+ *
+ * 以前是丢给后端 `api/upload?type=getBase64` 换的，但那个 type 开关在上游 3.2.18 之后的
+ * 重构里删掉了，改成另一个端点 /api/uploadAndReadToBase64 —— 跟着换就得按后端版本分叉，
+ * 老版本上没有那个端点。而合集要的只是那串 base64，文件根本不用上服务器：
+ * 浏览器自己读完事，少一跳往返，也就不用管后端是哪一版。
+ */
+const toBase64 = (f: File) => new Promise<string>((resolve, reject) => {
+  const r = new FileReader()
+  r.onerror = () => reject(r.error ?? new Error('读取失败'))
+  // readAsDataURL 回的是 `data:...;base64,xxxx`，后端只要逗号后面那截
+  r.onload = () => resolve(String(r.result).split(',')[1] ?? '')
+  r.readAsDataURL(f)
+})
+
 // v-file-input 单选时给 File、多选时给 File[]，两种都要接
 async function onPick(picked: File | File[]) {
   const fs = Array.isArray(picked) ? picked : picked ? [picked] : []
@@ -26,10 +42,11 @@ async function onPick(picked: File | File[]) {
   if (!f.name.endsWith('.torrent')) return ui.error('请选择 .torrent 文件')
   busy.value = 'upload'
   try {
-    // type=getBase64：后端只回 base64、不落盘，正合合集这种一次性用途
-    data.value.torrent = await api.upload(f, 'getBase64')
+    data.value.torrent = await toBase64(f)
     ui.success('种子已读取')
     await guessSubgroup()
+  } catch {
+    ui.error('种子读取失败')
   } finally {
     busy.value = ''
   }
