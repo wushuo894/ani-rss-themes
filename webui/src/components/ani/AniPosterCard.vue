@@ -121,8 +121,17 @@ function openBgm() {
     cursor: pointer;
 }
 
+/*
+ * 圆角自己也得画一遍，不能只靠外面那层 overflow: hidden。
+ *
+ * 下面 .is-off 给这张图挂了 filter，带 filter 的元素会被提成独立的合成层，
+ * 而祖先的圆角裁剪对合成层不生效 —— 图照着方角画满，四个角就从卡片的圆角里
+ * 支出来一块。壁纸那款是浅色卡片底，支出来的是四个白角，最显眼。
+ * 图本身就是卡片的形状，让它自己带上圆角，跟合成不合成无关。
+ */
 .art {
     display: block;
+    border-radius: inherit;
 }
 
 /* 未启用整张压暗，一眼能从墙里挑出来 */
