@@ -117,6 +117,19 @@ const s = useShell()
     border-right: 1px solid rgba(255, 255, 255, .14);
 }
 
+/*
+ * 侧栏里那张 v-list 不许自己上色。
+ *
+ * v-list 是个 v-sheet，底色拿的是不透明的 surface；而侧栏本身是
+ * rgba(surface, --ani-surface-alpha)，壁纸要从它后面透出来。
+ * 两者叠在一起，侧栏就成了上下两截颜色：列表罩住的那一段（图标那几行）是实色，
+ * 列表下边那一大片才是半透明——中间一道横的分界线，看着像侧栏被截断了。
+ * 底部导航没有这个问题，它里面装的是 v-btn，不是 v-list。
+ */
+.glass-rail :deep(.v-list) {
+    background: transparent;
+}
+
 .glass-bottom {
     border-top: 1px solid rgba(255, 255, 255, .14);
 }
